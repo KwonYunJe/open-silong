@@ -1,0 +1,147 @@
+/** @type {import('next').NextConfig} */
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://silong.rahmanef.com";
+const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL ?? "https://api-silong.rahmanef.com";
+const convexHost = (() => {
+  try { return new URL(convexUrl).hostname; } catch { return "api-silong.rahmanef.com"; }
+})();
+
+// Stable per-deploy build id. CI sets GITHUB_SHA / DOKPLOY_COMMIT_SHA;
+// fallback timestamp keeps dev unique. Exposed to the client as
+// NEXT_PUBLIC_BUILD_ID so VersionWatcher can compare and prompt reload.
+const BUILD_ID =
+  process.env.NEXT_PUBLIC_BUILD_ID ||
+  process.env.GITHUB_SHA ||
+  process.env.VERCEL_GIT_COMMIT_SHA ||
+  process.env.DOKPLOY_COMMIT_SHA ||
+  process.env.COMMIT_SHA ||
+  `dev-${Date.now()}`;
+process.env.NEXT_PUBLIC_BUILD_ID = BUILD_ID;
+
+const nextConfig = {
+  output: "standalone",
+  // geoip-lite loads its .dat data files from disk at runtime; the standalone
+  // output tracer can't see those fs reads, so include them explicitly for the
+  // analytics beacon route or the built image ships without them (geo silently
+  // empty; the x-vercel-ip-* header fallback still fills country).
+  outputFileTracingIncludes: {
+    "/api/analytics": ["./node_modules/geoip-lite/data/**"],
+  },
+  reactStrictMode: true,
+  transpilePackages: ["rahman-shared"],
+  generateBuildId: () => BUILD_ID,
+  images: {
+    // Convex storage URLs (ctx.storage.getUrl) live on the Convex API host —
+    // allowlisting lets us drop `unoptimized` on Image components that
+    // render storage blobs. User-pasted external URLs (ImageBlock,
+    // GalleryView) still use `unoptimized` because the URL space is open.
+    remotePatterns: [
+      { protocol: "https", hostname: convexHost, pathname: "/api/storage/**" },
+      // Common cover/avatar hosts users paste — kept narrow on purpose.
+      { protocol: "https", hostname: "images.unsplash.com" },
+      { protocol: "https", hostname: "avatars.githubusercontent.com" },
+    ],
+  },
+  // Cache Components (PPR) — the cookie-reading auth provider now lives in the
+  // (app) route group (not root), so public /share·/site·/forms can be
+  // statically shelled + stream their dynamic data. Dynamic access must sit
+  // under <Suspense> or use "use cache". See docs/audit/cache-components.md.
+  cacheComponents: true,
+  deploymentId: process.env.NEXT_PUBLIC_DEPLOYMENT_ID,
+  typescript: { ignoreBuildErrors: false },
+  experimental: {
+    serverActions: {
+      allowedOrigins: [new URL(siteUrl).host],
+      bodySizeLimit: "5mb",
+    },
+    optimizePackageImports: [
+      "lucide-react",
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-dropdown-menu",
+      "@radix-ui/react-popover",
+      "@radix-ui/react-tooltip",
+      "@radix-ui/react-select",
+      "@radix-ui/react-tabs",
+      "@radix-ui/react-scroll-area",
+      "@dnd-kit/core",
+      "@dnd-kit/sortable",
+      "@dnd-kit/utilities",
+      "cmdk",
+      "sonner",
+    ],
+  },
+  turbopack: {},
+  async redirects() {
+    // Legacy hostnames that pre-date the silong.rahmanef.com rebrand.
+    // 301-redirect to the canonical host, preserving full path + query.
+    // Both legacy domains still resolve to this same Dokploy app; the
+    // Host header is what triggers the redirect. SEO ranks transfer
+    // via permanent: true.
+    const legacyHosts = [
+      "nosion.rahmanef.com",
+      "notion-page-clone.rahmanef.com",
+    ];
+    const legacyRedirects = legacyHosts.map((host) => ({
+      source: "/:path*",
+      has: [{ type: "host", value: host }],
+      destination: "https://silong.rahmanef.com/:path*",
+      permanent: true,
+    }));
+
+    // Pre-/dashboard URLs from before the app was moved under a route prefix.
+    return [
+      ...legacyRedirects,
+      { source: "/p/:id", destination: "/dashboard/p/:id", permanent: true },
+      { source: "/inbox", destination: "/dashboard/inbox", permanent: true },
+      { source: "/trash", destination: "/dashboard/trash", permanent: true },
+      { source: "/settings", destination: "/dashboard/settings", permanent: true },
+      { source: "/profile", destination: "/dashboard/profile", permanent: true },
+      { source: "/admin", destination: "/dashboard/admin", permanent: true },
+      { source: "/admin/:path*", destination: "/dashboard/admin/:path*", permanent: true },
+    ];
+  },
+  async headers() {
+    // CSP: 'unsafe-inline' is unavoidable until Next 16 wires per-request
+    // nonces through React 19 SSR — the framework still emits inline
+    // bootstrap scripts. Everything else is locked to known origins.
+    const csp = [
+      "default-src 'self'",
+      "base-uri 'self'",
+      "object-src 'none'",
+      "frame-ancestors 'none'",
+      "form-action 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://accounts.google.com",
+      "style-src 'self' 'unsafe-inline'",
+      // Admin-curated template gallery images can come from any HTTPS origin —
+      // broaden img-src to https: rather than re-list each host. Other surfaces
+      // still go through next/image which has its own remotePatterns gate.
+      `img-src 'self' data: blob: https:`,
+      "font-src 'self' data:",
+      `connect-src 'self' https://${convexHost} wss://${convexHost} https://www.google-analytics.com https://accounts.google.com`,
+      "frame-src 'self' https://accounts.google.com",
+      "manifest-src 'self'",
+      "worker-src 'self' blob:",
+    ].join("; ");
+    return [
+      {
+        source: "/manifest.webmanifest",
+        headers: [
+          { key: "Content-Type", value: "application/manifest+json" },
+          { key: "Cache-Control", value: "no-cache" },
+        ],
+      },
+      {
+        source: "/(.*)",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+          { key: "Content-Security-Policy", value: csp },
+          { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains; preload" },
+        ],
+      },
+    ];
+  },
+};
+
+export default nextConfig;

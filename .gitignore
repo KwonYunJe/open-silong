@@ -1,0 +1,60 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Environment — never commit any env file except .env.example (tracked)
+.env
+.env.*
+!.env.example
+!.env.example.*
+
+# Next.js
+.next/
+next-env.d.ts
+out/
+.vercel
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.claude/scheduled_tasks.lock
+.claude/worktrees/
+.claude/sessions/
+.claude/local/
+tsconfig.tsbuildinfo
+
+# Generated artifacts
+*.tsbuildinfo
+coverage/
+.vitest-cache/
+.turbo/
+
+# Local agent / IDE state
+.fleet/
+.cursor/sessions/
+
+# Backup files — never commit
+*.bak
+*.backup
+*.orig
+
+# Brand-kit source dropzone — raw art kept local for regen, not shipped
+# (derived assets live in public/*.{svg,png,webp,ico}); regen via sharp
+public/open-silong-asset/

@@ -1,0 +1,225 @@
+# open-silong → rr lift status (2026-05-21)
+
+Per-slice tracking of every open-silong slice's lift state to rr.
+Updated after each sync round. Pair with `rr-sync.json.tracked`
+(file-hash drift detection) and rr's catalog `tags: "notion-like"`
+(consumer-facing filter).
+
+**Forward plan for the editor + databases pair**:
+[`2026-05-21-notion-mega-lift-plan.md`](./2026-05-21-notion-mega-lift-plan.md)
+— lifts both as one adapter-driven mega-bundle (resolves the
+bidirectional dep between editor ↔ databases). Read that doc before
+attempting any work on the 🟡 "in mega-bundle only" rows below.
+
+**Phase 5 status (2026-05-21)**: lift script + conflicts resolved,
+BUT rr-side build fails due to transitive deps. Files were rolled
+back from rr; re-attempt after Phase 6 store-strip.
+
+**Phase 6 status (2026-05-22)**: store-strip COMPLETE on open-silong
+side. Editor slice no longer imports `@/shared/lib/store` from any
+file (`useEditorAdapter` shim mirrors the legacy useStore API but
+sources from `useNotionAdapter`). 21 editor files migrated. Open-
+silong typecheck + 1288 tests + build all green. ResponsiveDialog
+explicit pathMap entry added so rr gets the primitive on lift.
+FilesAdapter.resolveUrl made optional with `useUrl` fallback so
+predating rr adapters don't break.
+
+BUT the `--with-peers` lift to rr STILL FAILS — Phase 6 closed the
+store gap, but uncovered a NEW class of blocker: **peer-slice API
+divergence**. rr's `@/features/comments` exports `useComments` but
+open-silong's editor expects `useBlockComments` + `PageCommentsPanel`
++ `PageCommentsProvider` + `BlockCommentsPopover`. Same pattern with
+`@/features/database-json` (rr has standalone, editor expects
+`DataMenu`). The rr-divergent slice skip-list intentionally preserves
+rr's versions, but their APIs don't satisfy open-silong's lifted
+consumers.
+
+This is **Phase 7 work — peer-slice componentsRegistry seams**:
+hoist `comments` + `database-json` (and other rr-divergent peers)
+into `componentsRegistry` slots inside editor + databases, so the
+lifted slices render stubs/no-ops when the peer impl isn't compatible,
+and consumers wire concrete impls via `<NotionAppProvider components={
+{ PageCommentsPanel, useBlockComments, ... }}>`. Same render-prop
+pattern that resolved the editor ↔ databases bidirectional cycle in
+Phase 2-3 — just extended to cover non-cycle peer imports.
+
+Other Phase 6 lift attempts revealed Phase 7 scope is broader:
+analytics, backlinks, block-selection, sharing, snapshots,
+simple-table, wiki, workspace-io, database-templates all import
+`@/shared/store` (rr's custom path, NOT `@/shared/lib/store`) — they
+need the same store-strip pass applied editor got. Each is ~2-4h of
+adapter wiring.
+
+Open-silong deliverables shipped
+- ✅ `localStorageNotionAdapter` flesh-out — full pages + databases
+  + files + recents + user + workspaces impls (~500 LOC).
+- ✅ `sync-to-rr.mjs --with-peers` flag — recursive peer lift.
+- ✅ `rr-sync.json.skipFiles` extended with multi-segment path
+  substring pattern. 5 new entries (`slices/comments/`,
+  `slices/database-csv/`, `slices/database-json/`,
+  `slices/code-block/`, `slices/equation/`) preserve rr's
+  divergent standalone slices.
+
+Lift attempted twice (notion --with-peers)
+- 1st attempt: 16 file conflicts in the 5 divergent slices →
+  resolved via skipFiles additions
+- 2nd attempt: zero conflicts, ~45 files written to rr, BUT:
+
+What blocks the rr-side ship
+- **`@convex/_generated/*` transitive imports.** `editor` /
+  `databases` slices still call `useStore()` for non-CRUD reads
+  (block history, reactive page lookup). The store imports
+  `@convex/_generated/dataModel` + `api`. rr has no such types.
+  Fix: complete the strict Phase 4 cleanup — remove `useStore()`
+  from editor entirely, route everything through `useNotionAdapter()`.
+- **`@/components/ui/responsive-dialog`.** `ConfirmProvider` imports
+  it. rr lacks this primitive. Fix: promote to a sibling slice OR
+  add a stub to rr's components/ui.
+- **`FilesAdapter.resolveUrl` breaking change.** Phase 2 added
+  `resolveUrl` to the interface. Custom impls in rr fail typecheck.
+  Fix: add `resolveUrl` to rr's other consumers OR make the
+  addition optional (default fallback via `useUrl`).
+
+These gaps are Phase 6 work — "complete the adapter abstraction"
+pass that Phase 4 left at "good enough for the cycle break". The
+cycle IS broken (editor↔databases zero peer imports). But editor
+still has store dependence for non-cycle-breaking concerns.
+
+rr-side state
+- Lift writes ROLLED BACK (45 untracked removed via
+  `git status --short | grep "^??" | xargs rm -rf`).
+- rr's other in-flight work (workspace-shell staged commits +
+  lib/content/slices.ts auto-gen) NOT touched.
+- `feat(database-json): lift standalone slice from open-silong`
+  rr commit (`a0d1f3f`) stands — committed cleanly per user
+  request before the lift attempt.
+
+📋 Operator runbook in
+[`2026-05-21-notion-mega-lift-plan.md` § "rr agent coordination"](./2026-05-21-notion-mega-lift-plan.md#rr-agent-coordination).
+Re-attempt after Phase 6 store-strip closes the transitive-dep gaps.
+
+## Summary
+
+| Status | Count | Where |
+|---|---|---|
+| ✅ Synced (compiles in rr) | **7** | `frontend/slices/<slug>/` in rr standalone |
+| 🟡 In mega-bundle only | **20** | `template-base/frontend/slices/notion/slices/` in rr |
+| 🔴 Blocked-pending-adapter | **10** | needs lift but convex/coupling/missing-primitives |
+| **TOTAL** | **37** | every nosion slice with `slice.manifest.json` |
+
+## ✅ Synced (file-level, tsc green in rr)
+
+| Slice | Lift date | Wave | Why portable |
+|---|---|---|---|
+| `equation` | 2026-05-19 | sync round 0 | pure UI, no convex |
+| `notifications` | 2026-05-19 | sync round 0 | pure UI, no convex |
+| `code-block` | 2026-05-19 | sync round 0 | pure UI, no convex |
+| `database-cell-selection` | 2026-05-19 | sync round 0 | pure UI hook |
+| `mentions` | 2026-05-19 | sync round 0 | pure UI parser |
+| `theme-presets` | 2026-05-20 | sync round 1 (BS) | tweakcn + next-themes, no backend |
+| `files` | 2026-05-21 | sync round 2 (BT) | **storage-adapter pattern** — `FilesAdapter` (upload + remove + useUrl). nosion wires `useConvexFilesAdapter` (skip-listed in rr-sync.json), rr defaults to `useLocalStorageFilesAdapter` (data-URL bucket). First proof of the adapter contract — reference for the remaining round 2 lifts. |
+
+Tag in rr catalog: `notion-like`. Source field: `notion-page-clone`.
+
+## 🔴 Blocked-pending-adapter (10 slices)
+
+Each row: blocker + adapter contract needed. **Pattern reference:**
+the `files` slice (synced 2026-05-21) is the first proof of the
+storage-adapter contract — see its `adapter/types.ts` and
+`adapter/{convex,localStorage}Adapter.{tsx,ts}` for the template.
+
+| Slice | Blocker | Path forward |
+|---|---|---|
+| `ai-agent` | 2 `@convex/_generated` imports (AI tool/skill registry tables) | Storage-adapter interface for registry CRUD; localStorage fallback for demo |
+| `cover` | 2 convex imports (`files` slice + Unsplash backend action) | Now unblocked on the files side; needs Unsplash render-prop adapter only |
+| `feedback` | 3 convex imports (feedback submission mutations) | Adapter for submit; localStorage demo bucket |
+| `inbox` | 2 convex imports (notifications + activity feed) | Adapter for stream; SSE or polling option |
+| `library` | depends on `workspace-io` (blocked) | Lift after workspace-io adapter |
+| `mobile-nav` | deps on admin-panel + ai-agent + inbox + templates (all blocked) | Cascade-blocked; lift after deps |
+| `templates` | 2 convex imports (template CRUD + AI generator) | Adapter for storage + AI provider injection |
+| `workspace-io` | 2 convex imports (import mutation reads + write all tables) | Adapter for import/export; JSON serializer already pure |
+| `workspace-members` | 1 convex import (member CRUD + invites table) | Adapter for membership + invite token storage |
+| `database-json` | depends on `database-csv` (in mega-bundle, no standalone) | Lift database-csv standalone first, then database-json |
+
+## 🟡 In mega-bundle only (20 slices)
+
+These live in rr's `template-base/frontend/slices/notion/slices/`
+as part of the drop-in mega-bundle, but DON'T exist as standalone
+slices in rr's `frontend/slices/`. Promotion to standalone needs
+the same adapter pattern + dep resolution work.
+
+```
+analytics · backlinks · block-selection · command-palette · dashboard ·
+database-csv · database-presets · database-templates · databases · editor ·
+files · inbox · search · sharing · simple-table · snapshots · trash · wiki ·
+workspace-sidebar · mentions(duplicate of synced standalone)
+```
+
+Note: `comments` is in both mega-bundle AND lifted standalone (sync round 0). The standalone version has a host-adapter pattern.
+
+## Tracking sources
+
+| Source | What it tracks | How to query |
+|---|---|---|
+| `rr-sync.json` (this repo) | per-file hashes for ✅ Synced — drift detect | `node scripts/rr-sync-status.mjs` |
+| `docs/rr-sync/lift-status.md` (this file) | per-slice status table — adapter blockers | manual read / grep |
+| rr catalog `tags: ["notion-like"]` (lib/content/slices.ts) | consumer-visible tag for filtering | rr UI filter / `grep "notion-like" lib/content/slices.ts` |
+| rr `source: "notion-page-clone"` in catalog | provenance field | `grep 'source.*notion-page-clone' lib/content/slices.ts` |
+
+## Lift technique notes
+
+For the 11 blocked slices, the universal fix is **storage-adapter
+pattern** — the same approach used by `notion-shell` to ship
+production-grade UI without dragging Convex into rr. Contract:
+
+```ts
+interface SliceAdapter<T> {
+  list(filter?): Promise<T[]> | T[];
+  get(id): Promise<T | null> | T | null;
+  create(input): Promise<T>;
+  update(id, patch): Promise<T>;
+  remove(id): Promise<void>;
+  subscribe?(cb): () => void;
+}
+```
+
+Slice ships UI components + types + a default localStorage adapter.
+Host (whether nosion's Convex backend or a fresh project's
+localStorage) wires a custom adapter via React context. Strip every
+direct `@convex/_generated` import; pass data via render-prop or
+adapter call.
+
+Per-slice adapter work is **~2-4 hours** depending on surface area.
+Realistic batch order (✅ marks done):
+1. ✅ files (foundation — many depend on it) — synced 2026-05-21
+2. workspace-members (clean — 1 convex import)
+3. workspace-io (depends on files; JSON serializer already pure)
+4. library (depends on workspace-io)
+5. cover (depends on files; Unsplash render-prop)
+6. feedback (3 convex; simple submit + read)
+7. inbox (2 convex; activity stream)
+8. ai-agent (2 convex; registry CRUD + AI provider injection)
+9. templates (2 convex; storage + AI gen)
+10. mobile-nav (cascade-unblocks after deps)
+11. database-json (after database-csv lifted standalone)
+
+## Mega-bundle promotion (20 slices)
+
+Separate roadmap. Mega-bundle promotion = breaking each
+template-base/notion/slices/<name> out into `frontend/slices/<name>`
+standalone with own slice.manifest + catalog entry. Most need the
+same adapter pattern + `responsive-dialog` / `responsive-alert-dialog`
+lift first.
+
+## Re-sync cadence
+
+After every wave that touches `frontend/slices/<lifted-slug>/` on the
+nosion side, run:
+
+```bash
+node scripts/sync-to-rr.mjs <slug>   # one slice
+node scripts/sync-to-rr.mjs --list   # show tracked + last-sync
+```
+
+Drift surfaces via the pre-push nag (non-blocking) — see
+`.git/hooks/pre-push`.

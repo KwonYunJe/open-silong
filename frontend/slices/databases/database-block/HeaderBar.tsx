@@ -1,0 +1,156 @@
+import { useDbAdapter } from "../lib/useDbAdapter";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger,
+} from "@/shared/ui/dropdown-menu";
+import { Plus, Maximize2, Link2, Lock, BoxSelect } from "lucide-react";
+import { Button } from "@/shared/ui/button";
+import { DynamicIcon, IconPickerPopover, DEFAULT_DATABASE_ICON } from "@/shared/components/icon-picker";
+import { ViewTab } from "./ViewTab";
+import { DatabaseMenu } from "./DatabaseMenu";
+import { VIEW_META } from "./lazyViews";
+import type { Database, DatabaseViewConfig, DbView, Page } from "@/shared/types/domain";
+
+export function DatabaseHeaderBar({
+  db,
+  view,
+  rows,
+  isInline,
+  isLinked,
+  onOpenAsPage,
+  activeViewId,
+  onActivateView,
+  writeView,
+}: {
+  db: Database;
+  view: DatabaseViewConfig;
+  rows: Page[];
+  isInline: boolean;
+  isLinked: boolean;
+  onOpenAsPage: () => void;
+  /** Source-of-truth active view id (block override or db default). */
+  activeViewId?: string;
+  /** Caller decides whether to write to block (linked) or db (canonical). */
+  onActivateView: (viewId: string) => void;
+  /** Per-block view writer for non-structural fields. */
+  writeView: (viewId: string, patch: Partial<DatabaseViewConfig>) => void;
+}) {
+  const { updateDatabase, addView, updateView, deleteView } = useDbAdapter();
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-2">
+      <div className="flex items-center gap-2 min-w-0 flex-1">
+        {isInline && (
+          <>
+            <IconPickerPopover
+              value={db.icon}
+              onChange={(next) => updateDatabase(db.id, { icon: next })}
+              onClear={() => updateDatabase(db.id, { icon: DEFAULT_DATABASE_ICON })}
+            >
+              <Button variant="ghost" type="button" className="h-auto rounded p-0.5 text-base font-normal leading-none" aria-label="Change database icon">
+                <DynamicIcon value={db.icon} fallback={DEFAULT_DATABASE_ICON} />
+              </Button>
+            </IconPickerPopover>
+            <input
+              value={db.name}
+              onChange={(e) => updateDatabase(db.id, { name: e.target.value })}
+              className="bg-transparent text-sm font-semibold outline-none flex-1 min-w-0 max-w-xs"
+            />
+          </>
+        )}
+        {isInline && (
+          <>
+            <span
+              title="This database is embedded inline. The canonical home is a dedicated page — open it to edit without surrounding blocks."
+              className="ml-1 hidden sm:inline-flex items-center gap-1 rounded-full border border-muted-foreground/30 bg-muted/50 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground"
+            >
+              <BoxSelect className="h-3 w-3" /> inline
+            </span>
+            <Button
+              variant="ghost"
+              type="button"
+              size="icon"
+              onClick={onOpenAsPage}
+              title="Open as page"
+              aria-label="Open database as page"
+              className="h-auto rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground [&_svg]:size-3.5"
+            >
+              <Maximize2 className="h-3.5 w-3.5" />
+            </Button>
+          </>
+        )}
+        {isLinked && (
+          <span
+            title="This database is also embedded on other pages — edits sync everywhere."
+            className="ml-1 hidden sm:inline-flex items-center gap-1 rounded-full border border-brand/30 bg-brand/5 px-1.5 py-0.5 text-[10px] font-medium text-brand"
+          >
+            <Link2 className="h-3 w-3" /> linked
+          </span>
+        )}
+        {db.locked && (
+          <span
+            title="Database is locked — property and view structural edits are gated. Toggle in the database menu."
+            className="ml-1 inline-flex items-center gap-1 rounded-full border border-warning/40 bg-warning/10 px-1.5 py-0.5 text-[10px] font-medium text-warning"
+          >
+            <Lock className="h-3 w-3" /> locked
+          </span>
+        )}
+      </div>
+      <div className="flex items-center gap-1 max-w-full overflow-x-auto scrollbar-thin">
+        {db.views.map((v) => (
+          <ViewTab
+            key={v.id}
+            db={db}
+            v={v}
+            active={v.id === activeViewId}
+            onActivate={() => onActivateView(v.id)}
+            onRename={(name) => updateView(db.id, v.id, { name })}
+            onDuplicate={async () => {
+              const { id: _id, ...rest } = v;
+              void _id;
+              const cloned = structuredClone(rest);
+              const nv = await addView(db.id, { ...cloned, name: `${v.name} copy` });
+              onActivateView(nv.id);
+            }}
+            onDelete={() => {
+              if (db.views.length <= 1) return;
+              const next = db.views.find((x) => x.id !== v.id);
+              deleteView(db.id, v.id);
+              if (next && v.id === activeViewId) onActivateView(next.id);
+            }}
+            onToggleLock={() => updateView(db.id, v.id, { locked: !v.locked })}
+          />
+        ))}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="h-auto rounded p-1 text-muted-foreground [&_svg]:size-3.5"
+              aria-label="Add view"
+              title={db.locked ? "Database locked — unlock to add views" : "Add view"}
+              disabled={db.locked}
+            >
+              <Plus className="h-3.5 w-3.5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            <DropdownMenuLabel className="text-xs">Add view</DropdownMenuLabel>
+            {(Object.keys(VIEW_META) as DbView[]).map((t) => {
+              const M = VIEW_META[t];
+              return (
+                <DropdownMenuItem
+                  key={t}
+                  onClick={async () => {
+                    const nv = await addView(db.id, { name: M.label, type: t, sorts: [], filters: [], search: "" });
+                    onActivateView(nv.id);
+                  }}
+                >
+                  <M.icon className="mr-2 h-3.5 w-3.5" /> {M.label}
+                </DropdownMenuItem>
+              );
+            })}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <DatabaseMenu db={db} view={view} rows={rows} writeView={writeView} />
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,114 @@
+"use client";
+
+import type { Status } from "./types";
+import { Button } from "@/shared/ui/button";
+
+export function CountChip({
+  label,
+  value,
+  tone = "default",
+}: {
+  label: string;
+  value: number;
+  tone?: "default" | "success" | "warning" | "muted";
+}) {
+  const cls =
+    tone === "success"
+      ? "border-success/30 bg-success/10 text-success"
+      : tone === "warning"
+        ? "border-warning/30 bg-warning/10 text-warning"
+        : tone === "muted"
+          ? "border-border bg-muted/40 text-muted-foreground"
+          : "border-border bg-card text-foreground";
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 ${cls}`}>
+      <span className="font-semibold tabular-nums">{value}</span>
+      <span className="opacity-80">{label}</span>
+    </span>
+  );
+}
+
+export function StatusPills({
+  value,
+  onChange,
+  counts,
+}: {
+  value: Status;
+  onChange: (s: Status) => void;
+  counts: { total: number; published: number; draft: number; seed: number };
+}) {
+  const pills: { key: Status; label: string; count: number }[] = [
+    { key: "all", label: "All", count: counts.total },
+    { key: "published", label: "Published", count: counts.published },
+    { key: "draft", label: "Draft", count: counts.draft },
+    { key: "seed", label: "Seed", count: counts.seed },
+  ];
+  return (
+    <div className="inline-flex items-center gap-0.5 rounded-md border border-border bg-card p-0.5">
+      {pills.map((p) => (
+        <Button
+          key={p.key}
+          type="button"
+          variant="ghost"
+          onClick={() => onChange(p.key)}
+          className={`px-2.5 h-7 text-xs rounded font-normal ${
+            value === p.key
+              ? "bg-accent text-accent-foreground font-medium shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          {p.label}
+          <span className="ml-1 tabular-nums opacity-60">{p.count}</span>
+        </Button>
+      ))}
+    </div>
+  );
+}
+
+export function CategoryChips({
+  value,
+  onChange,
+  categories,
+}: {
+  value: string;
+  onChange: (c: string) => void;
+  categories: string[];
+}) {
+  return (
+    <div className="flex items-center gap-1 flex-wrap">
+      <ChipButton active={value === "all"} onClick={() => onChange("all")}>
+        All categories
+      </ChipButton>
+      {categories.map((c) => (
+        <ChipButton key={c} active={value === c} onClick={() => onChange(c)}>
+          {c}
+        </ChipButton>
+      ))}
+    </div>
+  );
+}
+
+function ChipButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      onClick={onClick}
+      className={`px-2.5 h-7 text-xs rounded-full font-normal ${
+        active
+          ? "border-foreground/40 bg-accent text-accent-foreground"
+          : "text-muted-foreground"
+      }`}
+    >
+      {children}
+    </Button>
+  );
+}
