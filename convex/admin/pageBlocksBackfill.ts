@@ -7,7 +7,7 @@
  *  reached. Idempotent (skips pages that already have a pageBlocks row), so it
  *  is safe to re-run.
  *
- *  Run: `pnpm exec convex run admin/pageBlocksBackfill:run` (dev) or with
+ *  Run: `bunx convex run admin/pageBlocksBackfill:run` (dev) or with
  *  `env -u CONVEX_DEPLOYMENT … --prod` for production.
  */
 

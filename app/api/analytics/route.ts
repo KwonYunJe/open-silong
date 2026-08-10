@@ -8,7 +8,7 @@ import { createHash } from "node:crypto";
 
 // geoip-lite loads its .dat data at module-eval and ships without it → a TOP-LEVEL import
 // crashes `next build`. Lazy + guarded: builds clean; geo degrades to null if data is absent.
-type _Geo = { country?: string; region?: string; city?: string; ll?: [number, number] } | null;
+type _Geo = { country?: string; city?: string } | null;
 let _geoip: { lookup: (ip: string) => _Geo } | null | undefined;
 async function lookupGeo(ip: string): Promise<_Geo> {
   if (_geoip === undefined) {
@@ -92,7 +92,6 @@ export async function POST(req: Request) {
   // Vercel edge already resolves country — use it as a fallback when the
   // offline geoip db misses (e.g. a fresh IP block).
   const country = geo?.country || req.headers.get("x-vercel-ip-country") || undefined;
-  const region = geo?.region || req.headers.get("x-vercel-ip-country-region") || undefined;
   const city = geo?.city || req.headers.get("x-vercel-ip-city") || undefined;
   const ipHash = ip && ip !== "?" ? createHash("sha256").update(ip).digest("hex") : undefined;
 
@@ -111,10 +110,7 @@ export async function POST(req: Request) {
       utmTerm: str(body?.utmTerm, 120),
       utmContent: str(body?.utmContent, 120),
       country: country ? country.slice(0, 2).toUpperCase() : undefined,
-      region: region || undefined,
       city: city ? decodeURIComponent(city) : undefined,
-      lat: geo?.ll?.[0],
-      lon: geo?.ll?.[1],
       properties: str(body?.properties, 2000),
       ipHash,
     })

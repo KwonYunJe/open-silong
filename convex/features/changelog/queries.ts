@@ -16,22 +16,6 @@ export const listAll = query({
   },
 });
 
-/** Public: list published entries, most recent first. Used by inbox +
- *  any "What's new" page. */
-export const listPublished = query({
-  args: {},
-  handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return [];
-    const rows = await ctx.db
-      .query("changelogEntries")
-      .withIndex("by_published")
-      .order("desc")
-      .take(50);
-    return rows.filter((r) => r.publishedAt != null);
-  },
-});
-
 /** Unread count for inbox badge — published entries newer than the
  *  viewer's lastReadChangelogAt. */
 export const unreadCount = query({

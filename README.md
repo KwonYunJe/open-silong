@@ -97,10 +97,10 @@ Local development:
 ```bash
 git clone https://github.com/rahmanef63/open-silong.git
 cd open-silong
-pnpm install
+bun install
 cp .env.example .env.local        # fill NEXT_PUBLIC_CONVEX_URL after step 4
 npx convex dev                    # creates Convex Cloud project, prints URL
-pnpm dev                          # http://localhost:3000
+bun run dev                          # http://localhost:3000
 ```
 
 Convex Cloud free tier covers small teams. Full walk-through in
@@ -113,9 +113,9 @@ git clone https://github.com/rahmanef63/open-silong.git
 cd open-silong
 cp .env.example .env.local        # fill INSTANCE_*, JWT_*, POSTGRES_URL
 docker compose up -d              # Convex backend on port 3210
-pnpm install
-pnpm exec convex deploy --yes     # push schema + functions
-pnpm dev                          # http://localhost:3000
+bun install
+bunx convex deploy --yes     # push schema + functions
+bun run dev                          # http://localhost:3000
 ```
 
 Full Dokploy + Traefik + Postgres + S3 setup in
@@ -130,8 +130,8 @@ Full Dokploy + Traefik + Postgres + S3 setup in
 #    client (Web app). Authorized redirect URI:
 #    https://<your-CONVEX_SITE_ORIGIN>/api/auth/callback/google
 # 2. Set on Convex backend
-pnpm exec convex env set AUTH_GOOGLE_ID <client-id>.apps.googleusercontent.com
-pnpm exec convex env set AUTH_GOOGLE_SECRET <client-secret>
+bunx convex env set AUTH_GOOGLE_ID <client-id>.apps.googleusercontent.com
+bunx convex env set AUTH_GOOGLE_SECRET <client-secret>
 ```
 
 The "Sign in with Google" button in `/auth` activates automatically

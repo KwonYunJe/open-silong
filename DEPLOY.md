@@ -15,7 +15,7 @@ same Next 16 frontend; what changes is **how Convex is hosted**.
 
 ### Prerequisites
 
-- Node 20+, pnpm 10+
+- Node 20+, Bun 1.3+
 - A Convex Cloud account (sign up free at https://convex.dev)
 - A Vercel / Netlify / Cloudflare Pages account (or any Next 16 host)
 
@@ -24,7 +24,7 @@ same Next 16 frontend; what changes is **how Convex is hosted**.
 ```bash
 git clone https://github.com/rahmanef63/open-silong.git
 cd open-silong
-pnpm install
+bun install
 
 # 1. Create a Convex project (interactive)
 npx convex dev
@@ -33,15 +33,15 @@ npx convex dev
 
 # 2. Set your auth provider env vars
 # Magic-link is built in; add JWT_PRIVATE_KEY + JWKS via:
-pnpm exec convex env set JWT_PRIVATE_KEY "$(cat /tmp/jwt-private.pem)"
-pnpm exec convex env set JWKS "$(cat /tmp/jwks.json)"
+bunx convex env set JWT_PRIVATE_KEY "$(cat /tmp/jwt-private.pem)"
+bunx convex env set JWKS "$(cat /tmp/jwks.json)"
 # Generation helpers documented in convex/auth-keys.md (TBD)
 
 # 3. (Optional) Unsplash cover picker
-pnpm exec convex env set UNSPLASH_ACCESS_KEY <your-unsplash-key>
+bunx convex env set UNSPLASH_ACCESS_KEY <your-unsplash-key>
 
 # 4. Local dev
-pnpm dev   # http://localhost:3000
+bun run dev   # http://localhost:3000
 
 # 5. Deploy frontend to Vercel
 vercel --prod
@@ -54,7 +54,7 @@ vercel --prod
 ### Production deploy
 
 ```bash
-pnpm exec convex deploy --yes      # pushes functions + schema to prod
+bunx convex deploy --yes      # pushes functions + schema to prod
 git push                            # triggers Vercel deploy
 ```
 
@@ -112,7 +112,7 @@ labels:
 
 ```bash
 # After backend is up, push your functions:
-pnpm exec convex deploy --yes
+bunx convex deploy --yes
 # If you see BadAdminKey, double-check CONVEX_ADMIN_KEY matches what
 # .env.local sourced AND the value the Docker container received.
 ```
@@ -144,15 +144,15 @@ doesn't reject the dual-target combo.
 ### Build the Next frontend (Docker or systemd)
 
 Easiest path with Dokploy: connect this repo, set build command
-`pnpm install --frozen-lockfile && pnpm build`, set start command
-`pnpm start`, env vars from your `.env.local`.
+`bun install --frozen-lockfile && bun run build`, set start command
+`bun run start`, env vars from your `.env.local`.
 
 Alternative manual:
 
 ```bash
-pnpm install --frozen-lockfile
-pnpm build                          # next build
-pnpm start                          # next start on port 3000
+bun install --frozen-lockfile
+bun run build                          # next build
+bun run start                          # next start on port 3000
 # front with Traefik / nginx on port 443
 ```
 
@@ -184,8 +184,8 @@ pnpm start                          # next start on port 3000
 **2. Set the env vars on the Convex backend**
 
 ```bash
-pnpm exec convex env set AUTH_GOOGLE_ID <client-id>.apps.googleusercontent.com
-pnpm exec convex env set AUTH_GOOGLE_SECRET <client-secret>
+bunx convex env set AUTH_GOOGLE_ID <client-id>.apps.googleusercontent.com
+bunx convex env set AUTH_GOOGLE_SECRET <client-secret>
 ```
 
 Self-hosted variant — add the same two keys to your Dokploy compose
@@ -196,7 +196,7 @@ backend container picks them up on next restart.
 
 ```bash
 # List backend env (values shown masked)
-pnpm exec convex env list | grep AUTH_GOOGLE
+bunx convex env list | grep AUTH_GOOGLE
 ```
 
 Visit `/auth` in your browser → "Sign in with Google" should now
@@ -222,7 +222,7 @@ S3) (files). Backup both:
 pg_dump $POSTGRES_URL | gzip > /backups/silong-$(date +%F).sql.gz
 
 # Convex snapshot export — manual or scheduled via convex/maintenance.ts
-pnpm exec convex export --path /tmp/silong-snapshot.zip
+bunx convex export --path /tmp/silong-snapshot.zip
 ```
 
 ---
@@ -244,13 +244,13 @@ Cloud → self-hosted (or vice versa):
 
 ```bash
 # Export from the source Convex backend
-pnpm exec convex export --path /tmp/silong-export.zip
+bunx convex export --path /tmp/silong-export.zip
 
 # Point .env.local at the target Convex backend (re-run convex dev or
 # update CONVEX_URL/admin key for self-hosted)
 
 # Import
-pnpm exec convex import --path /tmp/silong-export.zip
+bunx convex import --path /tmp/silong-export.zip
 ```
 
 JSON workspace export from the UI (Settings → Backup) is **also** a
@@ -263,10 +263,10 @@ selective moves.
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
-| `BadAdminKey` from `convex deploy` | `.env.local` not sourced or admin key mismatch | `source .env.local && pnpm exec convex deploy --yes` |
-| Magic-link emails not arriving | Auth provider env vars unset | `pnpm exec convex env list` → set missing |
+| `BadAdminKey` from `convex deploy` | `.env.local` not sourced or admin key mismatch | `source .env.local && bunx convex deploy --yes` |
+| Magic-link emails not arriving | Auth provider env vars unset | `bunx convex env list` → set missing |
 | File upload returns 500 | S3 env vars missing or local disk full | Check `S3_STORAGE_FILES_BUCKET` + disk |
-| Unsplash tab "not configured" | `UNSPLASH_ACCESS_KEY` not set on backend | `pnpm exec convex env set UNSPLASH_ACCESS_KEY <key>` |
+| Unsplash tab "not configured" | `UNSPLASH_ACCESS_KEY` not set on backend | `bunx convex env set UNSPLASH_ACCESS_KEY <key>` |
 | Self-hosted backend 502 via Traefik | Convex bound to `0.0.0.0` but `docker-compose.yml` exposes `127.0.0.1` only | Add a Traefik network; don't change the bind |
 | `proxy.ts` redirect loop | Auth cookie domain mismatch | Set `NEXT_PUBLIC_SITE_URL` to your actual host |
 

@@ -13,7 +13,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/shared/ui/alert-dialog";
 import {
   Drawer,
@@ -23,7 +22,6 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-  DrawerTrigger,
 } from "@/shared/ui/drawer-lazy";
 import { Button, buttonVariants } from "@/shared/ui/button";
 
@@ -43,17 +41,15 @@ export interface ResponsiveAlertDialogProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   children: React.ReactNode;
-  forceMode?: Mode;
 }
 
 export function ResponsiveAlertDialog({
   open,
   onOpenChange,
   children,
-  forceMode,
 }: ResponsiveAlertDialogProps) {
   const isMobile = useIsMobile();
-  const mode: Mode = forceMode ?? (isMobile ? "drawer" : "dialog");
+  const mode: Mode = isMobile ? "drawer" : "dialog";
   const Root = mode === "dialog" ? AlertDialog : Drawer;
 
   const rootTree = (
@@ -74,14 +70,6 @@ export function ResponsiveAlertDialog({
       )}
     </ResponsiveAlertDialogContext.Provider>
   );
-}
-
-export function ResponsiveAlertDialogTrigger(
-  props: React.ComponentProps<typeof AlertDialogTrigger>,
-) {
-  const mode = useMode();
-  const Trigger = mode === "dialog" ? AlertDialogTrigger : DrawerTrigger;
-  return <Trigger {...props} />;
 }
 
 export interface ResponsiveAlertDialogContentProps

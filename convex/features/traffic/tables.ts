@@ -27,8 +27,11 @@ export const trafficTables = {
     // geo — resolved from the client IP via geoip-lite in the route, then the
     // raw IP is dropped (never stored). All optional (a lookup can miss).
     country: v.optional(v.string()), // ISO-3166-1 alpha-2
-    region: v.optional(v.string()), // subdivision code
     city: v.optional(v.string()),
+    // ponytail: region/lat/lon are no longer written (nothing read them). Kept
+    // in the schema only so already-stored rows still validate — drop them
+    // once those rows have aged out of the retention window.
+    region: v.optional(v.string()),
     lat: v.optional(v.number()),
     lon: v.optional(v.number()),
     properties: v.optional(v.string()), // JSON string, capped, for custom events

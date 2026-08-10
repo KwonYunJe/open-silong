@@ -4,7 +4,7 @@ Convex full-text search over pages + databases. Powers Cmd+K /
 SearchModal. Indexes: `pages.search_content` over `searchText`,
 `databases.search_name` over `name`.
 
-Source: `convex/features/search/{queries,mutations,lib,index}.ts`.
+Source: `convex/features/search/{queries,mutations,lib}.ts`.
 
 ---
 

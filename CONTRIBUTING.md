@@ -16,7 +16,7 @@ docs fixes, and code PRs are all welcome.
 ### Prerequisites
 
 - Node 20+ (LTS)
-- pnpm 10 (the repo pins `packageManager: pnpm@10.32.1`)
+- Bun 1.3+ (the repo pins `packageManager: bun@1.3.14`)
 - Docker + Docker Compose (for self-hosted Convex lane)
 - A Convex Cloud account (for the cloud lane)
 
@@ -25,10 +25,10 @@ docs fixes, and code PRs are all welcome.
 ```bash
 git clone https://github.com/rahmanef63/open-silong.git
 cd open-silong
-pnpm install
+bun install
 cp .env.example .env.local
 # Pick your Convex lane — see DEPLOY.md
-pnpm dev
+bun run dev
 ```
 
 Hot-reload Next at `http://localhost:3000`. Convex dev backend
@@ -37,12 +37,12 @@ streams logs in the terminal you ran `npx convex dev` in.
 ### Useful scripts
 
 ```bash
-pnpm dev               # Next dev server (port 3000)
-pnpm typecheck         # tsc --noEmit (must be green before commit)
-pnpm test              # vitest run
-pnpm lint              # eslint
-pnpm convex:dev        # Convex dev backend (cloud lane)
-pnpm convex:deploy     # push functions to your Convex backend
+bun run dev               # Next dev server (port 3000)
+bun run typecheck         # tsc --noEmit (must be green before commit)
+bun run test              # vitest run
+bun run lint              # eslint
+bun run convex:dev        # Convex dev backend (cloud lane)
+bun run convex:deploy     # push functions to your Convex backend
 ```
 
 ## Codebase tour
@@ -113,7 +113,7 @@ handler** — use `requireOwned` / `requireWorkspaceMember` from
 
 1. Fork → branch (`feat/...`, `fix/...`, `docs/...`).
 2. Commits with conventional prefixes.
-3. `pnpm typecheck` + relevant `pnpm test` green before push.
+3. `bun run typecheck` + relevant `bun run test` green before push.
 4. Open PR against `main`. The PR template prompts for context,
    screenshots (UI), and breaking-change callouts.
 5. CI runs typecheck + lint + tests. We aim to triage within a week.
@@ -131,7 +131,7 @@ Include:
 
 - Lane (Convex cloud / self-hosted / public demo)
 - Browser + OS
-- Console errors / Convex logs (`pnpm exec convex logs --tail`)
+- Console errors / Convex logs (`bunx convex logs --tail`)
 - A minimal repro if possible
 
 ## Feature requests

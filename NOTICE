@@ -55,7 +55,7 @@ apply to those components. Notable dependencies:
 - recharts (MIT) — https://github.com/recharts/recharts
 
 The full dependency list is in `package.json`. Run
-`pnpm licenses list` for a complete machine-readable inventory.
+`bun pm ls --all` for a complete machine-readable inventory.
 
 ===============================================================================
 Interoperability formats

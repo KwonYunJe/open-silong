@@ -45,10 +45,10 @@ Legend: 🟢 MVP (P0–P1) · 🟡 syntax phase (P2) · 🔵 polish (P3) · ⚪ 
 | `[[link\|alias]]` display alias | token supports `\|alias` | 🟡 P2 |
 | Unresolved links → click to create ("ghost" node) | ghost node `ghost:<slug>`, click = create page | 🟡 P2 |
 | `#tags`, nested `#a/b` | `#tag` token + `pages.tags[]` denormalized + tag nodes | 🟡 P2 |
-| Tag pane (all tags + counts) | `graph.listTags` query + tag list UI | 🟡 P2 |
-| Backlinks panel (linked mentions) | server `listBacklinks` (edge table) — upgrades today's client panel | 🟢 P0/P1 |
+| Tag pane (all tags + counts) | client tag scan over the store + tag list UI | 🟡 P2 |
+| Backlinks panel (linked mentions) | client `useBacklinks` over the store | 🟢 P0/P1 |
 | Unlinked mentions | `getUnlinkedMentions` via search index | 🔵 P3 |
-| Outgoing links panel | server `listOutgoing` (edge table) | 🟢 P1 |
+| Outgoing links panel | client scan of the open page's blocks | 🟢 P1 |
 | **Global graph view** (force-directed) | `react-force-graph-2d`, `/dashboard/graph` | 🟢 P1 |
 | **Local graph** (per-note ego, depth) | BFS n-hop, panel beside backlinks | 🟢 P1 |
 | Graph controls: filters (tags/orphans/attachments), forces (center/repel/link dist), display (arrows, text-fade, node size, link thickness) | `GraphControls` panel; persisted in `preferences` | 🟢 P1 / 🔵 P3 |
@@ -94,7 +94,7 @@ Two data paths, one taxonomy — **deliberate**, because of the rr-portability w
                  └─► recompute pages.tags[]  (denormalized, gated by touchesText)                     │
                                                                                                       │
    SERVER path (open-silong only, NOT rr-synced):                                                     │
-     convex/features/graph/queries.ts  getGlobalGraph / getLocalGraph / listBacklinks / listByTag     │
+     convex/features/graph/queries.ts  getGlobalGraph  (the only server-side graph read)              │
      convex/mcp/{jsonrpc,internal}.ts  graph_* tools  ◄── AI agents traverse memory here              │
                                                                                                       │
    CLIENT path (portable slice, reactive, zero server round-trip for the canvas):                     │
@@ -189,21 +189,22 @@ Reindex fn: `reindexPageLinks(ctx, page)` — `extractEdges` → resolve titles 
 
 ---
 
-## 6. Server queries — `convex/features/graph/{queries,mutations,lib,index}.ts`
+## 6. Server queries — `convex/features/graph/{queries,mutations,lib}.ts`
 
-Public (slice can call via store adapter) + internal mirrors (MCP), all
-workspace/owner gated:
+The server ships exactly **one** public query, workspace gated:
 
 | Fn | Args | Returns |
 |---|---|---|
 | `getGlobalGraph` | `{ includeTags?, includeGhosts?, includeOrphans?, limit? }` | `Graph` (nodes+edges, degree computed) |
-| `getLocalGraph` | `{ pageId, depth: 1..3 }` | BFS ego `Graph` |
-| `listBacklinks` | `{ pageId }` | incoming edges + source page meta (`by_target`) |
-| `listOutgoing` | `{ pageId }` | outgoing edges (`by_source`), resolved + ghost |
-| `listTags` | `{}` | `[{ tag, count }]` (`by_workspace_tag`) |
-| `listByTag` | `{ tag }` | pages carrying tag |
-| `getUnlinkedMentions` | `{ pageId }` | `searchPages(title)` minus already-linked (P3) |
-| `getRelated` | `{ pageId }` | pages sharing tags/neighbors, ranked (P3) |
+
+Everything else stays client-side: backlinks, the local (ego) graph, the
+tag pane and pages-by-tag are all derived from the already-loaded store
+(`useBacklinks`, `useGraphModel`, `useLocalGraph`) — no server round-trip.
+Add a server query only when a surface without the store needs it (MCP
+tools call their own internal queries in `convex/mcp/internal.ts`).
+
+Deferred (P3): `getUnlinkedMentions` (`searchPages(title)` minus
+already-linked), `getRelated` (pages sharing tags/neighbors, ranked).
 
 `lib.ts` = `buildGraphFromEdges(edges, pages)` (degree, hub from `wiki`), `bfs(adj, root, depth)`.
 
@@ -343,6 +344,6 @@ push to `main` (Convex deploy auto-runs via pre-push hook / `build:auto`).
 - **Ghost promotion** — creating/renaming a page does NOT re-resolve other pages' unresolved `[[Title]]` ghost links (needs a slugged `targetTitleKey` field + index on `pageLinks`); re-running `backfillLinks` resolves them in the meantime, and typing `[[Existing]]` already resolves immediately.
 - **Share/export wikilink resolution** — `renderInline`'s new `pages` arg is not wired at the `SharedPageView` / template-preview call sites, so wikilinks render as ghost spans on read surfaces.
 - **Ghost → create-page click flow** — clicking an unresolved `[[link]]` should create the page; not implemented yet.
-- **Client graph model is edge-sparse** — the store loads pages via `listMeta` (no `blocks`), so the pure-client `useGraphModel` sees only hierarchy edges; open-silong relies on the server `getGlobalGraph` / `getLocalGraph` for real link edges. On the pure-client path only the currently-open page's own outgoing links show.
+- **Client graph model is edge-sparse** — the store loads pages via `listMeta` (no `blocks`), so the pure-client `useGraphModel` sees only hierarchy edges; open-silong relies on the server `getGlobalGraph` for real link edges. On the pure-client path only the currently-open page's own outgoing links show.
 - **Imported pages get no `pageLinks` rows** until `workspaceId` is stamped and `backfillLinks` is re-run.
 - **`updateBlock` reindex gate (`TEXT_FIELDS`)** skips reindexing patches that change ONLY `block.pageId` or ONLY `tableRows`.

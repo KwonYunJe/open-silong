@@ -66,7 +66,7 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
       },
     }),
     // Google OAuth is opt-in: only registered when the deployment has
-    // credentials (pnpm exec convex env set AUTH_GOOGLE_ID/SECRET). The
+    // credentials (bunx convex env set AUTH_GOOGLE_ID/SECRET). The
     // public demo + fresh clones run without it — pair with
     // NEXT_PUBLIC_AUTH_GOOGLE=1 on the frontend to show the button.
     ...(process.env.AUTH_GOOGLE_ID ? [Google] : []),

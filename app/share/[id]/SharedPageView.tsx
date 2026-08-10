@@ -3,7 +3,7 @@ import Link from "next/link";
 import katex from "katex";
 import "katex/dist/katex.min.css";
 import { renderInline } from "@/shared/lib/inlineMd";
-import { DynamicIcon } from "@/shared/components/icon-picker";
+import { DynamicIcon } from "@/shared/components/icon-picker/components/DynamicIcon";
 import { ShareThemeBoot } from "./ShareThemeBoot";
 import { HashScroll } from "./HashScroll";
 

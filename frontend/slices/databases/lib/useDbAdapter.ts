@@ -39,6 +39,33 @@ import type {
 } from "@/shared/types/domain";
 import { useNotionAdapter } from "@/slices/notion";
 
+// Module-level lookup caches, keyed on ARRAY IDENTITY. The store's arrays
+// change identity exactly when their contents change (structural sharing in
+// shared/lib/store.tsx), so one build per store push is shared by every
+// consumer of this hook instead of one build per consumer — a 100-row table
+// mounts ~800 of them. useMemo below can't do this: it's per-component.
+// ponytail: duplicated in slices/editor/lib/useEditorAdapter.ts rather than
+// hoisted — sharing needs a deep cross-slice import the barrel rule forbids.
+const pageMapCache = new WeakMap<readonly Page[], Map<string, Page>>();
+function pageMapFor(pages: readonly Page[]): Map<string, Page> {
+  let m = pageMapCache.get(pages);
+  if (!m) {
+    m = new Map<string, Page>(pages.map((p) => [p.id, p]));
+    pageMapCache.set(pages, m);
+  }
+  return m;
+}
+
+const dbMapCache = new WeakMap<readonly Database[], Map<string, Database>>();
+function dbMapFor(databases: readonly Database[]): Map<string, Database> {
+  let m = dbMapCache.get(databases);
+  if (!m) {
+    m = new Map<string, Database>(databases.map((d) => [d.id, d]));
+    dbMapCache.set(databases, m);
+  }
+  return m;
+}
+
 export interface DbAdapterApi {
   // ── Slice reads (always-arrays for caller ergonomics)
   pages: Page[];
@@ -96,8 +123,8 @@ export function useDbAdapter(): DbAdapterApi {
   const user = adapter.user?.useCurrent() ?? { id: "", name: "", icon: "" };
 
   return useMemo<DbAdapterApi>(() => {
-    const pageMap = new Map(pages.map((p) => [p.id, p]));
-    const dbMap = new Map(databases.map((d) => [d.id, d]));
+    const pageMap = pageMapFor(pages);
+    const dbMap = dbMapFor(databases);
 
     return {
       pages,

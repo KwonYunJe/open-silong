@@ -12,9 +12,6 @@ const load = () => import("./drawer");
 export const Drawer = lazy(() =>
   load().then((m) => ({ default: m.Drawer })),
 );
-export const DrawerTrigger = lazy(() =>
-  load().then((m) => ({ default: m.DrawerTrigger })),
-);
 export const DrawerClose = lazy(() =>
   load().then((m) => ({ default: m.DrawerClose })),
 );

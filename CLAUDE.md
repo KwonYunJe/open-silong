@@ -29,11 +29,17 @@ reference deploy now.
   `experimental.cacheComponents` opt-in per page.
 - **Convex self-hosted ^1.36** — Docker Compose on Dokploy node. Deploy via
   the pre-push hook (`scripts/install-pre-push.sh`) which sources
-  `.env.local` then runs `pnpm exec convex deploy --yes`. Manual deploy:
-  `set -a && source .env.local && set +a && pnpm exec convex deploy --yes`
+  `.env.local` then runs `bunx convex deploy --yes`. Manual deploy:
+  `set -a && source .env.local && set +a && bunx convex deploy --yes`
   (raw `npx convex deploy` without env sourcing → `BadAdminKey`).
 - **Auth = `@convex-dev/auth`** — NO Clerk. Custom auth slices only when
   documented insufficient.
+- **Package manager = bun 1.3** (2026-08-10, was pnpm 10). `bun install` /
+  `bun run <script>` / `bunx <bin>`. Lockfile `bun.lock` is tracked; there is
+  no `pnpm-lock.yaml` any more. Two things did NOT move: tests run on
+  **vitest** (`bun run test` — never `bun test`, its runner grabs the same
+  globs and breaks the convex-test/jsdom suite), and the Docker **runtime**
+  stage stays `node` because `output: "standalone"` emits a node `server.js`.
 
 ### Vertical slices
 - Layout: `frontend/slices/<slug>/` (UI + types) + optional
@@ -86,7 +92,7 @@ reference deploy now.
    mention it. Call out which rule when proposing.
 2. New feature → check if it should be a new slice under
    `frontend/slices/<slug>/` + `convex/features/<slug>/`.
-3. After editing: `pnpm typecheck` + relevant `pnpm test` before commit.
+3. After editing: `bun run typecheck` + relevant `bun run test` before commit.
 4. Found rule-violating existing code? Flag it, but only fix if user asks
    (avoid scope creep).
 
@@ -170,7 +176,7 @@ Ignore its grades. `audit-bp.sh` itself is fine.
 
 - **Convex functions** — the local pre-push git hook
   (`scripts/install-pre-push.sh`) sources `.env.local` and runs
-  `pnpm exec convex deploy --yes` whenever the pushed range touches
+  `bunx convex deploy --yes` whenever the pushed range touches
   `convex/`. Backend lands before the Dokploy frontend rebuild that
   follows. Deploy fails → push aborts. Raw `npx convex deploy` without
   sourced `CONVEX_SELF_HOSTED_*` env returns `BadAdminKey` — always go
@@ -186,11 +192,11 @@ new commits, never amend.
 
 ## SSOT — rahman-shared adopted (2026-05-13, commit 8238969)
 
-- `pnpm add rahman-shared@^0.2.0` — shared npm utils
+- `bun add rahman-shared@^0.2.0` — shared npm utils
 - `frontend/shared/lib/utils.ts` is a 1-line re-export from `rahman-shared/lib/utils` — DO NOT inline cn back
 - `next.config.mjs` has `transpilePackages: ["rahman-shared"]` (Turbopack TS hint, REQUIRED)
 - 165 `@/shared/lib/utils` import sites continue working — only resolution chain changed
-- Bump via `pnpm update rahman-shared`. Skill `/use-adopt-rahman-shared` codifies pattern
+- Bump via `bun update rahman-shared`. Skill `/use-adopt-rahman-shared` codifies pattern
 
 ## Boundary-cast pattern for Convex FKs (2026-05-16)
 
@@ -218,7 +224,7 @@ visible and grep-able. Adding a new convex mutation call? Cast at the
 call site, don't widen handler args back to `v.string()`.
 
 **Audit before tightening a schema FIELD** (vs an arg). Run
-`pnpm exec convex run admin/fkAudit:run` — confirms every stored
+`bunx convex run admin/fkAudit:run` — confirms every stored
 string parses as a valid `Id<TABLE>`. Zero `invalidFormat` ⇒ the
 schema flip is safe. Orphans (`missingTarget > 0`) are fine, they
 don't block the validator. See `convex/admin/fkAudit.ts`.

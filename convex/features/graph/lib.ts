@@ -25,12 +25,6 @@ import type {
 /** Outgoing edges fetched per source page (`pageLinks.by_source`). A page
  *  with more links than this is pathological; the cap guards the handler. */
 export const LINKS_PER_PAGE_CAP = 1_000;
-/** Incoming edges fetched for one backlinks read (`pageLinks.by_target`). */
-export const BACKLINKS_CAP = 1_000;
-/** Rows scanned for the tag pane (`pageLinks.by_workspace_tag`, tag slice). */
-export const TAG_SCAN_CAP = 10_000;
-/** Tag → pages fan-out cap (`pageLinks.by_workspace_tag` eq tag). */
-export const PAGES_BY_TAG_CAP = 1_000;
 /** Page-node budget for a workspace graph — reuse the dashboard scan cap so
  *  the graph never walks more page rows than the rest of the app already
  *  does per read. */
@@ -66,27 +60,6 @@ export async function collectOutgoing(
     ),
   );
   return perPage.flat();
-}
-
-/** All pages in the same workspace as `page` (trashed included — the
- *  caller drops them). Prefers the `by_workspace` index; legacy
- *  (un-workspaced) rows fall back to the owner's `by_user` index so a
- *  page that never got a workspaceId still yields a local graph. */
-export async function pagesInSameWorkspace(
-  ctx: QueryCtx,
-  page: Doc<"pages">,
-): Promise<Doc<"pages">[]> {
-  const wsId = page.workspaceId;
-  if (wsId) {
-    return ctx.db
-      .query("pages")
-      .withIndex("by_workspace", (q) => q.eq("workspaceId", wsId))
-      .take(GRAPH_PAGE_CAP);
-  }
-  return ctx.db
-    .query("pages")
-    .withIndex("by_user", (q) => q.eq("userId", page.userId))
-    .take(GRAPH_PAGE_CAP);
 }
 
 /** Databases fanned into the graph (`getGlobalGraph`). Runaway guards, not

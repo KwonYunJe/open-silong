@@ -20,10 +20,19 @@ export function SearchModal({ open, onOpenChange, labels }: Props) {
   const t = { ...DEFAULT_SEARCH_LABELS, ...labels };
   const { pages, recents } = useStore();
   const [q, setQ] = useState("");
+  // Debounced: the raw value drives the input, the settled value drives the
+  // Convex subscription — otherwise every keystroke tears down and reopens it.
+  const [dq, setDq] = useState("");
   const navigate = useNavigate();
-  const { isLoading, result } = useSearch(q);
+  const { isLoading, result } = useSearch(dq);
+  const searching = q !== dq || isLoading;
   const recent = !q ? recents.map(id => pages.find(p => p.id === id)).filter(Boolean).slice(0, 5) : [];
   const totalHits = result.pages.length + result.databases.length;
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDq(q), 180);
+    return () => clearTimeout(timer);
+  }, [q]);
 
   useEffect(() => { if (!open) setQ(""); }, [open]);
 
@@ -49,11 +58,11 @@ export function SearchModal({ open, onOpenChange, labels }: Props) {
             placeholder={t.searchPlaceholder}
             className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
           />
-          {isLoading && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
+          {q !== "" && searching && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
           <kbd className="text-[10px] text-muted-foreground border border-border rounded px-1.5 py-0.5">{t.escapeHint}</kbd>
         </div>
         <div className="max-h-[420px] overflow-y-auto p-2">
-          {q && !isLoading && totalHits === 0 && (
+          {q && !searching && totalHits === 0 && (
             <div className="px-3 py-8 text-center text-sm text-muted-foreground">{t.noResults(q)}</div>
           )}
           {!q && recent.length > 0 && (

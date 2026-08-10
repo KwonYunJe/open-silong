@@ -2,9 +2,8 @@
 # Install the open-silong pre-push hook into .git/hooks/pre-push.
 #
 # What the hook does (in order):
-#   1. rr-sync drift nag — non-blocking
-#   2. sc-git ci (typecheck + relevant tests) — blocks push on fail
-#   3. self-hosted Convex auto-deploy — only when convex/ changed AND
+#   1. sc-git ci (typecheck + relevant tests) — blocks push on fail
+#   2. self-hosted Convex auto-deploy — only when convex/ changed AND
 #      .env.local exposes CONVEX_SELF_HOSTED_URL + _ADMIN_KEY. Backend
 #      lands before frontend so the Dokploy rebuild after this push
 #      never gets ahead of the schema.
@@ -31,12 +30,9 @@ set -e
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 
-# Guard 1 — rr-sync drift nag (non-blocking)
-node "$REPO_ROOT/scripts/rr-sync-status.mjs" --nag 2>&1 || true
-
-# Guard 2 — local CI (blocking).
+# Guard 1 — local CI (blocking).
 #   If you use the optional sc-git toolkit, set SC_GIT_CI to the path of
-#   its `ci.js`; otherwise this falls back to `pnpm typecheck && pnpm test`.
+#   its `ci.js`; otherwise this falls back to `bun run typecheck` + vitest.
 if [ -n "${SC_GIT_CI:-}" ] && [ -f "$SC_GIT_CI" ]; then
   node "$SC_GIT_CI" || {
     echo ""
@@ -45,7 +41,7 @@ if [ -n "${SC_GIT_CI:-}" ] && [ -f "$SC_GIT_CI" ]; then
     exit 1
   }
 else
-  pnpm typecheck && pnpm test --reporter=dot || {
+  bun run typecheck && bunx vitest run --reporter=dot || {
     echo ""
     echo "❌ local CI failed (typecheck or test). push blocked."
     echo "   override (NOT recommended): git push --no-verify"
@@ -53,7 +49,7 @@ else
   }
 fi
 
-# Guard 3 — self-hosted Convex auto-deploy (silent no-op if not configured)
+# Guard 2 — self-hosted Convex auto-deploy (silent no-op if not configured)
 if [ -d convex ] && [ -f .env.local ] \
    && grep -q "^CONVEX_SELF_HOSTED_URL=" .env.local 2>/dev/null \
    && grep -q "^CONVEX_SELF_HOSTED_ADMIN_KEY=" .env.local 2>/dev/null; then
@@ -68,7 +64,7 @@ if [ -d convex ] && [ -f .env.local ] \
       # CONVEX_DEPLOYMENT (local-dev pointer) conflicts with the
       # CONVEX_SELF_HOSTED_* pair the deploy command needs.
       unset CONVEX_DEPLOYMENT
-      pnpm exec convex deploy --yes || {
+      bunx convex deploy --yes || {
         echo ""
         echo "❌ Convex self-hosted deploy failed. push aborted."
         echo "   Fix Convex deploy first; do NOT --no-verify (frontend would land ahead of backend)."

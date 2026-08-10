@@ -378,7 +378,7 @@ export const create = mutation({
     // (see webhooks/deliver.ts — query+mutation+action mixed module),
     // leaving only `listEnabledForOwner` + `recordDelivery` visible to tsc
     // even though the runtime ref resolves correctly. Tracked for codegen
-    // bug report; cast keeps `pnpm typecheck` green.
+    // bug report; cast keeps `bun run typecheck` green.
     await ctx.scheduler.runAfter(0, (internal.webhooks.deliver as any).run, {
       ownerId: userId,
       event: "page.created",

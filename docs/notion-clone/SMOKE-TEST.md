@@ -188,4 +188,4 @@ exception. `SILONG_DISABLE_SEED=1` env var would skip the seed.
 
 File a bug per the issue template at
 `.github/ISSUE_TEMPLATE/bug_report.md`. Include lane + browser +
-console + Convex logs (`pnpm exec convex logs --tail`).
+console + Convex logs (`bunx convex logs --tail`).

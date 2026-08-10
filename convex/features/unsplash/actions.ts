@@ -5,7 +5,7 @@
  *  Setup:
  *    1. Get an Unsplash dev key: https://unsplash.com/developers
  *    2. Set on the self-hosted backend:
- *         pnpm exec convex env set UNSPLASH_ACCESS_KEY <key>
+ *         bunx convex env set UNSPLASH_ACCESS_KEY <key>
  *    3. If the key is missing the action returns an empty list with an
  *       `error` field — UI can show the "configure Unsplash" hint
  *       instead of crashing.

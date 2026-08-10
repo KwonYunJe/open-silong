@@ -144,8 +144,8 @@ two env vars below are set on the Convex backend — no code change
 required:
 
 ```bash
-pnpm exec convex env set AUTH_GOOGLE_ID <client-id>.apps.googleusercontent.com
-pnpm exec convex env set AUTH_GOOGLE_SECRET <client-secret>
+bunx convex env set AUTH_GOOGLE_ID <client-id>.apps.googleusercontent.com
+bunx convex env set AUTH_GOOGLE_SECRET <client-secret>
 ```
 
 GCP Console setup:
@@ -170,7 +170,7 @@ GCP Console setup:
 Verify:
 
 ```bash
-pnpm exec convex env list | grep AUTH_GOOGLE
+bunx convex env list | grep AUTH_GOOGLE
 ```
 
 If sign-in returns `redirect_uri_mismatch`, the exact URL Google

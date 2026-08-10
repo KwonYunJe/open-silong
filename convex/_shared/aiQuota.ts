@@ -64,15 +64,3 @@ export async function recordAiTokenUsage(
     await ctx.db.patch(row._id, { tokens: row.tokens + tokens, updatedAt: now });
   }
 }
-
-/** Read-only — for admin UI / user-facing quota meter. */
-export async function readAiTokenUsage(
-  ctx: QueryCtx,
-  userId: Id<"users">,
-): Promise<{ used: number; cap: number; remaining: number; dayKey: number }> {
-  const day = dayKey();
-  const row = await readUsage(ctx, userId, day);
-  const cap = dailyTokenCap();
-  const used = row?.tokens ?? 0;
-  return { used, cap, remaining: Math.max(0, cap - used), dayKey: day };
-}

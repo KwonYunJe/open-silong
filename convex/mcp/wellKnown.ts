@@ -16,7 +16,7 @@ import { httpAction } from "../_generated/server";
 
 // Site + MCP origins. Defaults match the open-silong reference deploy;
 // self-hosters override via Convex env vars
-// (`pnpm exec convex env set SITE_URL https://your.domain`).
+// (`bunx convex env set SITE_URL https://your.domain`).
 const SITE = process.env.SITE_URL ?? "https://silong.rahmanef.com";
 // Convex self-hosted exposes httpActions on the SITE origin
 // (api- is the CLOUD origin for queries/mutations only). The MCP

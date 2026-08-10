@@ -1,14 +1,9 @@
-FROM node:20-alpine AS deps
-RUN apk add --no-cache libc6-compat
-# corepack reads `packageManager` from package.json to pin pnpm version.
-RUN corepack enable
+FROM oven/bun:1.3-alpine AS deps
 WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
-RUN corepack prepare --activate && pnpm install --frozen-lockfile --prod=false
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
 
-FROM node:20-alpine AS builder
-RUN apk add --no-cache libc6-compat
-RUN corepack enable
+FROM oven/bun:1.3-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -28,10 +23,13 @@ ENV GITHUB_SHA=$GITHUB_SHA
 ENV NEXT_PUBLIC_BUILD_ID=$NEXT_PUBLIC_BUILD_ID
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN pnpm exec next build
+RUN bun run build
 
+# Runtime stays on node — `output: "standalone"` emits a node server.js, and the
+# node image is smaller than a bun base for a process that only serves it.
 FROM node:20-alpine AS runner
 WORKDIR /app
+RUN apk add --no-cache libc6-compat
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 

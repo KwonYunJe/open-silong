@@ -21,7 +21,7 @@ import type {
  *  value exports are frozen below via `Object.keys`; type exports are
  *  erased at runtime, so they need a typecheck-time guard instead. Every
  *  public type from FORMULA-ENGINE-API.md §1 is referenced here — removing
- *  or renaming one breaks `pnpm typecheck` BEFORE it ships (a §6 MAJOR
+ *  or renaming one breaks `bun run typecheck` BEFORE it ships (a §6 MAJOR
  *  break). Generics get `unknown` slots: we assert the NAME resolves, not a
  *  particular instantiation. Adding a public type? Add it here too. */
 export type PublicTypeSurface = {

@@ -73,11 +73,13 @@ export const run = internalQuery({
   }> => {
     const fields: FieldReport[] = [];
 
+    // One scan of `pages` shared by the three page-FK blocks below.
+    const pageRows = await ctx.db.query("pages").take(AUDIT_SCAN_CAP);
+
     // ── pages.parentId → Id<"pages"> | null ──
     {
       const r: FieldReport = { field: "pages.parentId", targetTable: "pages", total: 0, validFormat: 0, invalidFormat: 0, missingTarget: 0, invalidExamples: [], orphanExamples: [] };
-      const rows = await ctx.db.query("pages").take(AUDIT_SCAN_CAP);
-      for (const p of rows) {
+      for (const p of pageRows) {
         if (p.parentId === null) continue;
         record(r, await probeId(ctx, "pages", p.parentId), p.parentId);
       }
@@ -87,8 +89,7 @@ export const run = internalQuery({
     // ── pages.rowOfDatabaseId → Id<"databases"> ──
     {
       const r: FieldReport = { field: "pages.rowOfDatabaseId", targetTable: "databases", total: 0, validFormat: 0, invalidFormat: 0, missingTarget: 0, invalidExamples: [], orphanExamples: [] };
-      const rows = await ctx.db.query("pages").take(AUDIT_SCAN_CAP);
-      for (const p of rows) {
+      for (const p of pageRows) {
         if (!p.rowOfDatabaseId) continue;
         record(r, await probeId(ctx, "databases", p.rowOfDatabaseId), p.rowOfDatabaseId);
       }
@@ -98,8 +99,7 @@ export const run = internalQuery({
     // ── pages.databaseHostFor[] → Id<"databases">[] ──
     {
       const r: FieldReport = { field: "pages.databaseHostFor[]", targetTable: "databases", total: 0, validFormat: 0, invalidFormat: 0, missingTarget: 0, invalidExamples: [], orphanExamples: [] };
-      const rows = await ctx.db.query("pages").take(AUDIT_SCAN_CAP);
-      for (const p of rows) {
+      for (const p of pageRows) {
         for (const dbId of p.databaseHostFor ?? []) {
           record(r, await probeId(ctx, "databases", dbId), dbId);
         }

@@ -84,7 +84,7 @@ export async function seedWelcomeContent(
   workspaceId: Id<"workspaces">,
 ): Promise<void> {
   // Opt-out env var lets self-hosters disable the seed without forking.
-  // Convex env vars are env-injected via `pnpm exec convex env set`.
+  // Convex env vars are env-injected via `bunx convex env set`.
   if (process.env.SILONG_DISABLE_SEED === "1") return;
 
   const now = Date.now();

@@ -5,7 +5,7 @@ import { fetchQuery } from "convex/nextjs";
 import Link from "next/link";
 import { FileText } from "lucide-react";
 import { api } from "@convex/_generated/api";
-import { DynamicIcon } from "@/shared/components/icon-picker";
+import { DynamicIcon } from "@/shared/components/icon-picker/components/DynamicIcon";
 
 interface Props {
   params: Promise<{ ws: string }>;

@@ -245,14 +245,16 @@ function BlockEditorBase({ pageId, block, index, total, focusByOffset, registerR
           />
         </div>
       )}
-      <DatabasePicker
-        open={pickerOpen}
-        onOpenChange={setPickerOpen}
-        onPick={(databaseId) => {
-          setBlockType(pageId, block.id, "database");
-          updateBlock(pageId, block.id, { text: "", databaseId });
-        }}
-      />
+      {pickerOpen && (
+        <DatabasePicker
+          open
+          onOpenChange={setPickerOpen}
+          onPick={(databaseId) => {
+            setBlockType(pageId, block.id, "database");
+            updateBlock(pageId, block.id, { text: "", databaseId });
+          }}
+        />
+      )}
     </BlockShell>
   );
 }

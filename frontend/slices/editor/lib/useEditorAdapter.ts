@@ -36,6 +36,50 @@ import type {
 } from "@/shared/types/domain";
 import { useNotionAdapter } from "@/slices/notion";
 
+// Module-level lookup caches, keyed on ARRAY IDENTITY. The store's arrays
+// change identity exactly when their contents change (structural sharing in
+// shared/lib/store.tsx), so one build per store push is shared by every
+// consumer instead of one build per consumer — a 200-block page mounts one
+// per block. useMemo below can't do this: it's per-component. Same helpers
+// live in slices/databases/lib/useDbAdapter.ts (barrel rule: no deep
+// cross-slice import, so they're duplicated rather than shared).
+const pageMapCache = new WeakMap<readonly Page[], Map<string, Page>>();
+function pageMapFor(pages: readonly Page[]): Map<string, Page> {
+  let m = pageMapCache.get(pages);
+  if (!m) {
+    m = new Map<string, Page>(pages.map((p) => [p.id, p]));
+    pageMapCache.set(pages, m);
+  }
+  return m;
+}
+
+const dbMapCache = new WeakMap<readonly Database[], Map<string, Database>>();
+function dbMapFor(databases: readonly Database[]): Map<string, Database> {
+  let m = dbMapCache.get(databases);
+  if (!m) {
+    m = new Map<string, Database>(databases.map((d) => [d.id, d]));
+    dbMapCache.set(databases, m);
+  }
+  return m;
+}
+
+const childrenCache = new WeakMap<readonly Page[], Map<string | null, Page[]>>();
+function childrenIndexFor(pages: readonly Page[]): Map<string | null, Page[]> {
+  let idx = childrenCache.get(pages);
+  if (!idx) {
+    idx = new Map<string | null, Page[]>();
+    for (const p of pages) {
+      if (p.trashed) continue;
+      const k = p.parentId ?? null;
+      const list = idx.get(k);
+      if (list) list.push(p);
+      else idx.set(k, [p]);
+    }
+    childrenCache.set(pages, idx);
+  }
+  return idx;
+}
+
 const DEFAULT_USER: UserProfile = {
   id: "",
   name: "",
@@ -86,13 +130,14 @@ export interface EditorAdapterApi {
   deleteProperty: (dbId: string, propId: string) => Promise<void>;
 }
 
-/** Writers-only subset of the editor adapter. Stable across
- *  pages/databases data changes — deps reduce to `[adapter, workspace]`.
- *  Use this in hot components (BlockEditor, every block in a 200-block
- *  page) so typing into one block does NOT invalidate the API object
- *  on every Convex realtime tick. The full `useEditorAdapter()` is
- *  fine for surfaces that already need the reads (PageEditor,
- *  PageRefBlock title lookup). */
+/** Writers-only subset of the editor adapter — the writes without the
+ *  reads. NOT referentially stable, despite the narrower `[adapter,
+ *  workspace]` deps: every sub-adapter memoizes on the store context
+ *  value, which is a new object on every store push, so `adapter` (and
+ *  therefore this object) changes on every Convex realtime tick anyway.
+ *  Cutting re-render count needs a StoreCtx split, not this hook. Use it
+ *  where the reads genuinely aren't needed; the full `useEditorAdapter()`
+ *  is fine everywhere else (PageEditor, PageRefBlock title lookup). */
 export interface EditorWritersApi {
   updatePage: EditorAdapterApi["updatePage"];
   updateDatabase: EditorAdapterApi["updateDatabase"];
@@ -175,16 +220,9 @@ export function useEditorAdapter(): EditorAdapterApi {
   const workspace = adapter.workspaces?.useActive() ?? null;
 
   return useMemo<EditorAdapterApi>(() => {
-    const pageMap = new Map(pages.map((p) => [p.id, p]));
-    const dbMap = new Map(databases.map((d) => [d.id, d]));
-    const childrenIndex = new Map<string | null, Page[]>();
-    for (const p of pages) {
-      if (p.trashed) continue;
-      const k = p.parentId ?? null;
-      const list = childrenIndex.get(k);
-      if (list) list.push(p);
-      else childrenIndex.set(k, [p]);
-    }
+    const pageMap = pageMapFor(pages);
+    const dbMap = dbMapFor(databases);
+    const childrenIndex = childrenIndexFor(pages);
 
     return {
       pages,

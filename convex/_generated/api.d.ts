@@ -34,7 +34,6 @@ import type * as _shared_seedWelcomeContent from "../_shared/seedWelcomeContent.
 import type * as _shared_uid from "../_shared/uid.js";
 import type * as _shared_workspace from "../_shared/workspace.js";
 import type * as admin_fkAudit from "../admin/fkAudit.js";
-import type * as admin_fkGc from "../admin/fkGc.js";
 import type * as admin_mutations from "../admin/mutations.js";
 import type * as admin_pageBlocksBackfill from "../admin/pageBlocksBackfill.js";
 import type * as admin_queries from "../admin/queries.js";
@@ -58,13 +57,11 @@ import type * as features_comments_mutations from "../features/comments/mutation
 import type * as features_comments_queries from "../features/comments/queries.js";
 import type * as features_files_mutations from "../features/files/mutations.js";
 import type * as features_files_queries from "../features/files/queries.js";
-import type * as features_graph_index from "../features/graph/index.js";
 import type * as features_graph_lib from "../features/graph/lib.js";
 import type * as features_graph_migrations from "../features/graph/migrations.js";
 import type * as features_graph_queries from "../features/graph/queries.js";
 import type * as features_inbox_mutations from "../features/inbox/mutations.js";
 import type * as features_inbox_queries from "../features/inbox/queries.js";
-import type * as features_search_index from "../features/search/index.js";
 import type * as features_search_lib from "../features/search/lib.js";
 import type * as features_search_mutations from "../features/search/mutations.js";
 import type * as features_search_queries from "../features/search/queries.js";
@@ -182,7 +179,6 @@ declare const fullApi: ApiFromModules<{
   "_shared/uid": typeof _shared_uid;
   "_shared/workspace": typeof _shared_workspace;
   "admin/fkAudit": typeof admin_fkAudit;
-  "admin/fkGc": typeof admin_fkGc;
   "admin/mutations": typeof admin_mutations;
   "admin/pageBlocksBackfill": typeof admin_pageBlocksBackfill;
   "admin/queries": typeof admin_queries;
@@ -206,13 +202,11 @@ declare const fullApi: ApiFromModules<{
   "features/comments/queries": typeof features_comments_queries;
   "features/files/mutations": typeof features_files_mutations;
   "features/files/queries": typeof features_files_queries;
-  "features/graph/index": typeof features_graph_index;
   "features/graph/lib": typeof features_graph_lib;
   "features/graph/migrations": typeof features_graph_migrations;
   "features/graph/queries": typeof features_graph_queries;
   "features/inbox/mutations": typeof features_inbox_mutations;
   "features/inbox/queries": typeof features_inbox_queries;
-  "features/search/index": typeof features_search_index;
   "features/search/lib": typeof features_search_lib;
   "features/search/mutations": typeof features_search_mutations;
   "features/search/queries": typeof features_search_queries;

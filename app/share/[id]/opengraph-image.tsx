@@ -2,21 +2,21 @@ import { ImageResponse } from "next/og";
 import { fetchQuery } from "convex/nextjs";
 import { api } from "@convex/_generated/api";
 
-export const runtime = "edge";
 export const alt = "Shared via Silong";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 interface Props {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default async function OG({ params }: Props) {
+  const { id } = await params;
   let title = "Shared on Silong";
   let icon = "📄";
   let cover: string | null = null;
   try {
-    const p = await fetchQuery(api.pages.getPublicShare, { id: params.id });
+    const p = await fetchQuery(api.pages.getPublicShare, { id });
     if (p) {
       title = p.title || "Untitled";
       icon = p.icon || "📄";

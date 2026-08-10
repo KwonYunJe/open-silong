@@ -1,3 +1,5 @@
+"use client";
+
 import { useCallback, useMemo, useRef, useState, useEffect, type ComponentType } from "react";
 import { useParams } from "@/shared/lib/router";
 import { useEditorAdapter } from "@/slices/editor/lib/useEditorAdapter";

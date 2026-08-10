@@ -17,15 +17,15 @@ if (!process.env.CONVEX_DEPLOY_KEY) {
   process.exit(0);
 }
 
-const npx = (args, capture = false) =>
-  execFileSync("npx", args, {
+const bunx = (args, capture = false) =>
+  execFileSync("bunx", args, {
     encoding: "utf8",
     stdio: capture ? ["ignore", "pipe", "ignore"] : "inherit",
   });
 
 function envGet(name) {
   try {
-    return npx(["convex", "env", "get", name], true).trim();
+    return bunx(["convex", "env", "get", name], true).trim();
   } catch {
     return "";
   }
@@ -35,7 +35,7 @@ function envGet(name) {
 // error lines (which contain no secret).
 function envSet(pair, label) {
   try {
-    execFileSync("npx", ["convex", "env", "set", pair], {
+    execFileSync("bunx", ["convex", "env", "set", pair], {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
     });
@@ -81,7 +81,7 @@ let ok = envSet(`JWT_PRIVATE_KEY=${privateKey}`, "JWT_PRIVATE_KEY");
 if (ok) {
   ok = envSet(`JWKS=${jwks}`, "JWKS");
   if (!ok) {
-    try { npx(["convex", "env", "remove", "JWT_PRIVATE_KEY"], true); } catch { /* best effort */ }
+    try { bunx(["convex", "env", "remove", "JWT_PRIVATE_KEY"], true); } catch { /* best effort */ }
   }
 }
 if (ok && site) envSet(`SITE_URL=${site}`, "SITE_URL"); // non-critical

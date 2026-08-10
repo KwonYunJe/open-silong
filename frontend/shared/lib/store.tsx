@@ -19,6 +19,14 @@ import { useWorkspaceMuts } from "./store/useWorkspaceMuts";
 
 export { useStore };
 
+// Stable identities for the loading window. `?? []` mints a fresh array every
+// render, which invalidates every downstream useMemo (structural map, the
+// workspaces map, the context value) while any query is still undefined.
+const EMPTY_PAGES: never[] = [];
+const EMPTY_DATABASES: never[] = [];
+const EMPTY_WORKSPACES: never[] = [];
+const EMPTY_RECENTS: never[] = [];
+
 /** Structural sharing over a Convex reactive array. Convex sends a fresh array
  *  of fresh objects on every push, so `raw.map(toX)` gives every row a new
  *  identity each time — one edit then re-renders EVERY sidebar/table row
@@ -48,12 +56,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   // per keystroke. Editor pages subscribe individually via useFullPage(id).
   const rawPagesQ = useQuery(api.pages.listMeta);
   const rawDatabasesQ = useQuery(api.databases.list);
-  const rawPages = rawPagesQ ?? [];
-  const rawDatabases = rawDatabasesQ ?? [];
+  const rawPages = rawPagesQ ?? EMPTY_PAGES;
+  const rawDatabases = rawDatabasesQ ?? EMPTY_DATABASES;
   const rawPrefs = useQuery(api.preferences.get);
   const rawWorkspace = useQuery(api.workspaces.getActive);
-  const rawWorkspaces = useQuery(api.workspaces.list) ?? [];
-  const rawRecents = useQuery(api.recents.get) ?? [];
+  const rawWorkspaces = useQuery(api.workspaces.list) ?? EMPTY_WORKSPACES;
+  const rawRecents = useQuery(api.recents.get) ?? EMPTY_RECENTS;
   const isInitialLoading = rawPagesQ === undefined || rawDatabasesQ === undefined;
 
   const mutUpsertPrefs = useMutation(api.preferences.upsert);

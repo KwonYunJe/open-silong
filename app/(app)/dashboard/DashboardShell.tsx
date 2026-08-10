@@ -30,6 +30,7 @@ import { MentionTypeahead } from "@/slices/editor/components/MentionTypeahead";
 import { WikiLinkTypeahead } from "@/slices/editor/components/wikilink-typeahead";
 import { TweakcnSwitcher, ThemeColorSync, WorkspaceThemeBridge } from "@/slices/theme-presets";
 import { useTouchLastSeen } from "@/shared/hooks/useTouchLastSeen";
+import { useIsMobile } from "@/shared/hooks/use-mobile";
 
 const CommandPalette = lazy(() =>
   import("@/slices/command-palette").then((m) => ({ default: m.CommandPalette })),
@@ -93,6 +94,7 @@ const SIDEBAR_STYLE = { "--sidebar-width": "17rem" } as React.CSSProperties;
 
 export default function DashboardShell({ children }: { children: ReactNode }) {
   useTouchLastSeen();
+  const isMobile = useIsMobile();
   const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
@@ -214,12 +216,16 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
             {/* Overlays — outside SidebarProvider so they don't participate in
                 the flex layout. SearchModal portals via Dialog; MobileBottomNav
                 is fixed-positioned. Both lazy + Suspense-fallback null. */}
-            <Suspense fallback={null}>
-              <SearchModal open={searchOpen} onOpenChange={setSearchOpen} />
-            </Suspense>
-            <Suspense fallback={null}>
-              <MobileBottomNav onOpenSearch={() => setSearchOpen(true)} />
-            </Suspense>
+            {searchOpen && (
+              <Suspense fallback={null}>
+                <SearchModal open onOpenChange={setSearchOpen} />
+              </Suspense>
+            )}
+            {isMobile && (
+              <Suspense fallback={null}>
+                <MobileBottomNav onOpenSearch={() => setSearchOpen(true)} />
+              </Suspense>
+            )}
             </WorkspaceIOProvider>
             </ConfirmProvider>
             </NotionAdapterMount>

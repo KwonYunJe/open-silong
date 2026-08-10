@@ -67,24 +67,6 @@ export const getGlobalAISettings = query({
   },
 });
 
-/** Internal — used by the chat resolver. Returns the live config with the
- *  DECRYPTED apiKey only when enabled + key present. Decryption errors
- *  surface to the action so it can produce an actionable message. */
-export const _getGlobalAISettings = internalQuery({
-  args: {},
-  handler: async (ctx) => {
-    const row = await ctx.db.query("globalAISettings").first();
-    if (!row || !row.enabled || !row.apiKey) return null;
-    const apiKey = await decryptApiKey(row.apiKey);
-    return {
-      provider: row.provider,
-      model: row.model,
-      apiKey,
-      baseUrl: row.baseUrl ?? null,
-    };
-  },
-});
-
 /** Internal — combined resolver for the chat action: global config +
  *  per-user model override in ONE round-trip from action context. */
 export const _getAIResolution = internalQuery({
@@ -116,8 +98,8 @@ export const _getAIResolution = internalQuery({
 });
 
 /** Internal — diagnostic. Tells the resolver whether the row exists and
- *  why `_getGlobalAISettings` returned null, so error messages can point
- *  at the exact missing piece (no row vs disabled vs no key). */
+ *  why `_getAIResolution` returned a null `global`, so error messages can
+ *  point at the exact missing piece (no row vs disabled vs no key). */
 export const _probeGlobalAISettings = internalQuery({
   args: {},
   handler: async (ctx) => {

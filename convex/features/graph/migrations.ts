@@ -9,8 +9,8 @@
  *  budget — call in a loop, feeding back `continueCursor` until
  *  `isDone`:
  *
- *    pnpm exec convex run features/graph/migrations:backfillLinks '{}'
- *    pnpm exec convex run features/graph/migrations:backfillLinks '{"cursor":"<continueCursor>"}'
+ *    bunx convex run features/graph/migrations:backfillLinks '{}'
+ *    bunx convex run features/graph/migrations:backfillLinks '{"cursor":"<continueCursor>"}'
  *
  *  Cross-page `[[Title]]` wikilinks resolve to an id only once the target
  *  page's `titleKey` exists, so a page linked before its target was

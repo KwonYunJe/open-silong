@@ -55,6 +55,10 @@ const nextConfig = {
     },
     optimizePackageImports: [
       "lucide-react",
+      // Root barrel re-exports ~3000 icons × 6 weights; phosphor-icons.ts pulls
+      // ~200 named ones. Build/dev-compile win only — DynamicIcon already
+      // React.lazy-splits it, so first-load bytes are unchanged.
+      "@phosphor-icons/react",
       "@radix-ui/react-dialog",
       "@radix-ui/react-dropdown-menu",
       "@radix-ui/react-popover",
