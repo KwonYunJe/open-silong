@@ -10,6 +10,113 @@ notes under `docs/audit/`.
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-08-10
+
+Repo-wide audit wave: dead-code and dependency removal, a bundle/render
+performance pass, a hook-order crash fix, retention crons for six
+append-only tables, and a package-manager migration from pnpm to Bun.
+Every finding was adversarially verified before it counted — 30 confirmed,
+69 rejected. Full write-up, including the rejected claims, in
+`docs/audit/2026-08-10-audit-bun-perf.md`.
+
+### Changed
+
+- **BREAKING for contributors and self-hosters — the package manager is now
+  Bun 1.3** (was pnpm 10). `bun install` / `bun run <script>` / `bunx <bin>`.
+  `bun.lock` replaces `pnpm-lock.yaml`; `Dockerfile`, both CI workflows,
+  `vercel.json`, the pre-push hook and all docs follow. `next` is pinned to
+  `~16.2.6` so the lockfile regeneration could not drift it — verified zero
+  version drift across all 62 dependencies.
+  - Tests still run on **vitest** (`bun run test`). Do **not** use
+    `bun test` — its runner claims the same file globs and is incompatible
+    with the convex-test/jsdom suite.
+  - The Docker **runtime** stage stays on `node`; `output: "standalone"`
+    emits a node `server.js`.
+  - This buys install and build speed, not application speed. See the note
+    in `docs/audit/2026-07-16-perf-round2.md`.
+- Analytics beacon no longer writes the `lat`, `lon` and `region` columns
+  (nothing ever read them). The fields remain in the schema so
+  already-stored rows still validate.
+- `admin/fkAudit` scanned the `pages` table three times per run; hoisted to
+  one scan.
+
+### Added
+
+- **Retention crons for six append-only tables** that previously grew
+  without bound: `webhookDeliveries` (30 d), `auditLog` (180 d),
+  `visitorPageviews` (90 d), `notifications` (90 d), `oauthCodes`
+  (expiry + 1 d) and `aiRunProgress` (1 d). `schema.ts` and `ai/internal.ts`
+  had both documented an `aiRunProgress` prune cron that did not exist.
+  Each prune is an indexed range scan bounded to 500 rows that re-schedules
+  itself while a full batch keeps returning, so a large first-run backlog
+  drains without exceeding Convex's per-transaction limits.
+- New indexes `notifications.by_created`, `oauthCodes.by_expires` and
+  `aiRunProgress.by_updated`. The last is required because
+  `by_user_updated` is `["userId", "updatedAt"]`, and a compound index
+  cannot range-scan by age without an `eq()` on `userId` first.
+- `convex/_test/maintenance-prune.test.ts` — 4 tests covering the cutoff,
+  the no-op case, the batch cap, and the follow-up scheduling.
+
+### Fixed
+
+- **Board view could crash the database route.** `BoardView` called
+  `useMemo` after an early return, so the hook count changed whenever the
+  group-by property appeared or disappeared — switching a property's type or
+  a first load could raise React's "rendered fewer hooks than expected".
+  This was also the repo's only ESLint error, so `bun run lint` now exits
+  clean and is a usable gate again.
+- The pre-push hook invoked `scripts/rr-sync-status.mjs`, which does not
+  exist in the repo (silently swallowed by `|| true`).
+
+### Removed
+
+- Three unused dependencies: `eslint-config-next` (nothing referenced it —
+  `eslint.config.mjs` imports the plugins directly, ~14.6 MB),
+  `@tailwindcss/typography` (Tailwind v4 loads plugins through an `@plugin`
+  CSS directive that does not exist here, so it emitted nothing) and
+  `@radix-ui/react-toggle` (its only consumer was a component that is never
+  rendered).
+- `convex/features/{graph,search}/index.ts` — `export *` barrels that caused
+  Convex to deploy a **second copy** of 8 public functions.
+- Five of the six `features/graph` queries (−212 lines). Backlinks, the
+  local graph and tags are all computed client-side; only `getGlobalGraph`
+  had a caller.
+- `convex/admin/fkGc.ts`, the one-shot FK garbage collector whose
+  schema-tightening migration had already shipped.
+- Dead exports: `changelog.listPublished`, `ai._getGlobalAISettings`,
+  `aiQuota.readAiTokenUsage`, `drawer-lazy.DrawerTrigger`, and the
+  `relationMirror` re-export shim.
+- `ResponsiveDialog`'s `Trigger`/`Close` exports, the `forceMode` prop and
+  the entire sticky-layout branch behind three never-passed props
+  (−108 lines); same treatment for the alert-dialog variant.
+- A placeholder test asserting `expect(true).toBe(true)`, an orphaned
+  screenshot, and an empty directory.
+
+### Performance
+
+- `/share` and `/site` imported `DynamicIcon` through the icon-picker
+  barrel, which pulled Radix Popover, `@floating-ui` and the emoji catalog
+  into the two public SEO routes. Switched to a leaf import; `IconPicker` is
+  now absent from both route manifests.
+- The database and editor adapter hooks rebuilt whole-workspace lookup Maps
+  once per consumer per store push, across 65 call sites. Now built once per
+  push and shared through an identity-keyed `WeakMap`.
+- `store.tsx` used `?? []`, minting a fresh array identity on every render
+  and invalidating the entire store context during cold boot.
+- Search debounced by 180 ms — previously every keystroke tore down and
+  reopened a Convex subscription, running up to four search-index scans.
+- `SearchModal` and `MobileBottomNav` chunks were downloaded on every
+  dashboard load: `React.lazy` fires its import on element render, so
+  `open={false}` deferred nothing.
+- `DatabasePicker` mounted once per text block, unguarded.
+- Dropped `runtime = "edge"` from the OG image route (deprecated guidance on
+  Vercel, and it disabled static generation for the route).
+- Added `@phosphor-icons/react` to `optimizePackageImports`.
+
+Measured, same machine, same command: client JS 5.30 → 5.17 MB raw across
+125 → 123 chunks, `node_modules` 1.9 G → 1.0 G, `.next/standalone`
+288 → 175 MB, production compile 44 → 28 s, TypeScript 85 → 39 s.
+
 ## [1.0.0] - 2026-07-17
 
 First public open-source release. Consolidates the OSS-readiness prep, the

@@ -246,7 +246,7 @@ Force-graph gotchas (from study):
 - Canvas can't read Tailwind tokens → `themeBridge` reads `--foreground`/`--muted`/etc via `getComputedStyle`, re-reads on `next-themes`/`ThemeColorSync` change.
 - Node paint: size ∝ `degree`, hub (`wiki`) bigger/brighter, ghost dashed/dim, tag node distinct color; hover → highlight 1-hop neighbors + fade rest; click → `useNavigate` to `ROUTES.page(id)` (ghost → create-page flow).
 
-Dependency: `pnpm add react-force-graph-2d` **and** declare in `slice.json` `deps.npm`
+Dependency: `bun add react-force-graph-2d` **and** declare in `slice.json` `deps.npm`
 (else rr port drops it). Rationale: canvas/2D + built-in d3-force + zoom/pan/drag/hover
 as a React component = closest to Obsidian's canvas with least glue, scales to
 thousands of nodes; SVG (cytoscape) degrades at scale, WebGL (sigma/pixi) is overkill.
@@ -324,7 +324,7 @@ allowlist is ChatGPT-only today — Claude/others use `nsn_` tokens until widene
 | **P2 Obsidian syntax** | `[[wikilinks]]` + WikiLinkTypeahead + unresolved/ghost + `#tags` + TagTypeahead + tag pane + inline decorator/renderer | **Yes** | Real Obsidian authoring feel |
 | **P3 Polish** | MCP write tools + unlinked-mentions UI + aliases + hover preview + `[[#heading]]` refs + graph search/jump | Some | Full parity |
 
-Each phase: `pnpm typecheck` + `pnpm test` (incl. `extractEdges` unit + parity test) →
+Each phase: `bun run typecheck` + `bun run test` (incl. `extractEdges` unit + parity test) →
 push to `main` (Convex deploy auto-runs via pre-push hook / `build:auto`).
 
 ---

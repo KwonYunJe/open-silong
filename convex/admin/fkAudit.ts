@@ -16,7 +16,7 @@
  *  Capped at `AUDIT_SCAN_CAP` rows per table to keep query budget sane.
  *
  *  Trigger from the Convex CLI:
- *    pnpm exec convex run admin/fkAudit:run
+ *    bunx convex run admin/fkAudit:run
  */
 
 import { internalQuery } from "../_generated/server";
