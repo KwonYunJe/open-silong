@@ -342,7 +342,8 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index("by_user", ["userId"])
-    .index("by_user_unread", ["userId", "read"]),
+    .index("by_user_unread", ["userId", "read"])
+    .index("by_created", ["createdAt"]),
 
   // === uploaded files (storage ownership ledger) ===
   files: defineTable({
@@ -446,7 +447,8 @@ export default defineSchema({
   }).index("by_user", ["userId"]),
 
   /** Append-only audit log of every webhook delivery attempt.
-   *  Automatic pruning is not yet implemented. */
+   *  Rows older than 30 days are swept by `maintenance.pruneWebhookDeliveries`
+   *  via `by_attempted`. */
   webhookDeliveries: defineTable({
     endpointId: v.id("webhookEndpoints"),
     event: v.string(),
@@ -586,7 +588,10 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index("by_run", ["runId"])
-    .index("by_user_updated", ["userId", "updatedAt"]),
+    .index("by_user_updated", ["userId", "updatedAt"])
+    // Age-only prune. `by_user_updated` cannot serve it — a compound index
+    // needs an eq() on userId before it can range-scan updatedAt.
+    .index("by_updated", ["updatedAt"]),
 
   /** Per-user AI token usage ledger — bucketed by `dayKey` (floor of
    *  unix ms / 86_400_000). Increments after every `ai.complete` call;
@@ -622,7 +627,8 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index("by_code", ["code"])
-    .index("by_user_time", ["userId", "createdAt"]),
+    .index("by_user_time", ["userId", "createdAt"])
+    .index("by_expires", ["expiresAt"]),
 
   /** Long-lived access tokens issued after a successful code exchange.
    *  Validated on every MCP call. 1 year TTL — easy to rotate via revoke. */

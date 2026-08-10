@@ -34,4 +34,40 @@ crons.daily(
   internal.maintenance.pruneAiTokenUsage,
 );
 
+/** Append-only tables with no prior sweep. Each prune is an indexed range
+ *  scan bounded to PRUNE_BATCH rows that re-schedules itself while a full
+ *  batch keeps coming back, so a large first-run backlog drains in minutes
+ *  instead of one row-limit-busting transaction. Staggered so a backlog on
+ *  one table does not collide with the next. */
+crons.daily(
+  "prune-webhook-deliveries",
+  { hourUTC: 4, minuteUTC: 15 },
+  internal.maintenance.pruneWebhookDeliveries,
+);
+crons.daily(
+  "prune-audit-log",
+  { hourUTC: 4, minuteUTC: 30 },
+  internal.maintenance.pruneAuditLog,
+);
+crons.daily(
+  "prune-visitor-pageviews",
+  { hourUTC: 4, minuteUTC: 45 },
+  internal.maintenance.pruneVisitorPageviews,
+);
+crons.daily(
+  "prune-notifications",
+  { hourUTC: 5, minuteUTC: 0 },
+  internal.maintenance.pruneNotifications,
+);
+crons.daily(
+  "prune-oauth-codes",
+  { hourUTC: 5, minuteUTC: 15 },
+  internal.maintenance.pruneOauthCodes,
+);
+crons.daily(
+  "prune-ai-run-progress",
+  { hourUTC: 5, minuteUTC: 30 },
+  internal.maintenance.pruneAiRunProgress,
+);
+
 export default crons;

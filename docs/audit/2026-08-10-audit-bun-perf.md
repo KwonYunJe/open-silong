@@ -49,25 +49,65 @@ out.
 
 ## Held deliberately
 
-- **14 dead index declarations** (`schema.ts` ×13 + `traffic/tables.ts` ×1).
+- **12 dead index declarations** (was 14 — `webhookDeliveries.by_attempted`
+  and the traffic index are now in use by the prune crons).
   Real but marginal — the audit's own correction: no `pages` and no
   `pageBlocks` index is dead, so **block edits pay zero of this cost**.
   Dropping an index is the only hard-to-reverse change in the set, and two
   of the 14 (`webhookDeliveries.by_attempted`, `userProfiles.by_lastSeen`)
   are wanted back by the prune-cron and admin fixes below. Not worth it yet.
-- **Prune crons.** Six tables grow forever: `webhookDeliveries`, `auditLog`,
-  `visitorPageviews`, `notifications`, `oauthCodes`, `aiRunProgress`. The
-  last one has a cron documented **twice** (`schema.ts:~580`,
-  `ai/internal.ts:~28`) that does not exist. Additive feature work, not
-  cleanup — separate task. Note `aiRunProgress.by_user_updated` is
-  `["userId","updatedAt"]` and **cannot** drive an age-based prune; that
-  needs a new single-field `by_updated`.
+- ~~**Prune crons.**~~ ✅ **SHIPPED** — see below.
 - **`admin.getOverview`** — 8 unindexed 25k scans in one query. Admin-only,
   non-live (`OverviewPanel` is a one-shot `convex.query`, not a
   subscription), once per panel open. Low ROI for the blast radius.
-- **`BoardView.tsx:95`** — pre-existing `react-hooks/rules-of-hooks` error
-  (`useMemo` called conditionally). Predates this audit; `bun run lint`
-  exits 1 because of it. Own fix.
+- ~~**`BoardView.tsx:95`**~~ ✅ **FIXED** — see below.
+
+## Follow-up, same day
+
+**`BoardView.tsx` hook-order crash.** `useMemo` sat *after* the early return
+at `:78`, so the hook count changed the moment `groupProp` appeared or
+disappeared (switching a property's type, or first load) → React "rendered
+fewer hooks than expected". Not merely a lint warning. Moved above the early
+return, next to the `collisionDetection` hook whose comment already explains
+the rule. `bun run lint` now exits **0 errors** (was 1), so lint is a usable
+gate again.
+
+**Prune crons for all six unbounded tables.** One `drain()` helper +
+6 `internalMutation`s + 6 staggered `crons.daily` entries.
+
+| table | index | retention |
+|---|---|---|
+| `webhookDeliveries` | `by_attempted` (existed, was dead) | 30 d |
+| `auditLog` | `by_created` (existed) | 180 d |
+| `visitorPageviews` | `by_at` (existed) | 90 d |
+| `notifications` | `by_created` **(new)** | 90 d |
+| `oauthCodes` | `by_expires` **(new)** | expiry + 1 d |
+| `aiRunProgress` | `by_updated` **(new)** | 1 d |
+
+Two things worth knowing:
+
+- The prunes `.take(500)` and **re-schedule themselves** while a full batch
+  keeps returning, rather than the `.collect()` the four existing prunes use.
+  A first run against a 90-day `visitorPageviews` backlog would otherwise
+  exceed Convex's per-transaction read/write limit and fail forever.
+- `aiRunProgress.by_user_updated` is `["userId","updatedAt"]` and **cannot**
+  serve an age-only sweep — a compound index needs an `eq()` on `userId`
+  first. Hence the new single-field `by_updated`.
+
+`schema.ts` and `ai/internal.ts` both already asserted this cron existed; the
+comments are now true rather than aspirational, and the
+`webhookDeliveries` "automatic pruning is not yet implemented" comment is
+gone.
+
+Watch out when adding more of these: every prune references itself through
+`internal.maintenance.<itself>`, which trips **TS7022** (circular initializer)
+and then cascades into unrelated implicit-any errors in files that read the
+generated api type. The fix is an explicit `Promise<PruneResult>` return
+annotation on each handler.
+
+Covered by `convex/_test/maintenance-prune.test.ts` (4 tests: cutoff
+respected, no-op when nothing is stale, batch cap + follow-up actually
+enqueued, second pass drains).
 
 ## Refuted — do NOT re-propose
 
