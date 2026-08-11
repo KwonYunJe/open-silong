@@ -120,7 +120,8 @@ export function ResponsiveAlertDialogFooter({
 }
 
 export function ResponsiveAlertDialogTitle(
-  props: React.ComponentProps<typeof AlertDialogTitle>,
+  // See the note in responsive-dialog.tsx — `key` is not a real prop.
+  props: Omit<React.ComponentProps<typeof AlertDialogTitle>, "key">,
 ) {
   const mode = useMode();
   const Title = mode === "dialog" ? AlertDialogTitle : DrawerTitle;
@@ -128,7 +129,7 @@ export function ResponsiveAlertDialogTitle(
 }
 
 export function ResponsiveAlertDialogDescription(
-  props: React.ComponentProps<typeof AlertDialogDescription>,
+  props: Omit<React.ComponentProps<typeof AlertDialogDescription>, "key">,
 ) {
   const mode = useMode();
   const Description =

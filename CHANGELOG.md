@@ -10,6 +10,14 @@ notes under `docs/audit/`.
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-08-11
+
+Security and quality-assurance release. Four ungated public Convex endpoints
+were found and closed — every one of them surfaced by the handler-test suite
+and API-surface audit added in this same release, which is the argument for
+both. Also: CI that actually blocks, a machine-checked version of the rules
+that were previously prose, and a dependency refresh.
+
 ### Security
 
 - **`aiKeys.forResolver` exposed encrypted API-key envelopes to anonymous
@@ -89,6 +97,25 @@ notes under `docs/audit/`.
 
 - The pre-push hook and CI now run `check:rules` before typecheck, so a rule
   violation is reported in seconds rather than behind a full type pass.
+
+### Dependencies
+
+- Refreshed everything within its declared semver range: `convex` 1.38 → 1.43,
+  all 17 `@radix-ui/*` packages, `react`/`react-dom` 19.2.6 → 19.2.8, `next`
+  16.2.6 → 16.2.12, plus `katex`, `highlight.js`, `tailwindcss`, `postcss`,
+  `vitest`, `eslint`, `typescript-eslint`, `jose` and `playwright`.
+  - This broke the typecheck in exactly one place: React 19.2.8 widened
+    `React.Key` while Radix and vaul still declare `key?: string | number |
+    bigint`, so spreading `React.ComponentProps<typeof X>` through the
+    `Responsive*Dialog` title/description wrappers no longer typechecked. Fixed
+    by omitting `key` from those prop types — which is also simply correct,
+    since `key` is consumed by React and never reaches the component.
+- **Deliberately NOT taken** — each is a major with real migration work, and
+  none should ride along with a release whose point was closing security holes:
+  `zod` 3 → 4, `recharts` 2 → 3, `sonner` 1 → 2, `lucide-react` 0.462 → 1.31,
+  `jsdom` 25 → 30, `vitest` 3 → 4, `eslint` 9 → 10, `typescript` 5.9 → 7,
+  `@auth/core` 0.37 → 0.41, `rahman-shared` 0.2 → 0.3, `next` 16.2 → 16.3,
+  `katex` 0.16 → 0.18.
 
 ### Known
 

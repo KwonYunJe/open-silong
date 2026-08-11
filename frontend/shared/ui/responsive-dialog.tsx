@@ -154,7 +154,11 @@ export function ResponsiveDialogFooter({
 }
 
 export function ResponsiveDialogTitle(
-  props: React.ComponentProps<typeof DialogTitle>,
+  // `key` is consumed by React and never reaches the component, but React
+  // 19.2.8 widened `React.Key` while Radix/vaul still declare
+  // `key?: string | number | bigint` — spreading the union no longer
+  // typechecks. Omitting it is also just correct: key is not a prop.
+  props: Omit<React.ComponentProps<typeof DialogTitle>, "key">,
 ) {
   const mode = useResponsiveMode();
   const Title = mode === "dialog" ? DialogTitle : DrawerTitle;
@@ -162,7 +166,7 @@ export function ResponsiveDialogTitle(
 }
 
 export function ResponsiveDialogDescription(
-  props: React.ComponentProps<typeof DialogDescription>,
+  props: Omit<React.ComponentProps<typeof DialogDescription>, "key">,
 ) {
   const mode = useResponsiveMode();
   const Description = mode === "dialog" ? DialogDescription : DrawerDescription;
