@@ -12,6 +12,21 @@ notes under `docs/audit/`.
 
 ### Security
 
+- **`aiKeys.forResolver` exposed encrypted API-key envelopes to anonymous
+  callers.** It was declared `query()` — fully public — while its own docstring
+  said "Resolver-only … Never expose to the client directly". It takes `userId`
+  and `workspaceId` as plain arguments and performs no authentication, so any
+  caller could pass someone else's ids and read back that user's stored
+  `encryptedKey`, provider and endpoint for every BYOK key. The ciphertext is
+  not decryptable without the server-side secret, but this leaked key
+  existence, ownership and provider, and handed out ciphertext for offline
+  attack. Now an `internalQuery`; its single caller
+  (`_shared/aiKeyResolver.ts`) goes through `internal.*`.
+- **`ai.getProgress` streamed any user's in-flight AI run.** `runId` is a
+  client-supplied string and the handler had no auth, so anyone holding or
+  guessing one could read the run's steps, which carry prompt and tool-call
+  content. Now owner-scoped, returning `null` on every miss so it cannot be
+  used to probe which run ids exist.
 - **`files.getUrl` served any tenant's private upload to any caller, including
   anonymous ones.** The handler wrapped `ctx.storage.getUrl(storageId)` with no
   authentication and no ownership lookup, so anyone holding, guessing or

@@ -11,7 +11,7 @@
  */
 
 import { v } from "convex/values";
-import { query } from "../_generated/server";
+import { query, internalQuery } from "../_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
 const providerValidator = v.union(
@@ -112,9 +112,15 @@ export const myModelRefs = query({
   },
 });
 
-/** Resolver-only — returns encrypted envelope. Called from server
- *  actions via `ctx.runQuery`. Never expose to the client directly. */
-export const forResolver = query({
+/** Resolver-only — returns the ENCRYPTED key envelope. Called from server
+ *  actions via `ctx.runQuery`.
+ *
+ *  `internalQuery`, not `query`: this takes `userId` as an argument and does
+ *  no auth of its own, so as a public query any anonymous caller could pass
+ *  someone else's id and read back their encrypted key envelopes, provider and
+ *  endpoint. The docstring said "never expose to the client directly" while
+ *  the declaration did exactly that. */
+export const forResolver = internalQuery({
   args: {
     userId: v.id("users"),
     workspaceId: v.id("workspaces"),

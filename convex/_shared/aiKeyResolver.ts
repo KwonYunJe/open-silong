@@ -15,7 +15,7 @@
 import type { ActionCtx } from "../_generated/server";
 import type { Id } from "../_generated/dataModel";
 import { decryptApiKey } from "./aiCrypto";
-import { api } from "../_generated/api";
+import { internal } from "../_generated/api";
 
 export type Provider = "openai" | "anthropic" | "google" | "openrouter" | "custom";
 export type KeySource = "user" | "workspace" | "admin";
@@ -50,7 +50,7 @@ export async function resolveAiKey(
   ctx: ActionCtx,
   args: ResolveArgs,
 ): Promise<ResolvedKey> {
-  const candidates = await ctx.runQuery(api.aiKeys.list.forResolver, {
+  const candidates = await ctx.runQuery(internal.aiKeys.list.forResolver, {
     userId: args.userId,
     workspaceId: args.workspaceId,
     provider: args.provider,

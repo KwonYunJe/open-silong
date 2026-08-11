@@ -1,5 +1,6 @@
 import { query, internalQuery } from "../_generated/server";
 import { v } from "convex/values";
+import { getAuthUserId } from "@convex-dev/auth/server";
 import type { Id } from "../_generated/dataModel";
 import { requireAdminQuery } from "../_shared/auth";
 import { listProvidersPublic } from "../_shared/aiProviders";
@@ -20,18 +21,23 @@ export const listAIProviders = query({
   handler: async () => listProvidersPublic(),
 });
 
-/** Public — live progress doc for an in-flight chat.complete run.
- *  Frontend subscribes via useQuery so the timeline updates as the
- *  action writes hops. Returns null when no progress exists yet
- *  (run hasn't started or already cleared). */
+/** Live progress doc for an in-flight chat.complete run. The frontend
+ *  subscribes via useQuery so the timeline updates as the action writes hops.
+ *
+ *  Owner-scoped: `runId` is a client-supplied string, so without this check
+ *  anyone holding or guessing one could stream another user's AI run — the
+ *  steps carry prompt and tool-call content. Returns null on every miss so it
+ *  cannot be used to probe which run ids exist. */
 export const getProgress = query({
   args: { runId: v.string() },
   handler: async (ctx, { runId }) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return null;
     const doc = await ctx.db
       .query("aiRunProgress")
       .withIndex("by_run", (q) => q.eq("runId", runId))
       .first();
-    if (!doc) return null;
+    if (!doc || doc.userId !== userId) return null;
     return { steps: doc.steps, updatedAt: doc.updatedAt };
   },
 });
