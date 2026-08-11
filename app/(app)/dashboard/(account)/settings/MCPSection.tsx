@@ -327,14 +327,19 @@ function OthersTab() {
       </p>
       <CopySnippet title="Cursor / Cline / Windsurf — mcp config" code={cursorJson} />
       <CopySnippet title="Test via curl" code={curlSnippet} />
+      {/* The two links below are RFC 8414 / RFC 9728 discovery documents served
+          as raw JSON, not app routes — next/link would prefetch them as RSC
+          payloads, and they are meant to open in a new tab. */}
       <div className="rounded-md border border-border bg-muted/30 p-3 text-xs text-muted-foreground space-y-1">
         <p className="font-semibold text-foreground">Discovery (untuk MCP-aware client baru)</p>
         <p>
+          {/* rules-allow: raw-internal-link — RFC 8414 discovery JSON, not an app route */}
           <a href="/.well-known/oauth-authorization-server" target="_blank" rel="noopener" className="inline-flex items-center gap-1 underline underline-offset-4 hover:text-foreground">
             <ExternalLink className="size-3" /> /.well-known/oauth-authorization-server
           </a>{" "}· RFC 8414
         </p>
         <p>
+          {/* rules-allow: raw-internal-link — RFC 9728 discovery JSON, not an app route */}
           <a href="/.well-known/oauth-protected-resource" target="_blank" rel="noopener" className="inline-flex items-center gap-1 underline underline-offset-4 hover:text-foreground">
             <ExternalLink className="size-3" /> /.well-known/oauth-protected-resource
           </a>{" "}· RFC 9728

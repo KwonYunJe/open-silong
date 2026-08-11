@@ -10,6 +10,83 @@ notes under `docs/audit/`.
 
 ## [Unreleased]
 
+### Security
+
+- **`files.getUrl` served any tenant's private upload to any caller, including
+  anonymous ones.** The handler wrapped `ctx.storage.getUrl(storageId)` with no
+  authentication and no ownership lookup, so anyone holding, guessing or
+  replaying a storage id could download another workspace's file. It now
+  requires authentication and checks `files.by_storage` ownership, falling back
+  to workspace membership, and returns `null` on every denial so it cannot be
+  used to probe which storage ids exist. Public `/share` and `/site` pages are
+  unaffected — they render images from the URL stored on the block, not through
+  this query. Found by the new authz suite, which had pinned the insecure
+  behaviour as a failing-by-design regression test.
+- **`pages.update` allowed cross-workspace tree injection.** `parentId` was in
+  the patch whitelist and written straight through; `requirePageWritable`
+  authorizes the page being patched, never the destination. Any authenticated
+  user could reparent one of their own pages under a page in a workspace they
+  are not a member of. The handler now validates that the target parent exists,
+  is in the same workspace, and is writable by the caller, and rejects cycles
+  (moving a page under its own descendant, which would detach the subtree and
+  make every `parentId` walk loop).
+
+### Added
+
+- **Rules linter — `bun run check:rules`** (`scripts/check-rules.mjs`, zero
+  dependencies). Machine-checks seven hard rules from CLAUDE.md that were
+  previously prose only: no bare `.collect()`, mandatory `args:` validators on
+  client-reachable Convex functions, no raw `<button>`/`<dialog>`/
+  `<input type=date|file>`, no raw internal `<a href="/…">`, no raw `<img>`,
+  no hex colours in `className`, and no `pnpm`/`npx` left in commands.
+  - Masks comments and string literals before matching. This matters: eight
+    places in this repo mention `.collect()` *inside a comment quoting the
+    rule*, and a naive grep reports every one of them.
+  - Waivers: `// rules-allow: <rule-id> — <reason>` above the statement, found
+    even when the violation sits at the end of a multi-line builder chain.
+    Waiver count is printed so they stay visible instead of becoming silent debt.
+  - Baseline ratchet (`scripts/check-rules.baseline.json`): the 47 pre-existing
+    raw-UI-primitive violations are recorded as known debt so the gate is green
+    on new code, while anything new fails. `--update-baseline` shrinks it.
+- **CI that actually gates** (`.github/workflows/frontend-ci.yml`): rules →
+  typecheck → tests → build, on every push to `main` and every pull request.
+  Previously `workflow_dispatch`-only with tests marked `continue-on-error`, so
+  nothing was enforced anywhere except one bypassable local hook. This
+  repository is public, so GitHub-hosted runners are free — the
+  dispatch-only convention used for private repos does not apply.
+- **Backend deploy that does not need the maintainer's laptop**
+  (`.github/workflows/convex-deploy.yml`). Pushing deploys the frontend but not
+  Convex, so a schema change reached production only via a local `convex
+  deploy`. Gated behind the same checks and a `CONVEX_DEPLOY_KEY` secret;
+  fails fast with instructions when the secret is absent.
+- **59 new Convex handler tests** across four suites covering the page,
+  workspace, database and content authorization surfaces. Each endpoint is
+  asserted from three vantage points — owner allowed, a *different*
+  authenticated user denied, anonymous denied — with a raw read-back after each
+  denial so a handler that throws *after* writing still fails. Verified by
+  mutation testing: disabling `canReadPage` in `pages.getById` and the
+  membership gate in `workspaces.setActive` each made tests fail, then the
+  mutations were reverted.
+- `ROADMAP.md`, a contribution on-ramp, and `docs/archive/` for the dated
+  internal records that made the docs tree hard to navigate.
+
+### Fixed
+
+- The pre-push hook and CI now run `check:rules` before typecheck, so a rule
+  violation is reported in seconds rather than behind a full type pass.
+
+### Known
+
+- `invites.accept` does not switch a first-time user into the workspace they
+  just joined: `ensurePersonalWorkspace` never inserts a `userProfiles` row, so
+  the `activeWorkspaceId` patch silently no-ops. Documented by a skipped test in
+  `convex/_test/authz-workspaces.test.ts`.
+- `pages.permanentlyDelete` removes only the *caller's* snapshots, so another
+  workspace member's snapshots of a deleted page survive and stay readable.
+  Needs a `by_workspace_page` index before it can be fixed properly.
+- There is no member role-change mutation: an owner cannot demote an editor to
+  viewer without deleting the workspace.
+
 ## [1.1.0] - 2026-08-10
 
 Repo-wide audit wave: dead-code and dependency removal, a bundle/render
@@ -33,7 +110,7 @@ Every finding was adversarially verified before it counted — 30 confirmed,
   - The Docker **runtime** stage stays on `node`; `output: "standalone"`
     emits a node `server.js`.
   - This buys install and build speed, not application speed. See the note
-    in `docs/audit/2026-07-16-perf-round2.md`.
+    in `docs/archive/audit/2026-07-16-perf-round2.md`.
 - Analytics beacon no longer writes the `lat`, `lon` and `region` columns
   (nothing ever read them). The fields remain in the schema so
   already-stored rows still validate.
@@ -273,7 +350,7 @@ monorepo:
   v4 + next-themes)
 - Tag `notion-like` added to 5 rr catalog entries: `command-menu`,
   `icon-picker`, `notion-blocks`, `notion-shell`, `theme-presets`
-- `docs/rr-sync/lift-status.md` NEW — per-slice status + adapter
+- `docs/archive/rr-sync/lift-status.md` NEW — per-slice status + adapter
   contract for 11 blocked-pending-adapter slices
 
 ### Infra ops
@@ -291,7 +368,7 @@ monorepo:
 ## Pre-OSS history (before 2026-05-20)
 
 Feature roadmap and per-wave changelog lived at
-`docs/notion-clone/ROADMAP.md` + `docs/notion-clone/SPRINT.md`.
+`docs/archive/notion-clone/ROADMAP.md` + `docs/archive/notion-clone/SPRINT.md`.
 Highlights:
 
 - Multi-workspace (cycle 7) — per-user `userProfiles.activeWorkspaceId`,
@@ -309,5 +386,5 @@ Highlights:
   property cells, SortableBlockList, PageActionsMenu, ImageRenderer +
   EmbedRenderer
 
-See `docs/audit/2026-05-20-rr-bh-bi-bj-completion.md` for the full
+See `docs/archive/audit/2026-05-20-rr-bh-bi-bj-completion.md` for the full
 BH/BI/BJ provenance map.

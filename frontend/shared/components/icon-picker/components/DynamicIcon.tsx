@@ -134,6 +134,7 @@ function TwemojiImgImpl({
   return (
     <span className={cn(WRAPPER_BASE, className)} style={wrapperStyle(size, undefined)}>
       {/* eslint-disable-next-line @next/next/no-img-element -- external SVG CDN; next/image can't optimize without custom loader */}
+      {/* rules-allow: raw-img — twemoji SVGs come from an external CDN whose URL space is open; next/image would need a custom loader and buys nothing on an SVG. */}
       <img
         src={url}
         alt={glyph}

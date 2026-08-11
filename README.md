@@ -4,7 +4,7 @@
 
 **Open-source, self-hostable collaborative workspace — inspired by Notion & Obsidian.**
 
-[![Release](https://img.shields.io/badge/release-v1.0.0-success.svg)](./CHANGELOG.md)
+[![Release](https://img.shields.io/badge/release-v1.1.0-success.svg)](./CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![Stack](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org)
 [![React](https://img.shields.io/badge/React-19-61dafb?logo=react)](https://react.dev)
@@ -99,8 +99,8 @@ git clone https://github.com/rahmanef63/open-silong.git
 cd open-silong
 bun install
 cp .env.example .env.local        # fill NEXT_PUBLIC_CONVEX_URL after step 4
-npx convex dev                    # creates Convex Cloud project, prints URL
-bun run dev                          # http://localhost:3000
+bunx convex dev                   # creates Convex Cloud project, prints URL
+bun run dev                       # http://localhost:3000
 ```
 
 Convex Cloud free tier covers small teams. Full walk-through in
@@ -114,8 +114,8 @@ cd open-silong
 cp .env.example .env.local        # fill INSTANCE_*, JWT_*, POSTGRES_URL
 docker compose up -d              # Convex backend on port 3210
 bun install
-bunx convex deploy --yes     # push schema + functions
-bun run dev                          # http://localhost:3000
+bunx convex deploy --yes          # push schema + functions
+bun run dev                       # http://localhost:3000
 ```
 
 Full Dokploy + Traefik + Postgres + S3 setup in
@@ -153,7 +153,7 @@ ships as `notion-page-clone-os` in the
 marketplace:
 
 ```bash
-npx rahman-resources@latest add notion-page-clone-os
+bunx rahman-resources@latest add notion-page-clone-os
 ```
 
 ## Stack
@@ -216,12 +216,15 @@ mirror. Cross-slice imports go **through the barrel only**. See
 
 | Topic | Where |
 |---|---|
+| Documentation index (what is current, what is archived) | [`docs/README.md`](./docs/README.md) |
 | Per-slice API + UX docs | [`docs/api/`](./docs/api/) |
 | Architecture diagrams (system · data model · flows) | [`docs/architecture/diagrams.md`](./docs/architecture/diagrams.md) |
 | Deploy walkthroughs (cloud + self-host + Dokploy) | [`DEPLOY.md`](./DEPLOY.md) |
 | Slice catalog (every feature in one page) | [`docs/api/slices.md`](./docs/api/slices.md) |
 | Architecture decisions + audit notes | [`docs/audit/`](./docs/audit/) |
+| Historical / superseded docs | [`docs/archive/`](./docs/archive/) |
 | Contributing guide | [`CONTRIBUTING.md`](./CONTRIBUTING.md) |
+| Roadmap + good first issues | [`ROADMAP.md`](./ROADMAP.md) |
 | Security policy | [`SECURITY.md`](./SECURITY.md) |
 | Code of Conduct | [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md) |
 | Trademarks + inspiration + legal notes | [`TRADEMARKS.md`](./TRADEMARKS.md) |
@@ -229,7 +232,7 @@ mirror. Cross-slice imports go **through the barrel only**. See
 
 ## Roadmap
 
-- [x] Block editor + 6 database views
+- [x] Block editor + eleven database views
 - [x] Multi-workspace + invites
 - [x] Public share links + wiki mode
 - [x] Comments + mentions + snapshots
@@ -242,14 +245,18 @@ mirror. Cross-slice imports go **through the barrel only**. See
 - [ ] Real-time multiplayer cursors
 - [ ] PWA + offline mode
 
-See [`docs/notion-clone/ROADMAP.md`](./docs/notion-clone/ROADMAP.md)
-for the full backlog.
+See [`ROADMAP.md`](./ROADMAP.md) for the full picture — what is next,
+the known gaps and debt, and what is explicitly out of scope.
 
 ## Contributing
 
 Bug reports, feature ideas, doc fixes, and code PRs are all welcome.
-Read [`CONTRIBUTING.md`](./CONTRIBUTING.md) for dev setup, slice
-architecture, and PR conventions.
+The maintainer pushes straight to `main`; outside contributions come in
+as pull requests and get CI-checked. Read
+[`CONTRIBUTING.md`](./CONTRIBUTING.md) for dev setup, the slice
+architecture, and PR conventions — and
+[`ROADMAP.md`](./ROADMAP.md#good-first-issues) for a list of verified
+small tasks to start on.
 
 By participating, you agree to the
 [Code of Conduct](./CODE_OF_CONDUCT.md).

@@ -1,5 +1,8 @@
 blank_issues_enabled: false
 contact_links:
+  - name: Looking for something to work on?
+    url: https://github.com/rahmanef63/open-silong/blob/main/ROADMAP.md#good-first-issues
+    about: Verified small tasks with file paths, plus what is planned and what is out of scope.
   - name: Discussion / question
     url: https://github.com/rahmanef63/open-silong/discussions
     about: For "how do I…" / "would this be a good idea?" — not for confirmed bugs.

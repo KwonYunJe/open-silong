@@ -27,11 +27,11 @@ you expect, what did you actually see? -->
 ## Environment
 
 - **Lane:** Convex Cloud / Self-hosted Docker / Public demo
-  (silong.rahmanef.com)
+  (silong-os.vercel.app)
 - **Browser + version:**
 - **OS:**
 - **Commit SHA** (`git rev-parse --short HEAD`):
-- **Convex version** (`pnpm list convex`):
+- **Convex version** (the `convex` entry in `package.json`):
 
 ## Logs / screenshots
 
@@ -45,7 +45,7 @@ you expect, what did you actually see? -->
 </details>
 
 <details>
-<summary>Convex logs (`pnpm exec convex logs --tail`)</summary>
+<summary>Convex logs (`bunx convex logs --tail`)</summary>
 
 ```
 <paste here>

@@ -11,7 +11,7 @@ databases can't be lifted standalone" blocker by reframing them as
 **peers inside one bundle**, not 2 independent modules.
 
 Pair with:
-- `docs/rr-sync/lift-status.md` — per-slice lift state (this plan
+- `docs/archive/rr-sync/lift-status.md` — per-slice lift state (this plan
   unblocks the 🟡 "in mega-bundle only" rows for `editor`,
   `databases`, `templates`, `workspace-io`, `files`, `sharing`,
   `comments` — and adds them all as one consumable bundle)
@@ -368,7 +368,7 @@ Tasks (mostly rr-side — see [rr agent coordination](#rr-agent-coordination) be
 2. rr-side: add catalog entry to `lib/content/slices.ts` (slug `notion`, tags `["notion-like", "mega-bundle"]`, source `notion-page-clone`)
 3. rr-side: add `app/demo/notion/page.tsx` mounting `<NotionAppProvider adapter={useLocalStorageNotionAdapter()}>` with seeded sample data
 4. rr-side: `pnpm typecheck && pnpm build` green
-5. Update `docs/rr-sync/lift-status.md` — move `editor`, `databases`, `templates`, `workspace-io`, `files`, `sharing`, `comments` from 🟡 → ✅ (or a new 🟢 "synced as part of mega-bundle" status)
+5. Update `docs/archive/rr-sync/lift-status.md` — move `editor`, `databases`, `templates`, `workspace-io`, `files`, `sharing`, `comments` from 🟡 → ✅ (or a new 🟢 "synced as part of mega-bundle" status)
 
 **Gate**: open rr demo page, create page, type, slash menu, add database block, switch views — all without a backend.
 
@@ -535,7 +535,7 @@ unclear, sample data lacking), file it as:
 
 - GitHub issue on `rahmanef63/open-silong` with label
   `lift-feedback` (create the label if it doesn't exist)
-- Cross-link from rr-side `docs/rr-sync/lift-status.md` (or
+- Cross-link from rr-side `docs/archive/rr-sync/lift-status.md` (or
   equivalent) with the issue number
 - Tag `@maintainers` in the issue
 
@@ -574,7 +574,7 @@ Plan is complete when ALL of:
 - [ ] `node scripts/sync-to-rr.mjs notion --dry-run` reports zero blockers
 - [ ] rr's `frontend/slices/notion/` compiles + renders the demo
 - [ ] rr's catalog has `notion` entry with `source: notion-page-clone`
-- [ ] `docs/rr-sync/lift-status.md` moves `editor`, `databases`,
+- [ ] `docs/archive/rr-sync/lift-status.md` moves `editor`, `databases`,
   `templates`, `workspace-io`, `sharing`, `comments` to ✅ (via
   mega-bundle) — leaves `files` ✅ standalone
 - [ ] `MEMORY.md` updated with adapter pattern as the canonical lift
@@ -622,9 +622,9 @@ Plan is complete when ALL of:
   adapter pattern
 - `docs/notion-mega-slice.md` — existing consumer API for the
   mega-slice
-- `docs/rr-sync/lift-status.md` — per-slice lift state, updated
+- `docs/archive/rr-sync/lift-status.md` — per-slice lift state, updated
   per round
-- `docs/rr-sync/2026-05-20-pivot-nosion-source-of-truth.md` — why
+- `docs/archive/rr-sync/2026-05-20-pivot-nosion-source-of-truth.md` — why
   open-silong + rr is a two-repo system
 - `scripts/sync-to-rr.mjs` — the lift script
 - `rr-sync.json` — scrubs + skipFiles + pathMap config

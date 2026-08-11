@@ -11,8 +11,8 @@
 
 ## How was this tested?
 
-- [ ] `pnpm typecheck` green
-- [ ] `pnpm test` green (affected suites)
+- [ ] `bun run typecheck` green
+- [ ] `bun run test` green (affected suites)
 - [ ] Manually walked the golden flow in the browser
 
 <!-- If UI: include a screenshot or short GIF (before / after). -->

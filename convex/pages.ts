@@ -437,6 +437,29 @@ export const update = mutation({
     }
     // Editor-grant write path: owner || workspace-writable || editor-grant.
     const { userId, doc: page } = await requirePageWritable(ctx, args.pageId as Id<"pages">);
+
+    // Reparenting needs its OWN check. The call above authorized the page being
+    // MOVED; it says nothing about the DESTINATION. Without this, any authed
+    // user could set parentId to a page in a workspace they are not a member of
+    // and the write would succeed — cross-workspace tree injection.
+    const newParentId = args.patch.parentId;
+    if (newParentId != null && newParentId !== page.parentId) {
+      if (newParentId === args.pageId) throw new Error("A page cannot be its own parent");
+      const target = await ctx.db.get(newParentId);
+      // Same not-found-vs-forbidden split the rest of this module uses: a
+      // stranger must not learn that the page exists.
+      if (!target || target.trashed) throw new Error("Tidak ditemukan");
+      if ((target.workspaceId ?? null) !== (page.workspaceId ?? null)) {
+        throw new Error("Tidak ditemukan");
+      }
+      await requirePageWritable(ctx, newParentId);
+      // Cycle guard: reparenting under own descendant detaches the subtree from
+      // the root and makes every parentId walk loop.
+      const subtree = await collectDescendantIds(ctx, args.pageId as Id<"pages">, userId, page.workspaceId);
+      if (subtree.includes(newParentId)) {
+        throw new Error("A page cannot be moved under its own descendant");
+      }
+    }
     const hasBlocks = "blocks" in args.patch;
     const nextTitle = args.patch.title ?? page.title;
     const touchesContent = "title" in args.patch || hasBlocks;

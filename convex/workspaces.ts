@@ -1,7 +1,8 @@
-import { mutation, query } from "./_generated/server";
+import { internalMutation, mutation, query, type MutationCtx } from "./_generated/server";
+import { internal } from "./_generated/api";
 import { v } from "convex/values";
-import { getAuthUserId } from "@convex-dev/auth/server";
 import { Id } from "./_generated/dataModel";
+import { getAuthUserId } from "@convex-dev/auth/server";
 import { requireAuth } from "./_shared/auth";
 import {
   ensurePersonalWorkspace,
@@ -245,6 +246,12 @@ export const remove = mutation({
     const { userId, workspace, role } = await requireWorkspaceMember(ctx, workspaceId);
     if (role !== "owner") throw new Error("Only owner can delete");
     if (workspace.isPersonal) throw new Error("Personal workspace cannot be deleted");
+    // rules-allow: no-collect — one row per human member of ONE workspace.
+    // Membership rows are only minted by `invites.accept` (one user per
+    // owner-issued code) and by `create` (the owner); the roster surface
+    // caps at COUNT_CAPS.workspaceMembersScan (500). Deliberately NOT a
+    // `.take()`: a truncated read here would leave orphaned member rows
+    // pointing at a deleted workspace.
     const members = await ctx.db
       .query("workspaceMembers")
       .withIndex("by_workspace", (q) => q.eq("workspaceId", workspaceId))
@@ -298,33 +305,126 @@ export const ensureBootstrapped = mutation({
   },
 });
 
+/** Entity tables carrying a per-user `workspaceId` stamp. Walked in this
+ *  order by the backfill; the pass cursor is (index into this list,
+ *  `_creationTime` of the last row read). */
+const BACKFILL_TABLES = [
+  "pages", "databases", "snapshots", "recents", "notifications", "files",
+] as const;
+
+/** Rows read+patched per backfill transaction. Every one of these tables
+ *  grows without bound per user (a heavy account has thousands of pages
+ *  and notifications), so a pass that spends its budget re-schedules
+ *  itself from where it stopped instead of busting the transaction limit
+ *  — which is what the old single-shot `.collect()` per table did, on
+ *  exactly the accounts that needed the backfill most. */
+const BACKFILL_SCAN_BUDGET = 500;
+
+type BackfillCursor = { tableIndex: number; after: number | null };
+type BackfillPass = BackfillCursor & { touched: number; done: boolean };
+
+/** One bounded pass. Walks tables from `tableIndex`, resuming inside the
+ *  current table at `_creationTime > after` (the `by_user` index is
+ *  ordered by (userId, _creationTime) ascending, so that is a stable
+ *  resume point). Returns where to pick up next. */
+async function backfillWorkspaceIdPass(
+  ctx: MutationCtx,
+  userId: Id<"users">,
+  wsId: Id<"workspaces">,
+  start: BackfillCursor,
+): Promise<BackfillPass> {
+  let { tableIndex, after } = start;
+  let touched = 0;
+  let budget = BACKFILL_SCAN_BUDGET;
+  while (tableIndex < BACKFILL_TABLES.length && budget > 0) {
+    const want = budget;
+    const rows = await ctx.db
+      .query(BACKFILL_TABLES[tableIndex])
+      .withIndex("by_user", (q) =>
+        after === null
+          ? q.eq("userId", userId)
+          : q.eq("userId", userId).gt("_creationTime", after),
+      )
+      .take(want);
+    for (const row of rows) {
+      if (!(row as { workspaceId?: Id<"workspaces"> }).workspaceId) {
+        await ctx.db.patch(row._id, { workspaceId: wsId });
+        touched += 1;
+      }
+    }
+    budget -= rows.length;
+    if (rows.length < want) {
+      // Short read ⇒ this table is exhausted; move to the next one.
+      tableIndex += 1;
+      after = null;
+    } else {
+      after = rows[rows.length - 1]._creationTime;
+    }
+  }
+  return { tableIndex, after, touched, done: tableIndex >= BACKFILL_TABLES.length };
+}
+
 /** Backfill helper — runs through every entity table the viewer owns
  *  and stamps `workspaceId` = their personal workspace. Limited to
  *  the viewer's own rows; safe to expose. Session 2 will switch new
  *  rows to write workspaceId at insert-time so this becomes a no-op
- *  for anything created post-migration. */
+ *  for anything created post-migration.
+ *
+ *  Bounded to `BACKFILL_SCAN_BUDGET` rows per transaction; if there is
+ *  more, the remainder finishes asynchronously via
+ *  `continueBackfillWorkspaceId`. `touched` therefore counts what THIS
+ *  call stamped — `done: false` means more is still landing. */
 export const backfillMyWorkspaceId = mutation({
   args: {},
   handler: async (ctx) => {
     const userId = await requireAuth(ctx);
     const personal = await ensurePersonalWorkspace(ctx, userId);
     const wsId = personal._id;
-    const tables: Array<"pages" | "databases" | "snapshots" | "recents" | "notifications" | "files"> = [
-      "pages", "databases", "snapshots", "recents", "notifications", "files",
-    ];
-    let touched = 0;
-    for (const t of tables) {
-      const rows = await ctx.db
-        .query(t)
-        .withIndex("by_user", (q) => q.eq("userId", userId))
-        .collect();
-      for (const row of rows) {
-        if (!(row as { workspaceId?: Id<"workspaces"> }).workspaceId) {
-          await ctx.db.patch(row._id, { workspaceId: wsId });
-          touched += 1;
-        }
-      }
+    const pass = await backfillWorkspaceIdPass(ctx, userId, wsId, {
+      tableIndex: 0,
+      after: null,
+    });
+    if (!pass.done) {
+      await ctx.scheduler.runAfter(0, internal.workspaces.continueBackfillWorkspaceId, {
+        userId,
+        workspaceId: wsId,
+        tableIndex: pass.tableIndex,
+        after: pass.after ?? undefined,
+      });
     }
-    return { workspaceId: wsId, touched };
+    return { workspaceId: wsId, touched: pass.touched, done: pass.done };
+  },
+});
+
+/** Continuation of `backfillMyWorkspaceId` for accounts too large to
+ *  stamp in one transaction. Internal + scheduler-driven; carries the
+ *  (table, `_creationTime`) cursor forward until every table is done.
+ *  Explicit return type is required — the handler references itself
+ *  through `internal.workspaces.continueBackfillWorkspaceId`, and
+ *  without the annotation tsc reports TS7022 (circular initializer). */
+export const continueBackfillWorkspaceId = internalMutation({
+  args: {
+    userId: v.id("users"),
+    workspaceId: v.id("workspaces"),
+    tableIndex: v.number(),
+    after: v.optional(v.number()),
+  },
+  handler: async (
+    ctx,
+    { userId, workspaceId, tableIndex, after },
+  ): Promise<{ touched: number; done: boolean }> => {
+    const pass = await backfillWorkspaceIdPass(ctx, userId, workspaceId, {
+      tableIndex,
+      after: after ?? null,
+    });
+    if (!pass.done) {
+      await ctx.scheduler.runAfter(0, internal.workspaces.continueBackfillWorkspaceId, {
+        userId,
+        workspaceId,
+        tableIndex: pass.tableIndex,
+        after: pass.after ?? undefined,
+      });
+    }
+    return { touched: pass.touched, done: pass.done };
   },
 });

@@ -107,9 +107,9 @@ the first one — pick whichever fits the install:
 Set on the Convex deployment:
 
 ```bash
-npx convex env set SUPER_ADMIN_EMAIL admin@example.com
+bunx convex env set SUPER_ADMIN_EMAIL admin@example.com
 # OR for non-super admins (comma-separated):
-npx convex env set ADMIN_BOOTSTRAP_EMAILS one@x.io,two@y.io
+bunx convex env set ADMIN_BOOTSTRAP_EMAILS one@x.io,two@y.io
 ```
 
 Sign in with that email. `useAdminRole` runs `bootstrapMyProfile` on
@@ -127,7 +127,7 @@ serialization).
 ### 3. Direct DB patch (last-resort)
 
 `docker exec` into the Convex container and patch `userProfiles`
-manually, OR use `npx convex run admin/mutations:claimSuperAdmin
+manually, OR use `bunx convex run admin/mutations:claimSuperAdmin
 --admin-key …`. Only needed if env + UI both fail.
 
 After ANY of the three, `setUserRole` from inside the admin panel

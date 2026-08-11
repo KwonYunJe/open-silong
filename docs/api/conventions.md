@@ -285,7 +285,7 @@ Today's crons:
 ## 11. Generated types (`convex/_generated/api.d.ts`)
 
 This repo's `convex/_generated/api.d.ts` is **hand-edited** because
-the codegen step (`npx convex codegen`) requires `CONVEX_DEPLOYMENT`
+the codegen step (`bunx convex codegen`) requires `CONVEX_DEPLOYMENT`
 env which is server-only (gated by `si-coder/deploy.js`). When you:
 
 - **Add a new module file** under `convex/` — append the import +
@@ -294,7 +294,7 @@ env which is server-only (gated by `si-coder/deploy.js`). When you:
   module` reference picks it up automatically.
 - **Rename a module** — update the import + fullApi key.
 
-The deploy CI re-runs `npx convex deploy --yes` which regenerates the
+The deploy CI re-runs `bunx convex deploy --yes` which regenerates the
 file on the server side. Local hand-edits are kept in sync as long
 as you remember to add modules.
 

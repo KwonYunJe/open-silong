@@ -39,6 +39,7 @@
     "build:auto": "if [ -n \"$CONVEX_DEPLOY_KEY\" ]; then node scripts/setup-auth.mjs && convex deploy --typecheck=disable --cmd-url-env-var-name NEXT_PUBLIC_CONVEX_URL --cmd 'next build'; else next build; fi",
     "start": "next start --hostname 0.0.0.0 --port 3000",
     "lint": "eslint .",
+    "check:rules": "node scripts/check-rules.mjs",
     "typecheck": "tsc --noEmit && tsc -p convex/tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",

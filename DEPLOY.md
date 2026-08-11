@@ -27,7 +27,7 @@ cd open-silong
 bun install
 
 # 1. Create a Convex project (interactive)
-npx convex dev
+bunx convex dev
 # → prints something like https://your-project-name.convex.cloud
 # → also creates .env.local with CONVEX_DEPLOYMENT and NEXT_PUBLIC_CONVEX_URL
 
@@ -270,5 +270,5 @@ selective moves.
 | Self-hosted backend 502 via Traefik | Convex bound to `0.0.0.0` but `docker-compose.yml` exposes `127.0.0.1` only | Add a Traefik network; don't change the bind |
 | `proxy.ts` redirect loop | Auth cookie domain mismatch | Set `NEXT_PUBLIC_SITE_URL` to your actual host |
 
-More edge cases land in `docs/notion-clone/PROCESS.md` and per-feature
+More edge cases land in `docs/archive/notion-clone/PROCESS.md` and per-feature
 docs under `docs/api/`.

@@ -33,18 +33,21 @@ async function drain(
 }
 
 /** Daily prune of expired rate-limit windows. Uses `by_window` index
- *  range scan — cron processes only rows older than 24h, no full scan. */
+ *  range scan — cron processes only rows older than 24h, no full scan.
+ *  The range is still one row per (user, scope) that went quiet, so a
+ *  backlog after a missed/failed cron drains via `drain()` rather than
+ *  busting the transaction row limit forever. */
 export const pruneRateLimits = internalMutation({
   args: {},
-  handler: async (ctx) => {
-    const cutoff = Date.now() - ONE_DAY_MS;
-    const old = await ctx.db
-      .query("rateLimits")
-      .withIndex("by_window", (q) => q.lt("windowStart", cutoff))
-      .collect();
-    for (const row of old) await ctx.db.delete(row._id);
-    return { pruned: old.length };
-  },
+  handler: async (ctx): Promise<PruneResult> =>
+    drain(
+      ctx,
+      await ctx.db
+        .query("rateLimits")
+        .withIndex("by_window", (q) => q.lt("windowStart", Date.now() - ONE_DAY_MS))
+        .take(PRUNE_BATCH),
+      internal.maintenance.pruneRateLimits,
+    ),
 });
 
 /** Daily prune of expired visitor-beacon rate-limit windows
@@ -54,16 +57,32 @@ export const pruneRateLimits = internalMutation({
  *  the `by_reset` range index. */
 export const pruneVisitorRateLimits = internalMutation({
   args: {},
-  handler: async (ctx) => {
-    const cutoff = Date.now() - ONE_DAY_MS;
-    const old = await ctx.db
-      .query("visitorRateLimits")
-      .withIndex("by_reset", (q) => q.lt("resetAt", cutoff))
-      .collect();
-    for (const row of old) await ctx.db.delete(row._id);
-    return { pruned: old.length };
-  },
+  handler: async (ctx): Promise<PruneResult> =>
+    drain(
+      ctx,
+      await ctx.db
+        .query("visitorRateLimits")
+        .withIndex("by_reset", (q) => q.lt("resetAt", Date.now() - ONE_DAY_MS))
+        .take(PRUNE_BATCH),
+      internal.maintenance.pruneVisitorRateLimits,
+    ),
 });
+
+/** Pages purged per pass. Much smaller than `PRUNE_BATCH` because each
+ *  page drags a snapshot cascade behind it, and snapshot docs carry a full
+ *  `blocks` array — the transaction's byte budget, not its row count, is
+ *  the binding constraint here. */
+const TRASH_PAGE_BATCH = 20;
+/** Snapshot docs read+deleted per pass. When a pass hits this the page loop
+ *  stops early; the untouched pages are still `trashed` + still inside the
+ *  index range, so the next pass picks them up. */
+const TRASH_SNAPSHOT_BUDGET = 200;
+/** Snapshots fetched per chunk while cascading ONE page. Looped until the
+ *  page has none left, so a page is only deleted after every one of its
+ *  snapshots is gone — no orphans, whatever the per-page count. */
+const SNAPSHOT_CHUNK = 100;
+
+type PurgeResult = { pages: number; snaps: number; dbs: number; more: boolean };
 
 /** Permanently delete pages + databases whose `trashed === true` and
  *  last `updatedAt` is older than 30 days. Mirrors `pages.permanently
@@ -72,37 +91,58 @@ export const pruneVisitorRateLimits = internalMutation({
  *  30 days to restore before storage gets reclaimed.
  *
  *  Uses `by_trashed_updated` range index — only scans `(trashed=true,
- *  updatedAt < cutoff)`. */
+ *  updatedAt < cutoff)` — and drains that range `TRASH_PAGE_BATCH` pages
+ *  at a time, re-scheduling itself while work remains. A 30-day trash
+ *  backlog is exactly the shape that would exceed a single transaction
+ *  and then fail every night in silence. */
 export const purgeStaleTrash = internalMutation({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx): Promise<PurgeResult> => {
     const cutoff = Date.now() - TRASH_TTL_MS;
     const staleTrashedPages = await ctx.db
       .query("pages")
       .withIndex("by_trashed_updated", (q) =>
         q.eq("trashed", true).lt("updatedAt", cutoff),
       )
-      .collect();
+      .take(TRASH_PAGE_BATCH);
     const staleTrashedDbs = await ctx.db
       .query("databases")
       .withIndex("by_trashed_updated", (q) =>
         q.eq("trashed", true).lt("updatedAt", cutoff),
       )
-      .collect();
+      .take(PRUNE_BATCH);
     let snaps = 0;
+    let pages = 0;
+    let budgetHit = false;
     for (const p of staleTrashedPages) {
-      const ss = await ctx.db
-        .query("snapshots")
-        .withIndex("by_user_page", (q) => q.eq("userId", p.userId).eq("pageId", p._id))
-        .collect();
-      for (const s of ss) {
-        await ctx.db.delete(s._id);
-        snaps++;
+      if (snaps >= TRASH_SNAPSHOT_BUDGET) {
+        budgetHit = true;
+        break;
+      }
+      // Snapshots first, page last — an interrupted pass leaves the page
+      // trashed (and re-selected next pass) rather than orphaning its
+      // snapshots behind a deleted parent.
+      for (;;) {
+        const ss = await ctx.db
+          .query("snapshots")
+          .withIndex("by_user_page", (q) => q.eq("userId", p.userId).eq("pageId", p._id))
+          .take(SNAPSHOT_CHUNK);
+        for (const s of ss) {
+          await ctx.db.delete(s._id);
+          snaps++;
+        }
+        if (ss.length < SNAPSHOT_CHUNK) break;
       }
       await ctx.db.delete(p._id);
+      pages++;
     }
     for (const d of staleTrashedDbs) await ctx.db.delete(d._id);
-    return { pages: staleTrashedPages.length, snaps, dbs: staleTrashedDbs.length };
+    const more =
+      budgetHit ||
+      staleTrashedPages.length === TRASH_PAGE_BATCH ||
+      staleTrashedDbs.length === PRUNE_BATCH;
+    if (more) await ctx.scheduler.runAfter(0, internal.maintenance.purgeStaleTrash, {});
+    return { pages, snaps, dbs: staleTrashedDbs.length, more };
   },
 });
 
@@ -202,14 +242,16 @@ export const pruneAiRunProgress = internalMutation({
  *  86_400_000) so the cutoff is dayKey-based. */
 export const pruneAiTokenUsage = internalMutation({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx): Promise<PruneResult> => {
     const RETAIN_DAYS = 30;
     const cutoffDay = Math.floor((Date.now() - RETAIN_DAYS * ONE_DAY_MS) / ONE_DAY_MS);
-    const old = await ctx.db
-      .query("aiTokenUsage")
-      .withIndex("by_day", (q) => q.lt("dayKey", cutoffDay))
-      .collect();
-    for (const row of old) await ctx.db.delete(row._id);
-    return { pruned: old.length };
+    return drain(
+      ctx,
+      await ctx.db
+        .query("aiTokenUsage")
+        .withIndex("by_day", (q) => q.lt("dayKey", cutoffDay))
+        .take(PRUNE_BATCH),
+      internal.maintenance.pruneAiTokenUsage,
+    );
   },
 });

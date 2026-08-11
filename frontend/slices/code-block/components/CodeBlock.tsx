@@ -41,6 +41,8 @@ export function CodeBlock({ text, lang, registerRef, onText, onLang, onKeyDown }
   };
 
   return (
+    // rules-allow: hex-in-classname — must match highlight.js github-dark's own
+    // background exactly; a theme token would drift from the syntax colours.
     <div className="flex-1 rounded-md bg-[#0d1117] border border-border overflow-hidden font-mono text-sm group/code relative">
       <div className="flex items-center justify-between px-3 py-1.5 bg-black/30 border-b border-white/5">
         <DropdownMenu>

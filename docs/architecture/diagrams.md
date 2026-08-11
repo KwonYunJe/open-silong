@@ -245,4 +245,5 @@ flowchart LR
 The force model mirrors [d3-force](https://d3js.org/d3-force) (which is what
 Obsidian's graph is built on): inverse-square many-body repulsion, degree-
 normalised link springs with a bias, and `forceX/Y` centre gravity. See
-[`docs/memory-graph/`](../memory-graph/).
+[`docs/archive/memory-graph/PLAN.md`](../archive/memory-graph/PLAN.md) — the
+original design note, kept for provenance.

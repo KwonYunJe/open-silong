@@ -144,7 +144,7 @@ Two things did not move, on purpose:
   `bun run test` / `bunx vitest run`, never `bun test`.
 - **Docker runtime stays node**, per above.
 
-`docs/audit/2026-07-16-perf-round2.md` recorded Bun as NO-GO. That finding is
+`docs/archive/audit/2026-07-16-perf-round2.md` recorded Bun as NO-GO. That finding is
 still factually right — **bun buys zero app-runtime performance** (the app
 runs on Vercel Node/Fluid + Convex V8 isolates, neither of which bun touches).
 It was adopted for install/DX speed by owner decision, and the hardcoded-pnpm

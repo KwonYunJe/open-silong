@@ -41,7 +41,7 @@ if [ -n "${SC_GIT_CI:-}" ] && [ -f "$SC_GIT_CI" ]; then
     exit 1
   }
 else
-  bun run typecheck && bunx vitest run --reporter=dot || {
+  bun run check:rules && bun run typecheck && bunx vitest run --reporter=dot || {
     echo ""
     echo "❌ local CI failed (typecheck or test). push blocked."
     echo "   override (NOT recommended): git push --no-verify"

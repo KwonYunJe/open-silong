@@ -1,10 +1,29 @@
 name: Deploy Convex
 
+# Manual backend deploy that does NOT depend on the maintainer's machine.
+#
+# Why this exists: pushing to main deploys the FRONTEND (Vercel) but not the
+# backend. `build:auto` only deploys Convex when CONVEX_DEPLOY_KEY is present,
+# and it is not set on Vercel — so a schema or function change reaches
+# production only when someone runs `bunx convex deploy` locally. That gap has
+# already caused a production 500 once (see docs/audit/). This workflow is the
+# fallback for when the laptop is not around.
+#
+# Setup (one time): create a production deploy key in the Convex dashboard for
+# `canny-flamingo-7`, then add it as the repository secret CONVEX_DEPLOY_KEY.
+# Until that secret exists this workflow fails fast with an explanation.
+#
+# Deliberately workflow_dispatch only: a deploy is a decision, not something
+# that should ride along with an unrelated push.
 on:
   workflow_dispatch:
+
 concurrency:
   group: convex-deploy
   cancel-in-progress: false
+
+permissions:
+  contents: read
 
 jobs:
   deploy:
@@ -22,9 +41,28 @@ jobs:
       - name: Install deps
         run: bun install --frozen-lockfile
 
-      - name: Deploy Convex functions
+      - name: Require deploy key
+        run: |
+          if [ -z "${{ secrets.CONVEX_DEPLOY_KEY }}" ]; then
+            echo "::error::CONVEX_DEPLOY_KEY is not set."
+            echo "Create a production deploy key in the Convex dashboard for canny-flamingo-7,"
+            echo "then add it under Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+
+      # Gate the backend on the same checks as the frontend. Deploying a
+      # schema change that fails typecheck is how you get a broken production
+      # backend with a green frontend.
+      - name: Project rules
+        run: bun run check:rules
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Test
+        run: bunx vitest run --reporter=default
+
+      - name: Deploy Convex functions to production
         env:
-          CONVEX_SELF_HOSTED_URL: ${{ secrets.CONVEX_SELF_HOSTED_URL }}
-          CONVEX_SELF_HOSTED_ADMIN_KEY: ${{ secrets.CONVEX_SELF_HOSTED_ADMIN_KEY }}
-          NODE_TLS_REJECT_UNAUTHORIZED: "0"
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
         run: bunx convex deploy --yes

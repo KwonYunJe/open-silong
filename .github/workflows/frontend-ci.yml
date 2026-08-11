@@ -1,18 +1,31 @@
-name: Frontend CI
+name: CI
 
+# open-silong is a PUBLIC repository, so GitHub-hosted runners are free and
+# unmetered. That is why this runs on every push and PR rather than being
+# workflow_dispatch-only like the private repos in this account.
 on:
+  push:
+    branches: [main]
+  pull_request:
   workflow_dispatch:
+
 concurrency:
-  group: frontend-ci-${{ github.ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
-  build:
+  check:
+    name: rules · typecheck · test · build
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     env:
       NEXT_TELEMETRY_DISABLED: "1"
-      NEXT_PUBLIC_CONVEX_URL: https://api-silong.rahmanef.com
+      # Build-time only. The client bundle needs a URL to inline; no secret
+      # is involved and no deploy happens from CI.
+      NEXT_PUBLIC_CONVEX_URL: https://canny-flamingo-7.convex.cloud
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -25,6 +38,17 @@ jobs:
       - name: Install deps
         run: bun install --frozen-lockfile
 
+      # Fails fast and cheaply — a CLAUDE.md rule violation should not wait
+      # behind a 40s typecheck to be reported.
+      - name: Project rules
+        run: bun run check:rules
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Test
+        run: bunx vitest run --reporter=default
+
       - name: Restore Next build cache
         uses: actions/cache@v4
         with:
@@ -34,14 +58,5 @@ jobs:
             nextjs-${{ runner.os }}-${{ hashFiles('bun.lock') }}-
             nextjs-${{ runner.os }}-
 
-      - name: Typecheck
-        run: bun run typecheck
-
       - name: Build
         run: bunx next build
-
-      # vitest, NOT `bun test` — bun's runner hijacks the same globs and is not
-      # compatible with the convex-test / jsdom suite.
-      - name: Test
-        run: bunx vitest run --reporter=default
-        continue-on-error: true

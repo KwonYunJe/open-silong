@@ -141,4 +141,4 @@ Ready to implement — the earlier blocker (legacy TS drift blocking
 `ignoreBuildErrors:false`) is cleared; typecheck is green on clean main.
 This is a dedicated-session task (route-group restructure + `next build`
 verification), not a drive-by. See progress tracker
-`docs/audit/2026-07-16-perf-round2.md`.
+`docs/archive/audit/2026-07-16-perf-round2.md`.

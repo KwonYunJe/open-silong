@@ -148,16 +148,166 @@ export function sanitizeError(err: unknown): SanitizedError {
  *  with PII-shaped Convex payloads.
  *
  *  Use alongside sanitizeError() — toast/UI gets the sanitized message,
- *  console gets the raw error for debugging. */
+ *  console gets the raw error for debugging.
+ *
+ *  NOTE: this is the *raw* channel and stays dev-only. The production
+ *  channel is captureError() below, which emits a redacted structured
+ *  line instead. */
 export function logError(scope: string, err: unknown, extra?: Record<string, unknown>): void {
   if (typeof process !== "undefined" && process.env?.NODE_ENV === "production") return;
   // eslint-disable-next-line no-console
   console.error(`[${scope}]`, err, extra ?? "");
 }
 
+/* ------------------------------------------------------------------ *
+ * Structured capture
+ *
+ * instrumentation.ts#onRequestError emits one JSON line per SERVER
+ * request error (level/msg/message/stack/route/method/digest/...) to
+ * stdout, which the host captures. Nothing did the equivalent for
+ * errors that happen in the browser — a client render/runtime throw
+ * showed a toast and was then dropped on the floor, so the maintainer
+ * never learned it happened.
+ *
+ * captureError() closes that: same field names, same one-line JSON
+ * shape, plus `source` so client and server errors grep together.
+ *
+ * PRIVACY — deliberately excluded from the emitted payload:
+ *   - page / block content and any user-authored prose (we never read it,
+ *     and anything that leaks into a message or `extra` string is passed
+ *     through redact() and hard-truncated)
+ *   - emails, bearer tokens, JWTs, Convex admin keys, long hex/base64
+ *     blobs, and secret-looking query params (redact())
+ *   - the URL query string and hash entirely — pathname only, since
+ *     share slugs / invite codes / ?token= live in search
+ *   - user ids, workspace ids and auth state — never read here
+ *   - non-primitive `extra` values, which are the usual way a whole
+ *     document object accidentally ends up in a log line
+ * ------------------------------------------------------------------ */
+
+/** Best-effort scrub of secret-shaped substrings. Order matters: the
+ *  specific patterns run before the greedy hex/base64 one. */
+function redact(s: string): string {
+  return s
+    .replace(/[\w.+-]+@[\w-]+\.[\w.-]{2,}/g, "[email]")
+    .replace(/\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g, "[jwt]")
+    .replace(/\bBearer\s+[A-Za-z0-9._~+/-]+=*/gi, "Bearer [redacted]")
+    // Convex admin/deploy keys: "instance-name|<long opaque>"
+    .replace(/\b[a-z0-9-]{3,}\|[A-Za-z0-9]{16,}/g, "[key]")
+    // `\b` (not `[?&]`) so this also catches secrets pasted into free-text
+    // error messages, not just ones sitting in a query string.
+    .replace(
+      /(\b(?:token|key|secret|password|passwd|apikey|auth|sig|signature|session)=)[^&\s"']+/gi,
+      "$1[redacted]",
+    )
+    .replace(/\b[A-Fa-f0-9]{32,}\b/g, "[hash]");
+}
+
+const MAX_MESSAGE = 300;
+const MAX_STACK = 2000;
+const MAX_EXTRA_VALUE = 120;
+
+function clean(s: unknown, max: number): string | undefined {
+  if (typeof s !== "string" || !s) return undefined;
+  return redact(s).slice(0, max);
+}
+
+/** Only primitives survive — objects/arrays are dropped rather than
+ *  stringified, because that is how document bodies leak into logs. */
+function cleanExtra(extra?: Record<string, unknown>): Record<string, unknown> | undefined {
+  if (!extra) return undefined;
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(extra)) {
+    if (typeof v === "string") {
+      const c = clean(v, MAX_EXTRA_VALUE);
+      if (c !== undefined) out[k] = c;
+    } else if (typeof v === "number" || typeof v === "boolean") {
+      out[k] = v;
+    }
+    // objects, arrays, functions, null, undefined → dropped on purpose
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
+/** Pathname only — never search or hash (share slugs, ?token=, invite
+ *  codes live there). Undefined on the server, where onRequestError
+ *  already records the route. */
+function currentRoute(): string | undefined {
+  if (typeof window === "undefined") return undefined;
+  try {
+    return window.location.pathname;
+  } catch {
+    return undefined;
+  }
+}
+
+// Flood guard: a render loop can throw the same error thousands of times
+// per second. Emit each distinct error at most once per window, and stop
+// entirely after a hard cap so we never wedge the tab or the log stream.
+const DEDUPE_MS = 10_000;
+const MAX_EMITS = 50;
+const seen = new Map<string, number>();
+let emitted = 0;
+
+/** Emit ONE redacted, structured JSON line describing an error, in the
+ *  same shape instrumentation.ts uses for server request errors.
+ *
+ *  Runs in dev and production (unlike logError). Safe to call from error
+ *  boundaries, `app/**\/error.tsx`, and window error listeners. */
+export function captureError(scope: string, err: unknown, extra?: Record<string, unknown>): void {
+  try {
+    if (emitted >= MAX_EMITS) return;
+
+    const e = err instanceof Error ? err : undefined;
+    const message = clean(getErrorMessage(err, "Unknown error"), MAX_MESSAGE) ?? "Unknown error";
+
+    const key = `${scope}:${message}`;
+    const now = Date.now();
+    const last = seen.get(key);
+    if (last !== undefined && now - last < DEDUPE_MS) return;
+    seen.set(key, now);
+    emitted += 1;
+
+    const digest =
+      err && typeof err === "object" && "digest" in err
+        ? clean(String((err as { digest?: unknown }).digest ?? ""), 64)
+        : undefined;
+
+    // eslint-disable-next-line no-console
+    console.error(
+      JSON.stringify({
+        level: "error",
+        msg: "client_error",
+        source: typeof window === "undefined" ? "server" : "client",
+        scope,
+        category: sanitizeError(err).category,
+        name: e?.name,
+        message,
+        stack: clean(e?.stack, MAX_STACK),
+        route: currentRoute(),
+        digest,
+        extra: cleanExtra(extra),
+      }),
+    );
+  } catch {
+    /* logging must never throw into the caller's error path */
+  }
+}
+
+/** Test seam — resets the flood guard between cases. */
+export function __resetErrorCapture(): void {
+  seen.clear();
+  emitted = 0;
+}
+
 /** Convenience: sanitize + log in one call. Returns the SanitizedError so
- *  callers can pass `.message` straight into a toast. */
+ *  callers can pass `.message` straight into a toast.
+ *
+ *  Two channels on purpose: logError() gives the dev the real Error object
+ *  (clickable stack in devtools) and is silent in prod; captureError()
+ *  gives the maintainer a redacted grep-able line in every environment. */
 export function reportError(scope: string, err: unknown, extra?: Record<string, unknown>): SanitizedError {
   logError(scope, err, extra);
+  captureError(scope, err, extra);
   return sanitizeError(err);
 }

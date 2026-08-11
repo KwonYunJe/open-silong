@@ -20,7 +20,7 @@ reference deploy now.
 - Domain shifting `nosion.rahmanef.com` → `silong.rahmanef.com` (with redirect during transition).
 - Convex backend domain shifting `api-silong.rahmanef.com` → `api-silong.rahmanef.com` (separate Dokploy ops).
 - Internal code references to "Nosion" / "nosion" remain in many files; Phase 2 polish sweep will rebrand surface-by-surface. Backend `INSTANCE_NAME` stays `notion-page-clone` until a coordinated re-key (no urgency — internal id only).
-- See `docs/rr-sync/2026-05-20-pivot-nosion-source-of-truth.md` for strategic rationale.
+- See `docs/archive/rr-sync/2026-05-20-pivot-nosion-source-of-truth.md` for strategic rationale.
 
 ## Stack baseline
 
@@ -31,7 +31,7 @@ reference deploy now.
   the pre-push hook (`scripts/install-pre-push.sh`) which sources
   `.env.local` then runs `bunx convex deploy --yes`. Manual deploy:
   `set -a && source .env.local && set +a && bunx convex deploy --yes`
-  (raw `npx convex deploy` without env sourcing → `BadAdminKey`).
+  (a raw `convex deploy` without env sourcing → `BadAdminKey`).
 - **Auth = `@convex-dev/auth`** — NO Clerk. Custom auth slices only when
   documented insufficient.
 - **Package manager = bun 1.3** (2026-08-10, was pnpm 10). `bun install` /
@@ -78,10 +78,20 @@ reference deploy now.
   API keys.
 
 ### Delivery
-- Solo dev → push direct to `main`, NO PRs. Conventional commits +
-  `Co-Authored-By: Claude …` footer. Dokploy webhook auto-builds.
-- Local CI: `/sc-git ci --repo notion-page-clone` or pre-push hook —
-  no GitHub Actions cloud minutes.
+- **Maintainer** pushes direct to `main`, no PR. **External contributors**
+  open PRs — see CONTRIBUTING.md. Both paths hit the same CI.
+- Conventional commits + `Co-Authored-By: Claude …` footer.
+- **CI runs on every push to main AND every PR** (`.github/workflows/
+  frontend-ci.yml`): project rules → typecheck → tests → build, all
+  blocking. This repo is **public**, so GitHub-hosted runners are free and
+  unmetered — the workflow_dispatch-only convention used across the other
+  repos in this account exists to save private-repo minutes and does not
+  apply here.
+- The pre-push hook (`scripts/install-pre-push.sh`) runs the same gate
+  locally so failures surface before the push, not after.
+- `bun run check:rules` enforces the hard rules in this file mechanically
+  (`scripts/check-rules.mjs`). A rule that is not in that script is a rule
+  that will rot — when you add a rule here, add the check too.
 
 ### MCP
 
@@ -178,7 +188,7 @@ Ignore its grades. `audit-bp.sh` itself is fine.
   (`scripts/install-pre-push.sh`) sources `.env.local` and runs
   `bunx convex deploy --yes` whenever the pushed range touches
   `convex/`. Backend lands before the Dokploy frontend rebuild that
-  follows. Deploy fails → push aborts. Raw `npx convex deploy` without
+  follows. Deploy fails → push aborts. A raw `convex deploy` without
   sourced `CONVEX_SELF_HOSTED_*` env returns `BadAdminKey` — always go
   through the hook (or `set -a && source .env.local && set +a` first).
 - **Frontend** — Dokploy app (`notion-page-clone-app-2tk1pq`) builds from
