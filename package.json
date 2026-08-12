@@ -36,7 +36,7 @@
   "scripts": {
     "dev": "next dev --hostname 0.0.0.0 --port 3000",
     "build": "next build",
-    "build:auto": "if [ -n \"$CONVEX_DEPLOY_KEY\" ]; then node scripts/setup-auth.mjs && convex deploy --typecheck=disable --cmd-url-env-var-name NEXT_PUBLIC_CONVEX_URL --cmd 'next build'; else next build; fi",
+    "build:auto": "if [ -n \"$CONVEX_DEPLOY_KEY\" ]; then echo 'convex-deploy: RUNNING (CONVEX_DEPLOY_KEY present) — backend deploys before the frontend build'; node scripts/setup-auth.mjs && convex deploy --typecheck=disable --cmd-url-env-var-name NEXT_PUBLIC_CONVEX_URL --cmd 'next build'; else echo 'convex-deploy: SKIPPED (CONVEX_DEPLOY_KEY is empty) — FRONTEND ONLY, the Convex backend was NOT deployed by this build'; next build; fi",
     "start": "next start --hostname 0.0.0.0 --port 3000",
     "lint": "eslint .",
     "check:rules": "node scripts/check-rules.mjs",

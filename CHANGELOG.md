@@ -10,6 +10,19 @@ notes under `docs/audit/`.
 
 ## [Unreleased]
 
+### Fixed
+
+- `build:auto` was silent about which branch it took, so a Vercel build log
+  never revealed whether the Convex backend had been deployed alongside the
+  frontend. It now echoes `convex-deploy: RUNNING` or `convex-deploy: SKIPPED`
+  with the reason, which makes the question answerable by one grep of the build
+  log instead of by inference.
+  - Confirmed from the build log for `6def9e3` that `CONVEX_DEPLOY_KEY` is
+    **not** present in the production build environment: the conditional fell
+    through to a bare `next build`. Backend deploys therefore still happen only
+    via a manual `bunx convex deploy` or the `convex-deploy` workflow. Do not
+    confuse this variable with `NEXT_PUBLIC_CONVEX_URL`, which is set.
+
 ## [1.2.0] - 2026-08-11
 
 Security and quality-assurance release. Four ungated public Convex endpoints
