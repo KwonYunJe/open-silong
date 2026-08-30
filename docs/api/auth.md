@@ -74,14 +74,43 @@ profile bootstraps on first access.
 
 ---
 
-## `requireSuperAdmin(ctx) → Id<"users">`
+## `requireWorkspaceAccess(ctx, table, id, { write? }) → { userId, doc, role }`
 
-Stricter — requires `userProfiles.role === "superadmin"`. Works in
-both queries and mutations. Auth keyed on user id, not email
-(cycle-2 closing of `DELTA-SUPERADMIN-EMAIL-001`).
+The multi-workspace counterpart to `requireOwned`, and the most-used
+guard in the codebase (28 call sites). Resolves the row, reads its
+`workspaceId`, and looks up the caller's `workspaceMembers` role for
+that workspace. Rows with **no** `workspaceId` are legacy
+pre-multi-workspace data and fall back to owner-only.
 
-Use for irreversible / cross-tenant operations: delete user, purge
-data, set user role.
+Returns the caller's `role` so the handler can branch on
+viewer/editor/owner. Pass `{ write: true }` for mutating paths.
+
+Throws `Tidak ditemukan` for a missing row — the same
+existence-vs-permission collapse as `requireOwned`.
+
+---
+
+## There is no `requireSuperAdmin`
+
+Earlier revisions of this document described one. It does not exist,
+and has not for some time.
+
+**What is true:** the `superadmin` role is real — `userProfiles.role`
+is `"superadmin" | "admin" | "user"`, assigned by `ensureUserProfile`
+from the `SUPER_ADMIN_EMAIL` env on first login. But there is no
+separate guard for it: **`requireAdmin` and `requireAdminQuery` accept
+admin *and* superadmin**, and every admin mutation goes through those.
+
+So superadmin is currently a *label*, not an extra permission tier.
+`admin/mutations.ts:setUserRole` is gated by plain `requireAdmin`; its
+only extra protection is a self-demotion guard
+(`Tidak bisa demote diri sendiri`). The one genuinely superadmin-shaped
+path is the first-deployer escape hatch (`admin/mutations.ts:26`),
+which promotes the caller only when no superadmin exists anywhere and
+is race-guarded by a re-query on the `by_role` index.
+
+If you need a real superadmin-only tier, it has to be written — do not
+call a helper this document once promised.
 
 ---
 
@@ -139,7 +168,7 @@ manages further promotions/demotions.
 
 `convex/auth.ts` registers the `Google` provider from
 `@auth/core/providers/google`. The "Sign in with Google" button on
-`/auth` (wired in `app/auth/AuthForm.tsx`) activates the moment the
+`/auth` (wired in `app/(app)/auth/AuthForm.tsx`) activates the moment the
 two env vars below are set on the Convex backend — no code change
 required:
 
@@ -187,7 +216,7 @@ sign-in can become super-admin without a separate claim flow.
 Adding other OAuth providers (GitHub, Apple, Microsoft, Discord, …)
 follows the same shape: import the provider in `convex/auth.ts`, set
 matching `AUTH_<PROVIDER>_ID` + `AUTH_<PROVIDER>_SECRET` env on the
-backend, add a sign-in button in `app/auth/AuthForm.tsx`. Catalog:
+backend, add a sign-in button in `app/(app)/auth/AuthForm.tsx`. Catalog:
 <https://labs.convex.dev/auth>.
 
 ---
@@ -209,7 +238,7 @@ list is admin-only):
 | message | meaning | thrown by |
 |---|---|---|
 | `Belum login` | No auth token | `requireAuth` (and downstream) |
-| `Tidak berwenang` | Authed but not admin | `requireAdmin*` / `requireSuperAdmin` |
+| `Tidak berwenang` | Authed but not admin, or workspace role too low | `requireAdmin*` / `requireWorkspaceAccess` |
 | `Tidak ditemukan` | Doc missing OR not owned | `requireOwned` |
 
 Frontend `sanitizeError` recognizes these and maps them to friendly
@@ -224,10 +253,14 @@ toasts. Don't add new strings without updating the allowlist in
    if it's not inside `convex/_shared/auth.ts` or a query that needs
    anonymous-readable behavior (returns `null` when missing), it's a
    bug.
-2. **Don't compare emails** for authorization. `requireSuperAdmin`
-   reads the role from `userProfiles`, not the email field. The
-   email is verifier-trusted (Convex Auth mints it), but the rule is
-   "auth keyed on identity, not on a mutable field."
+2. **Don't compare emails** for authorization. The guards read
+   `userProfiles.role`, not the email field. `SUPER_ADMIN_EMAIL` is
+   consulted exactly once, in `ensureUserProfile`, to *assign* the role
+   on first login — after that the role is the source of truth. The
+   email is verifier-trusted (Convex Auth mints it, it is not raw
+   `identity.email`), but the rule is "auth keyed on identity, not on a
+   mutable field." This closed the 2026-05-03 audit's P2
+   `DELTA-SUPERADMIN-EMAIL-001`.
 3. **Anonymous-readable queries** explicitly skip auth and return
    `null` / `[]` when missing. Document the anonymous path in the
    fn's JSDoc.

@@ -178,7 +178,7 @@ Two ship in the slice:
 Backed by self-hosted Convex (the open-silong reference backend).
 Skip-listed in `rr-sync.json.skipFiles` so the rr-side lift never
 inherits a Convex import. Lives at
-`frontend/slices/notion/adapter/convexAdapter.tsx`.
+`frontend/slices/notion/adapter/convexAdapter/`.
 
 Use this when:
 - Your app already runs Convex (cloud or self-hosted)

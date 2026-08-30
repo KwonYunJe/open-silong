@@ -86,7 +86,7 @@ double-protect but slow the legitimate periodic case.
 
 ### Hook: `useSnapshots(authorName)`
 
-`frontend/slices/snapshots/hooks/useSnapshots.ts`. Returns:
+`frontend/shared/lib/store/snapshots.ts`. Returns:
 
 ```ts
 {

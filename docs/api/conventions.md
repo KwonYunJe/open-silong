@@ -17,7 +17,7 @@ modules every consumer should import instead of defining their own.
 
 | module | what it gives you |
 |---|---|
-| `frontend/shared/lib/databases/propertyTypeMeta.ts` (the SSOT — `slices/databases/lib/propertyTypeMeta.ts` is a deprecated re-export shim) | `PROPERTY_TYPE_META`, `PROPERTY_TYPE_LABELS`, `PROPERTY_TYPE_ICONS`, `PROPERTY_TYPES`, `defaultPropName` |
+| `frontend/shared/lib/databases/propertyTypeMeta.ts` — **the only copy**; the `slices/databases/lib/` re-export shim was deleted 2026-08-30 | `PROPERTY_TYPE_META`, `PROPERTY_TYPE_LABELS`, `PROPERTY_TYPE_ICONS`, `PROPERTY_TYPES`, `defaultPropName` |
 | `frontend/slices/editor/blocks/placeholders.ts` | `TOP_LEVEL_PLACEHOLDERS`, `NESTED_PLACEHOLDERS` |
 
 Adding a new property type? Add ONE entry in `PROPERTY_TYPE_META` and
@@ -34,7 +34,7 @@ in a component file.
 
 | module | what it gives you |
 |---|---|
-| `auth.ts` | `requireAuth`, `requireOwned`, `requireAdmin*`, `requireSuperAdmin`, `actorEmail`, `ensureUserProfile` |
+| `auth.ts` | `requireAuth`, `requireOwned`, `requireWorkspaceAccess`, `requireAdmin*`, `actorEmail`, `ensureUserProfile` |
 | `rateLimit.ts` | `rateLimit(ctx, userId, cfg)` — fixed-window counter |
 | `limits.ts` | `RATE_LIMITS`, `CHAR_CAPS`, `COUNT_CAPS`, `AI_QUOTA`, `FILE_SIZES`, `SHARE_SLUG_RE` constants |
 | `pageTree.ts` | `collectDescendants(pages, rootId)` — page-tree walk, cycle-safe |
@@ -60,7 +60,8 @@ const userId = await requireAuth(ctx);
 // admin gates
 const userId = await requireAdmin(ctx);            // mutations
 const userId = await requireAdminQuery(ctx);       // queries
-const userId = await requireSuperAdmin(ctx);       // role: "superadmin"
+// NOTE: there is no requireSuperAdmin. requireAdmin/requireAdminQuery
+// accept BOTH "admin" and "superadmin" — see docs/api/auth.md.
 ```
 
 `requireOwned` is in `convex/_shared/auth.ts`. Tables it covers:

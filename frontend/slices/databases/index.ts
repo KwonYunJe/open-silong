@@ -20,7 +20,7 @@ export {
   defaultPropName,
   type PropertyTypeCategory,
   type PropertyTypeMeta,
-} from "./lib/propertyTypeMeta";
+} from "@/shared/lib/databases/propertyTypeMeta";
 
 // Row sub-namespace (formerly @/slices/database-row)
 export {

@@ -18,8 +18,6 @@
     "dead-index|convex/schema.ts|.index(\"by_workspace_tag\", [\"workspaceId\", \"tag\"])",
     "dead-index|convex/schema.ts|.index(\"by_workspace_target_title\", [\"workspaceId\", \"targetTitle\"]),",
     "dead-index|convex/schema.ts|.index(\"by_workspace_user\", [\"workspaceId\", \"userId\"]),",
-    "no-pnpm|CHANGELOG.md|`npm run build` / `pnpm exec convex deploy` after the 2026-08-10 bun",
-    "no-pnpm|scripts/codex-security-scan.sh|CODEX_SECURITY_STATE_DIR=\"$STATE_DIR\" npx \"${args[@]}\"",
     "raw-ui-primitive|app/(app)/dashboard/(account)/settings/MCPSection.tsx|<button",
     "raw-ui-primitive|app/(app)/dashboard/(account)/settings/SettingsSidebar.tsx|<button",
     "raw-ui-primitive|app/global-error.tsx|<button",

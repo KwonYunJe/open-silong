@@ -63,8 +63,13 @@ Real problems, deliberately not fixed yet. Reasoning in
 - **`check:rules` carries 47 baselined known-debt entries.** The gate
   itself is green (0 new violations, 5 waivers) — the remaining work is
   burning down that baseline, not fixing a red check.
-- **32 of 40 slices have no `docs/api/` page**, including `editor` and
-  `admin-panel` (the 1st and 3rd largest).
+- **24 of 40 slices have no dedicated `docs/api/` page.** All 40 do have a
+  prose section in `docs/api/slices.md`, so this is a depth gap, not a
+  documentation hole. (An earlier revision said "32, including editor and
+  admin-panel" — wrong on both counts: that count came from a filename match
+  that missed slices documented under a different name, and `editor` is
+  covered by `blocks.md` / `block-controls.md` / `inline-decorator.md` while
+  `admin-panel` is covered by `admin.md`.)
 - **Legacy `Nosion` identifiers** remain across the code: storage keys
   (`nosion:theme-preset`), the `nosion://sync/` URL scheme, the
   `X-Nosion-Signature` webhook header. These are **persisted data and public

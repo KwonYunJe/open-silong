@@ -96,8 +96,11 @@ Data shape from `listUsersWithProfiles`:
 - `claimSuperAdmin()` — race-safe; succeeds only when no superadmin
   exists in the workspace. Audit-logged.
 
-All admin queries/mutations gate via `requireAdminQuery`/`requireAdmin`
-(or `requireSuperAdmin` for sensitive ops). See `convex/_shared/auth.ts`.
+All admin queries/mutations gate via `requireAdminQuery`/`requireAdmin`,
+which accept **both** the `admin` and `superadmin` roles — there is no
+separate superadmin guard, so `superadmin` is a label rather than an extra
+permission tier. `setUserRole` adds only a self-demotion guard. See
+`convex/_shared/auth.ts` and [`auth.md`](./auth.md).
 
 ## Templates tab
 

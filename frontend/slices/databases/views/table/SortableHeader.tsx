@@ -3,7 +3,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import type { Database, DatabaseViewConfig, Property } from "@/shared/types/domain";
-import { PROPERTY_TYPE_ICONS, PROPERTY_TYPE_LABELS } from "../../lib/propertyTypeMeta";
+import { PROPERTY_TYPE_ICONS, PROPERTY_TYPE_LABELS } from "@/shared/lib/databases/propertyTypeMeta";
 import { ColumnHeaderMenu } from "../../components/ColumnHeaderMenu";
 import { Button } from "@/shared/ui/button";
 

@@ -283,7 +283,13 @@ function waivedAt(src, starts, line, ruleId) {
     return !!m && (m[1] === "*" || m[1].toLowerCase() === ruleId);
   };
   if (matches(line)) return true;
-  const isComment = (t) => t.startsWith("//") || t.startsWith("*") || t.startsWith("/*") || t.endsWith("*/");
+  // `#` matters: no-pnpm scans .sh and .yml, where a waiver can only ever be a
+  // hash comment. Without it the rule could flag a shell script that no comment
+  // could waive. Phase 2 still requires an explicit rules-allow match, so
+  // admitting more comment shapes only widens where a waiver can be written.
+  const isComment = (t) =>
+    t.startsWith("//") || t.startsWith("*") || t.startsWith("/*") || t.endsWith("*/") ||
+    t.startsWith("#") || t.startsWith("<!--");
 
   let l = line - 1;
   let hops = 0;

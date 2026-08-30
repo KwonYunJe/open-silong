@@ -121,7 +121,7 @@ Throws plain Error on validation failure.
 
 ### Export
 
-Frontend-only. `frontend/slices/database-csv/lib/exportCsv.ts`
+Frontend-only. `frontend/slices/database-csv/lib/csv.ts`
 serializes the active view (respects filters + sorts) into a CSV.
 Type-aware (date → ISO, multi_select → semicolon-joined option
 names).

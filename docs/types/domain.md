@@ -314,9 +314,9 @@ interface UserProfile {
 ```
 
 `userProfiles` table (`convex/schema.ts:userProfiles`) carries
-`role: "user" | "superadmin"` for admin gating — NOT exposed in the
-`UserProfile` type because consumers shouldn't branch on role outside
-of `convex/admin/*` and `requireSuperAdmin`.
+`role: "user" | "admin" | "superadmin"` for admin gating — NOT exposed in
+the `UserProfile` type because consumers shouldn't branch on role outside
+of `convex/admin/*` and the `requireAdmin*` guards.
 
 ---
 

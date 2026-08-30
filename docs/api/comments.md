@@ -114,7 +114,7 @@ bad comment but not rewrite its content under the author's name).
 
 ### Hook: `usePageComments(pageId)`
 
-`frontend/slices/comments/hooks/useComments.ts`. Subscribes via
+`frontend/slices/comments/hooks/useCommentsCore.ts`. Subscribes via
 `useQuery(api["features/comments/queries"].listForPage)`. Returns
 `{comments, openCount, create, update, resolve, remove}` plus
 permission flags computed against the active user.
@@ -126,7 +126,7 @@ badge sourced from `openCount`.
 
 ### `PageCommentsContext` provider
 
-`frontend/slices/comments/lib/PageCommentsContext.tsx`. Lifts the
+`frontend/slices/comments/lib/CommentsContext.tsx`. Lifts the
 page-level comment state once so block comments can share the
 subscription instead of querying per-block.
 

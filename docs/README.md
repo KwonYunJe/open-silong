@@ -28,7 +28,7 @@ Per-surface contracts. [`api/README.md`](./api/README.md) is the index.
 |---|---|
 | `api/slices.md` | catalog of every frontend slice |
 | `api/conventions.md` | rules every Convex function follows |
-| `api/auth.md` | `requireAuth` / `requireOwned` / `requireAdmin` / `requireSuperAdmin` |
+| `api/auth.md` | `requireAuth` / `requireOwned` / `requireAdmin*` / `requireWorkspaceAccess` |
 | `api/pages.md` | page CRUD + content (`pageBlocks` split) |
 | `api/blocks.md` | block model, registry, slash menu |
 | `api/block-controls.md` | drag handle, block menu, turn-into |

@@ -108,8 +108,7 @@ only as far as the *next* `.query(`.
 
 All 18 are **baselined, not deleted**. Dropping an index is the only
 hard-to-reverse change in the set, six are deliberate roadmap
-forward-declarations, and two (`userProfiles.by_lastSeen`,
-`webhookDeliveries.by_attempted`) are wanted back by admin/cron work.
+forward-declarations, and one (`userProfiles.by_lastSeen`) is wanted back by admin work.
 
 ### 2.2 Function references have two runtime-equivalent forms
 

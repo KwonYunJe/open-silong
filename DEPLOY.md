@@ -209,7 +209,7 @@ authorized redirect URIs.
 support for GitHub, Apple, Microsoft, Discord, … the same shape
 applies: import the provider in `convex/auth.ts`, set the matching
 `AUTH_<PROVIDER>_ID` + `AUTH_<PROVIDER>_SECRET` env vars on the
-Convex backend, drop a sign-in button in `app/auth/AuthForm.tsx`.
+Convex backend, drop a sign-in button in `app/(app)/auth/AuthForm.tsx`.
 See <https://labs.convex.dev/auth> for the provider catalog.
 
 ### Backup strategy

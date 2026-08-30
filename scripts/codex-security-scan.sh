@@ -45,4 +45,8 @@ if [[ "${CI:-}" == "true" ]]; then
 fi
 
 cd "$CLI_TMP"
+# rules-allow: no-pnpm — deliberate npx, not a missed bun migration. This runs a
+# PINNED registry package (@openai/codex-security@$VERSION) in a throwaway temp
+# dir using npx's package-runner semantics, where the leading `--yes` in $args is
+# an npx flag. bunx takes a different form, so this is not a one-word swap.
 CODEX_SECURITY_STATE_DIR="$STATE_DIR" npx "${args[@]}"

@@ -58,7 +58,8 @@ table below is the index.
 
 Admin-only routes: overview analytics, users table, audit log,
 templates manager, feedback inbox. `useAdminRole()` gates rendering;
-real authz lives inside Convex (`requireSuperAdmin` / `requireAdmin`).
+real authz lives inside Convex (`requireAdmin` / `requireAdminQuery`,
+which accept both the `admin` and `superadmin` roles).
 Mounted at `/dashboard/admin`. Detailed UX: [`admin.md`](./admin.md).
 
 ## ai-agent
@@ -79,8 +80,11 @@ debounced + sampled per session to avoid hot-mutation thrash.
 
 Inverted index of `@page` mentions. `<BacklinksPanel/>` shows every
 page that mentions the current page; `useBacklinks(pageId)` returns
-the same data for custom UI. Backed by the `mentions` table indexed
-by `by_targetPageId`.
+the same data for custom UI. Backed by the `pageLinks` table
+(`by_target` index); rows carry a `kind` of `wikilink` / `page-block` /
+`mention` / `tag`, so the same table serves backlinks, `[[wikilinks]]`
+and `#tags`. Computed client-side — the server-side graph queries were
+deleted in the 2026-08-10 audit.
 
 ## block-selection
 
@@ -93,7 +97,7 @@ model — see [`inline-decorator.md`](./inline-decorator.md)).
 
 ## code-block
 
-Syntax-highlighted code block (Shiki). `<CodeBlock/>` is the
+Syntax-highlighted code block (highlight.js, `github-dark` theme). `<CodeBlock/>` is the
 renderable; `CODE_LANGUAGES` is the picker list; `normalizeLang()`
 normalises legacy / alias values (e.g. `js` → `javascript`).
 

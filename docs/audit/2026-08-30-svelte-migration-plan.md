@@ -243,8 +243,13 @@ the two above imports from a directory that is not there.
   `graph-controls.png` that README does not use, and **cannot regenerate 5 of
   the 11 images README embeds** (command-palette, database-board, mobile-home,
   setup, templates). `bun run capture:screenshots` silently under-delivers.
-- **32 of 40 slices have no `docs/api/` page** — including `editor` and
-  `admin-panel`, the 1st and 3rd largest.
+- **24 of 40 slices have no *dedicated* `docs/api/` page** — but all 40 have
+  a prose section in `docs/api/slices.md`, so this is a depth gap rather than
+  a hole. Corrected from "32 including editor and admin-panel", which was
+  produced by a filename match (`docs/api/<slice>.md`) that missed every
+  slice documented under a different filename. `editor` is covered by
+  `blocks.md`/`block-controls.md`/`inline-decorator.md`, `admin-panel` by
+  `admin.md`. Same false-positive class as the dead-index name-grep.
 
 ### 2.4 The backend findings — one of them is a real hole
 
@@ -511,6 +516,45 @@ Also shipped, beyond the original list:
   file the rule then scanned — each update generating a fresh violation. The
   ledger is now excluded from its own scan.
 
+Third pass — finishing the backlog (same session):
+
+- **`docs/api/auth.md` documented `requireSuperAdmin`, which does not exist.**
+  A full API section, plus references in `docs/README.md`, `conventions.md`,
+  `admin.md`, `domain.md` and `slices.md`. It was removed when the
+  2026-05-03 audit's P2 was closed by moving the check to a
+  `userProfiles.role` flag. The reality now documented: `superadmin` is a
+  role but **not a permission tier** — `requireAdmin`/`requireAdminQuery`
+  accept both it and `admin`, so a genuinely superadmin-only path still has
+  to be written if one is wanted.
+- **`requireWorkspaceAccess` — 28 call sites, the most-used authorization
+  helper in the repo — was documented nowhere.** Now in `auth.md`.
+- **Deleted the `propertyTypeMeta` shim.** Two files of that name existed and
+  two docs named different ones as the SSOT; a path-existence sweep is blind
+  to it because both resolved. Four consumers repointed at
+  `@/shared/lib/databases/propertyTypeMeta`.
+- **Waivers were impossible to write in shell scripts.** `no-pnpm` scans
+  `.sh`/`.yml`, but the waiver scanner's `isComment` recognised only JS
+  comment syntax, so a `#` comment could never waive anything — the rule
+  could flag a file no comment could exempt. Fixed; `codex-security-scan.sh`
+  is now waived on its facts rather than sitting as baseline debt.
+- **Seven stale source paths** in current docs (`useComments.ts` →
+  `useCommentsCore.ts`, `PageCommentsContext.tsx` → `CommentsContext.tsx`,
+  `useSnapshots.ts` → `shared/lib/store/snapshots.ts`, `exportCsv.ts` →
+  `csv.ts`, `convexAdapter.tsx` → the directory form, and the `app/auth/`
+  → `app/(app)/auth/` route-group rename in two files).
+- **`CLAUDE.md` listed three store hooks that do not exist** (`useDatabases`,
+  `useBlocks`, `usePreferences`). The real set is `useWorkspaces`,
+  `usePages`, `useDatabaseRows`, `useUndoRedo`.
+- **Two errors in the slice catalog** — `code-block` claimed Shiki (it uses
+  highlight.js), `backlinks` cited a `mentions` table with a
+  `by_targetPageId` index (it is `pageLinks`, `by_target`).
+
+Both sweeps were done with throwaway scripts rather than by eye: one
+extracts every backticked identifier from all 40 catalog sections and greps
+it, the other checks every backticked path and identifier across all current
+docs. Both now come back clean apart from deliberate placeholders, npm
+import specifiers and future-tense plans.
+
 Notes from doing it:
 
 - The `dead-index` rule reports **19**, not the 17 this document estimated
@@ -539,10 +583,13 @@ Notes from doing it:
 What is deliberately **not** done, and why:
 
 - **The 19 dead indexes are still declared.** Baselined as known debt. Six
-  are roadmap forward-declarations, two (`userProfiles.by_lastSeen`,
-  `webhookDeliveries.by_attempted`) are wanted back by admin/cron work.
-- **32 slices still have no `docs/api/` page.** Tracked in `ROADMAP.md` as
-  a good-first-issue; writing 32 doc pages is not a drift fix.
+  are roadmap forward-declarations, one (`userProfiles.by_lastSeen`) is wanted back by admin work.
+- **24 slices have no dedicated `docs/api/` page.** All 40 have a catalog
+  section in `slices.md`, so this is depth, not absence. Deliberately not
+  fixed by generating 24 files: a per-slice page that duplicates the catalog
+  is exactly how `docs/FEATURES.md` rotted into a third stale copy. Verified
+  instead that every backticked identifier in all 40 catalog sections
+  resolves in the source — two did not, and were fixed.
 - **`scripts/capture-screenshots.mjs` still cannot regenerate 5 of the 11
   README images.** Needs someone to run it against a live deploy and decide
   which shots to keep — a judgement call, not a text fix.

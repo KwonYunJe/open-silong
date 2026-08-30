@@ -16,7 +16,7 @@ import { DatabaseToolbar } from "./database-block/Toolbar";
 import { mergeViewOverrides, splitViewPatch } from "./database-block/effectiveView";
 import type { DatabaseViewConfig } from "@/shared/types/domain";
 
-import { PROPERTY_TYPE_LABELS } from "./lib/propertyTypeMeta";
+import { PROPERTY_TYPE_LABELS } from "@/shared/lib/databases/propertyTypeMeta";
 export { PROPERTY_TYPE_LABELS };
 
 export function DatabaseBlock({

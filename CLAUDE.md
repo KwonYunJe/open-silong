@@ -138,10 +138,10 @@ reference deploy now.
     `slices/workspace-io/components/`, exported through the slice
     barrel. (A 2026-05-12 plan to promote them to a `shared/providers/`
     directory was never landed — that directory does not exist.)
-  - `shared/lib/store/hooks.ts` — per-domain selector hooks
-    (`usePages`, `useDatabases`, `useBlocks`, `useWorkspaces`,
-    `usePreferences`, …) over the monolithic `useStore()`. Opt-in;
-    old `useStore()` keeps working. Re-exported from
+  - `shared/lib/store/hooks.ts` — per-domain selector hooks over the
+    monolithic `useStore()`. The full set today is `useWorkspaces`,
+    `usePages`, `useDatabaseRows` and `useUndoRedo` — no more than that.
+    Opt-in; old `useStore()` keeps working. Re-exported from
     `@/shared/lib/store`.
 - `convex/` — backend (queries/mutations/actions, schema, auth).
 - `proxy.ts` — Next 16 request boundary (Convex auth optimistic gate, NOT

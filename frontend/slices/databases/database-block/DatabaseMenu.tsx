@@ -11,7 +11,7 @@ import { DynamicIcon, IconPickerPopover, DEFAULT_DATABASE_ICON } from "@/shared/
 import { useConfirm } from "@/shared/components/ConfirmProvider";
 import { ViewOptions } from "../ViewOptions";
 import { DataMenu } from "@/slices/database-json";
-import { PROPERTY_TYPE_LABELS, PROPERTY_TYPES } from "../lib/propertyTypeMeta";
+import { PROPERTY_TYPE_LABELS, PROPERTY_TYPES } from "@/shared/lib/databases/propertyTypeMeta";
 import type { Database, DatabaseViewConfig, Page, Property } from "@/shared/types/domain";
 
 export function DatabaseMenu({

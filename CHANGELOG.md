@@ -54,6 +54,10 @@ notes under `docs/audit/`.
   stale; added `command-palette`, `database-board`, `mobile-home`, `setup` and
   `templates`, and documented the full output set at the top of the file.
 
+- **Documented `requireWorkspaceAccess`** — the multi-workspace guard with 28
+  call sites, and the most-used authorization helper in the codebase, had zero
+  documentation.
+
 ### Removed
 
 - ~600 LOC of dead code, all verified unreachable: `frontend/test/setup.ts`
@@ -64,6 +68,11 @@ notes under `docs/audit/`.
   the `IconStyle` barrel alias, and `docs/FEATURES.md` (a stale third copy of
   the feature list that two prior audits had already deferred; `ROADMAP.md`
   and `docs/api/` are the SSOT).
+- `frontend/slices/databases/lib/propertyTypeMeta.ts` — a deprecated one-line
+  re-export shim. Two files named `propertyTypeMeta.ts` existed and two docs
+  disagreed about which was the SSOT, which a path-existence sweep cannot
+  catch because both resolved. The four consumers now import
+  `@/shared/lib/databases/propertyTypeMeta` directly.
 - Two unused devDependencies: `@testing-library/jest-dom` (reachable only
   from the dead setup file; no test uses a jest-dom matcher) and
   `@types/geoip-lite` (its only consumer casts the module to `any`).
@@ -309,6 +318,10 @@ Every finding was adversarially verified before it counted — 30 confirmed,
   could produce 6 of the 11 embedded shots, so re-running it silently left five
   stale; added `command-palette`, `database-board`, `mobile-home`, `setup` and
   `templates`, and documented the full output set at the top of the file.
+
+- **Documented `requireWorkspaceAccess`** — the multi-workspace guard with 28
+  call sites, and the most-used authorization helper in the codebase, had zero
+  documentation.
 
 ### Removed
 

@@ -52,7 +52,7 @@ Adding a new property type = touch ≤4 files.
 1. **Add the type tag** to `PropertyType` in
    `frontend/shared/types/domain.ts`.
 2. **Add the label** in
-   `frontend/slices/databases/lib/propertyTypeMeta.ts`
+   `frontend/shared/lib/databases/propertyTypeMeta.ts`
    (`PROPERTY_TYPE_LABELS` + `PROPERTY_TYPES`). This drives the "Add
    property" menu.
 3. **Add the cell renderer** at
