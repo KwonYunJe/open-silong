@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Check, Copy, ExternalLink } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/shared/ui/tabs";
+import { siteUrl, mcpUrl } from "@/shared/lib/siteUrl";
 
 /** Per-user MCP integrations panel.
  *  Tabs per client (ChatGPT / Claude / Others) — each shows that
@@ -29,11 +30,16 @@ type Row = {
   label: string | null;
 };
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://silong.rahmanef.com";
+// Resolved at render from the browser's own origin, so a one-click clone
+// shows ITS domain here — never the upstream maintainer's.
+const SITE = siteUrl();
 // Convex self-hosted exposes httpActions on the `site-*` origin (separate
 // from the `api-*` origin used by queries / mutations). Override via env
 // when running your own deploy.
-const MCP = process.env.NEXT_PUBLIC_MCP_URL ?? "https://site-silong.rahmanef.com/mcp";
+// Derived from NEXT_PUBLIC_CONVEX_URL (injected by `build:auto`). Null only
+// when the backend URL is unset, in which case the panel says so rather than
+// handing the user a plausible-looking wrong endpoint to paste into ChatGPT.
+const MCP = mcpUrl() ?? "(set NEXT_PUBLIC_CONVEX_URL to see your MCP endpoint)";
 
 type Field = { label: string; value: string; copyable: boolean; hint?: string };
 type Group = { title: string; fields: Field[] };

@@ -6,15 +6,16 @@
  *  them into `<head>` automatically.
  */
 
-const CONVEX_URL =
-  process.env.NEXT_PUBLIC_CONVEX_URL
-  ?? "https://api-silong.rahmanef.com";
-
+// No fallback host: preconnecting to a domain this deployment does not use
+// costs a wasted DNS+TLS handshake on every cold load. Unset => emit nothing.
 const convexHost = (() => {
-  try { return new URL(CONVEX_URL).origin; } catch { return CONVEX_URL; }
+  const url = process.env.NEXT_PUBLIC_CONVEX_URL;
+  if (!url) return null;
+  try { return new URL(url).origin; } catch { return null; }
 })();
 
 export function HeadHints() {
+  if (!convexHost) return null;
   return (
     <>
       <link rel="dns-prefetch" href={convexHost} />

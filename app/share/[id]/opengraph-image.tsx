@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import { fetchQuery } from "convex/nextjs";
 import { api } from "@convex/_generated/api";
+import { siteUrlFromEnv } from "@/shared/lib/siteUrl";
 
 export const alt = "Shared via Silong";
 export const size = { width: 1200, height: 630 };
@@ -9,6 +10,14 @@ export const contentType = "image/png";
 interface Props {
   params: Promise<{ id: string }>;
 }
+
+/** Host shown in the OG card footer — this deployment's own domain, never
+ *  a baked-in one. Falls back to the product name when env is unset. */
+const brandHost = (() => {
+  const u = siteUrlFromEnv();
+  if (!u) return "Silong";
+  try { return new URL(u).host; } catch { return "Silong"; }
+})();
 
 export default async function OG({ params }: Props) {
   const { id } = await params;
@@ -73,7 +82,7 @@ export default async function OG({ params }: Props) {
           </div>
         </div>
         <div style={{ fontSize: 24, opacity: 0.6 }}>
-          silong.rahmanef.com
+          {brandHost}
         </div>
       </div>
     ),

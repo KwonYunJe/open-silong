@@ -14,14 +14,21 @@
 
 import { httpAction } from "../_generated/server";
 
-// Site + MCP origins. Defaults match the open-silong reference deploy;
-// self-hosters override via Convex env vars
-// (`bunx convex env set SITE_URL https://your.domain`).
-const SITE = process.env.SITE_URL ?? "https://silong.rahmanef.com";
-// Convex self-hosted exposes httpActions on the SITE origin
-// (api- is the CLOUD origin for queries/mutations only). The MCP
-// JSON-RPC endpoint is registered via httpRouter so it lives here.
-const MCP = process.env.MCP_URL ?? "https://site-silong.rahmanef.com/mcp";
+// open-silong is one-click cloned to arbitrary domains, so NEITHER origin
+// may be hard-coded — a baked-in issuer fails the MCP client's issuer check
+// on every deployment that is not the upstream one.
+//
+// MCP origin: Convex injects CONVEX_SITE_URL automatically, and httpActions
+// (including this MCP router) are served from it. Zero configuration.
+const MCP = process.env.MCP_URL ?? `${process.env.CONVEX_SITE_URL ?? ""}/mcp`;
+
+// Frontend origin: the one value Convex cannot infer — it is a different
+// host entirely. `scripts/setup-auth.mjs` writes it during the clone build
+// from Vercel's VERCEL_PROJECT_PRODUCTION_URL, refreshed every deploy.
+// Empty (rather than a wrong guess) when genuinely unset: an MCP client
+// that sees a blank issuer fails loudly, whereas one pointed at somebody
+// else's domain fails confusingly, and would send users there to log in.
+const SITE = process.env.SITE_URL ?? "";
 
 const json = (body: unknown): Response =>
   new Response(JSON.stringify(body), {

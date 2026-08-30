@@ -52,8 +52,29 @@ function envSet(pair, label) {
   }
 }
 
+// The app's public origin, propagated to the Convex deployment so the
+// backend can emit correct OAuth discovery documents. Convex knows its own
+// origin (CONVEX_SITE_URL, injected automatically) but has no way to learn
+// the FRONTEND's domain — this build step is the only place both are visible.
+//
+// Deliberately runs BEFORE the JWT idempotency check below: keys are minted
+// once, but the site URL has to be refreshed on EVERY deploy. Adding a custom
+// domain after first deploy used to leave SITE_URL pinned to the original
+// *.vercel.app forever, silently breaking the ChatGPT connector's issuer check.
+const site =
+  process.env.SITE_URL ||
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : "");
+
+if (site && envGet("SITE_URL") !== site) {
+  if (envSet(`SITE_URL=${site}`, "SITE_URL")) console.log(`[setup-auth] SITE_URL -> ${site}`);
+}
+
 if (envGet("JWT_PRIVATE_KEY")) {
-  console.log("[setup-auth] JWT keys already set — skip.");
+  console.log("[setup-auth] JWT keys already set — skip keygen.");
   process.exit(0);
 }
 
@@ -64,14 +85,6 @@ const keys = await generateKeyPair("RS256", { extractable: true });
 const privateKey = (await exportPKCS8(keys.privateKey)).trimEnd().replace(/\n/g, " ");
 const jwk = await exportJWK(keys.publicKey);
 const jwks = JSON.stringify({ keys: [{ use: "sig", ...jwk }] });
-
-const site =
-  process.env.SITE_URL ||
-  (process.env.VERCEL_PROJECT_PRODUCTION_URL
-    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-    : process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "");
 
 // NAME=value form: the value starts with "-----BEGIN", which the CLI would else
 // parse as a flag. JWT_PRIVATE_KEY + JWKS must land as a PAIR (same keygen);
@@ -84,7 +97,6 @@ if (ok) {
     try { bunx(["convex", "env", "remove", "JWT_PRIVATE_KEY"], true); } catch { /* best effort */ }
   }
 }
-if (ok && site) envSet(`SITE_URL=${site}`, "SITE_URL"); // non-critical
 
 if (!ok) {
   console.error(`

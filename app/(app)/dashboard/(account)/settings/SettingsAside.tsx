@@ -11,6 +11,7 @@ import {
   Palette, Webhook, LifeBuoy, ShieldCheck, Sparkles, Bot,
 } from "lucide-react";
 import type { SettingsKey } from "./SettingsSidebar";
+import { mcpUrl } from "@/shared/lib/siteUrl";
 
 type Tip = { icon: ComponentType<{ className?: string }>; label: string; href?: string; external?: boolean };
 
@@ -21,7 +22,8 @@ type AsideContent = {
   links?: { label: string; href: string; external?: boolean }[];
 };
 
-const SITE_DOCS = "https://silong.rahmanef.com";
+// Docs live with the project, not on any one deployment's domain.
+const SITE_DOCS = "https://github.com/rahmanef63/open-silong";
 
 const ASIDE: Record<SettingsKey, AsideContent> = {
   workspace: {
@@ -89,7 +91,7 @@ const ASIDE: Record<SettingsKey, AsideContent> = {
       { icon: ShieldCheck, label: "Hash SHA-256 disimpan; revoke any time" },
     ],
     links: [
-      { label: "MCP server URL", href: process.env.NEXT_PUBLIC_MCP_URL ?? "https://site-silong.rahmanef.com/mcp", external: true },
+      { label: "MCP server URL", href: mcpUrl() ?? "#", external: true },
     ],
   },
   webhooks: {

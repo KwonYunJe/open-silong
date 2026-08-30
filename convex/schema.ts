@@ -149,11 +149,20 @@ export default defineSchema({
      *  rows fall back to deriving from `blocks` until backfilled. */
     blockCount: v.optional(v.number()),
     previewText: v.optional(v.string()),
+    /** Stable identifier assigned by an EXTERNAL system that owns this
+     *  page's content — e.g. `konglo-os:playbook/governance`. Set only by
+     *  the MCP `structure_upsert` tool, which uses it to make a re-send an
+     *  UPDATE rather than a duplicate. Namespaced `<source>:<key>` so two
+     *  sending projects cannot collide. Absent on everything a human made. */
+    externalKey: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
     .index("by_user", ["userId"])
     .index("by_user_parent", ["userId", "parentId"])
+    // Idempotency key for MCP structure_upsert — resolves an external
+    // system's stable id back to the page it created in THIS workspace.
+    .index("by_workspace_externalKey", ["workspaceId", "externalKey"])
     .index("by_workspace", ["workspaceId"])
     .index("by_workspace_parent", ["workspaceId", "parentId"])
     // Resolves `[[Title]]` wikilinks → pageId within a workspace. Unique

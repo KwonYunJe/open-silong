@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requestOrigin } from "@/shared/lib/siteUrl.server";
 
 /** RFC 8414 OAuth 2.0 Authorization Server Metadata.
  *  ChatGPT's connector form discovers these settings here so the admin
@@ -6,16 +7,19 @@ import { NextResponse } from "next/server";
  *  CIMD is not advertised (user-defined-client mode). DCR is not
  *  implemented — `registration_endpoint` is omitted. */
 
-// Static metadata — prerendered under cacheComponents; the `public,
-// max-age=3600` response header (below) still drives client/proxy caching.
+// Per-host, NOT prerendered. `issuer` must equal the origin the client
+// actually reached or the connector rejects it, and open-silong is cloned to
+// arbitrary domains — a baked-in issuer is wrong by construction.
+// No `export const dynamic`: that segment config is rejected under
+// `cacheComponents`. Reading headers() in requestOrigin() is what opts this
+// route out of prerendering, which is the Cache Components way to say it.
 
-const SITE = "https://silong.rahmanef.com";
-
-export function GET() {
+export async function GET() {
+  const site = await requestOrigin();
   const metadata = {
-    issuer: SITE,
-    authorization_endpoint: `${SITE}/oauth/authorize`,
-    token_endpoint: `${SITE}/api/oauth/token`,
+    issuer: site,
+    authorization_endpoint: `${site}/oauth/authorize`,
+    token_endpoint: `${site}/api/oauth/token`,
     response_types_supported: ["code"],
     grant_types_supported: ["authorization_code"],
     code_challenge_methods_supported: ["S256"],

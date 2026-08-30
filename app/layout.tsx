@@ -7,6 +7,7 @@ import { InstallPrompt } from "@/shared/components/InstallPrompt";
 import { AnalyticsBeacon } from "@/shared/components/AnalyticsBeacon";
 import { GoogleAnalytics } from "@/shared/components/GoogleAnalytics";
 import "./globals.css";
+import { siteUrlFromEnv } from "@/shared/lib/siteUrl";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -30,11 +31,13 @@ const fraunces = Fraunces({
   preload: false,
 });
 
-// Env-driven so clones get correct absolute og/canonical URLs without
-// forking — same chain as the template fleet. Reference deploy is the
-// Vercel demo (the self-hosted silong.rahmanef.com lane was turned off
-// 2026-06-04).
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://silong-os.vercel.app";
+// Resolved from env so clones get their OWN absolute og/canonical URLs
+// without forking: NEXT_PUBLIC_SITE_URL, else Vercel's auto-injected
+// VERCEL_PROJECT_PRODUCTION_URL / VERCEL_URL. The localhost fallback only
+// applies to a local build with no env at all — it must never be a real
+// third-party domain, or a clone would advertise someone else's site as
+// its canonical URL.
+const SITE_URL = siteUrlFromEnv() ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

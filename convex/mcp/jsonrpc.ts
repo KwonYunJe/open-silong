@@ -401,6 +401,27 @@ const TOOLS: ToolDef[] = [
     }, ["pageId", "tag"]),
     annotations: { destructiveHint: false, idempotentHint: true },
   },
+  {
+    name: "structure_upsert",
+    description:
+      "IDEMPOTENT bulk import of a page TREE from an external system. Use this — not repeated pages_create — when another project publishes a body of structure (a playbook, a standard doc set, a best-practice skeleton) into this workspace and will re-publish it as its own source evolves. Each node carries a caller-assigned stable `key`; re-sending the same source+key UPDATES that page instead of creating a duplicate, so the operation is safe to run on every sync. Page BODIES are replaced on update (the external system owns that content), while pages a human created here are never touched. Markdown parses into real blocks, wikilinks and #tags reindex into the graph. Limits: 200 nodes, 6 levels deep.",
+    inputSchema: obj({
+      source: {
+        type: "string",
+        description: "Short identifier of the SENDING system, e.g. \"konglo-os\". Namespaces the keys so two senders cannot collide. [A-Za-z0-9_.-], max 64.",
+      },
+      parentId: {
+        type: "string",
+        description: "Optional pageId to graft the tree under. Omit for top level.",
+      },
+      nodes: {
+        type: "array",
+        description: 'Tree of { key, title, icon?, markdown?, children? }. `key` is YOUR stable id for the node, e.g. "playbook/governance".',
+        items: { type: "object", additionalProperties: true },
+      },
+    }, ["source", "nodes"]),
+    annotations: { destructiveHint: false, idempotentHint: true },
+  },
 ];
 
 // ─────────────────────── tool dispatch ───────────────────────
@@ -887,6 +908,24 @@ async function dispatchTool(
         return errResult(e instanceof Error ? e.message : String(e));
       }
     }
+    case "structure_upsert": {
+      const source = String(args.source ?? "").trim();
+      const nodes = Array.isArray(args.nodes) ? args.nodes : [];
+      if (!source) return errResult("source is required");
+      if (!nodes.length) return errResult("nodes must be a non-empty array");
+      try {
+        const res = await ctx.runMutation(internal.mcp.internal.structureUpsert, {
+          userId,
+          source,
+          parentId: args.parentId ? String(args.parentId) : null,
+          nodes: nodes as never,
+        });
+        return textResult(res);
+      } catch (e) {
+        return errResult(e instanceof Error ? e.message : "structure_upsert failed");
+      }
+    }
+
     case "note_tag": {
       const pageId = String(args.pageId ?? "");
       const tag = String(args.tag ?? "").trim();
@@ -1068,7 +1107,7 @@ export const mcpRpcHandler = httpAction(async (ctx, req) => {
       headers: {
         "content-type": "application/json",
         ...CORS_HEADERS,
-        "www-authenticate": `Bearer realm="silong-mcp", resource_metadata="${process.env.SITE_URL ?? "https://silong.rahmanef.com"}/.well-known/oauth-protected-resource"`,
+        "www-authenticate": `Bearer realm="silong-mcp", resource_metadata="${process.env.SITE_URL ?? ""}/.well-known/oauth-protected-resource"`,
       },
     });
   }

@@ -66,7 +66,7 @@ const SEED_PAGES: Array<{ title: string; icon: string; blocks: Block[] }> = [
       h2("Three deployment lanes"),
       bullet("**Convex Cloud** — fastest, free tier covers small teams."),
       bullet("**Self-hosted Docker** — your VPS + Postgres + S3 (optional)."),
-      bullet("**Public demo** — silong.rahmanef.com (this one) for evaluation."),
+      bullet("**Public demo** — the upstream demo at silong-os.vercel.app."),
       p("Full instructions: `DEPLOY.md` in the repo."),
       h2("Get involved"),
       bullet("Source: github.com/rahmanef63/open-silong"),

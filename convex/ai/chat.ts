@@ -258,7 +258,7 @@ export const complete = action({
     conversation.push({ role: "system", content: systemContent });
     for (const m of messages) conversation.push({ role: m.role, content: m.content });
 
-    const referer = process.env.OPENROUTER_REFERER ?? "https://silong.rahmanef.com";
+    const referer = process.env.OPENROUTER_REFERER ?? process.env.SITE_URL ?? "https://github.com/rahmanef63/open-silong";
     const title = process.env.OPENROUTER_APP_NAME ?? "open-silong";
     const tools = toolsForLLM();
 

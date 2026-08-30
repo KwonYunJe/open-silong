@@ -1,8 +1,12 @@
 import type { MetadataRoute } from "next";
 import { fetchQuery } from "convex/nextjs";
 import { api } from "@convex/_generated/api";
+import { siteUrlFromEnv } from "@/shared/lib/siteUrl";
 
-const BASE = "https://silong.rahmanef.com";
+// Env-only (no `headers()`) so this stays ISR rather than going dynamic.
+// On Vercel `VERCEL_PROJECT_PRODUCTION_URL` is injected automatically, so a
+// clone gets its own domain here with no configuration.
+const BASE = siteUrlFromEnv() ?? "http://localhost:3000";
 
 export const revalidate = 3600;
 

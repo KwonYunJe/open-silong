@@ -946,3 +946,142 @@ export const addTag = internalMutation({
     return { ok: true, tag };
   },
 });
+
+// ─────────────────────────────────────────────────────────────────────
+// structure_upsert — idempotent bulk page-tree ingest for MCP.
+//
+// The cross-project case this exists for: another system (konglo-os,
+// CareerPack, …) owns a body of best-practice structure and wants to
+// publish it INTO an open-silong workspace, repeatedly, as its own source
+// evolves. The per-node tools (`pages_create` + `pages_append_markdown`)
+// can express that, but only as N round-trips with no identity — a second
+// send duplicates the whole tree.
+//
+// So each node carries a caller-assigned `key`, namespaced by `source` and
+// stored as `pages.externalKey`. Re-sending the same (source, key) UPDATES
+// that page. Nothing a human created is ever matched, because only this
+// mutation ever writes the field.
+// ─────────────────────────────────────────────────────────────────────
+
+/** One node of the incoming tree. `v.any()` for children because Convex
+ *  validators cannot express recursion; depth and shape are enforced in
+ *  the handler instead. */
+const STRUCTURE_NODE = v.object({
+  key: v.string(),
+  title: v.string(),
+  icon: v.optional(v.string()),
+  markdown: v.optional(v.string()),
+  children: v.optional(v.array(v.any())),
+});
+
+type StructureNode = {
+  key: string;
+  title: string;
+  icon?: string;
+  markdown?: string;
+  children?: StructureNode[];
+};
+
+const MAX_NODES = 200;
+const MAX_DEPTH = 6;
+
+export const structureUpsert = internalMutation({
+  args: {
+    userId: v.id("users"),
+    source: v.string(),
+    parentId: v.optional(v.union(v.string(), v.null())),
+    nodes: v.array(STRUCTURE_NODE),
+  },
+  handler: async (ctx, args) => {
+    const source = args.source.trim();
+    if (!source || !/^[a-zA-Z0-9_.-]{1,64}$/.test(source)) {
+      throw new Error("source must be 1-64 chars of [A-Za-z0-9_.-]");
+    }
+    const ws = await getActiveWorkspaceMutation(ctx, args.userId);
+    const now = Date.now();
+
+    let created = 0, updated = 0, visited = 0;
+
+    const walk = async (
+      nodes: StructureNode[],
+      parentId: Id<"pages"> | null,
+      depth: number,
+    ): Promise<void> => {
+      if (depth > MAX_DEPTH) throw new Error(`Structure deeper than ${MAX_DEPTH} levels`);
+      for (const node of nodes) {
+        if (++visited > MAX_NODES) throw new Error(`Structure exceeds ${MAX_NODES} nodes`);
+        if (!node?.key || typeof node.key !== "string") throw new Error("every node needs a string `key`");
+        const title = String(node.title ?? "Untitled").slice(0, CHAR_CAPS.pageTitle);
+        const externalKey = `${source}:${node.key}`;
+
+        const blocks: BlockLike[] = node.markdown
+          ? (markdownToBlocks(node.markdown) as BlockLike[])
+          : [{ id: uid(), type: "paragraph", text: "" }];
+        if (blocks.length > COUNT_CAPS.blocksPerPage) {
+          throw new Error(`Node "${node.key}" exceeds block cap (${COUNT_CAPS.blocksPerPage})`);
+        }
+
+        // Idempotency probe — one indexed lookup per node.
+        const existing = await ctx.db
+          .query("pages")
+          .withIndex("by_workspace_externalKey", (q) =>
+            q.eq("workspaceId", ws._id).eq("externalKey", externalKey),
+          )
+          .first();
+
+        let pageId: Id<"pages">;
+        if (existing && !existing.trashed) {
+          pageId = existing._id;
+          await ctx.db.patch(pageId, {
+            title,
+            ...(node.icon ? { icon: node.icon } : {}),
+            // Body is replaced, not appended: the external system is the
+            // owner of this content, so a re-send is a sync, not an edit.
+            ...(node.markdown ? newPageBlockFields(blocks) : {}),
+            ...(node.markdown ? { searchText: buildSearchText(title, blocks) } : {}),
+            parentId,
+            updatedAt: now,
+          });
+          if (node.markdown) await writePageBlocks(ctx, pageId, blocks);
+          updated++;
+        } else {
+          pageId = await ctx.db.insert("pages", {
+            userId: args.userId,
+            workspaceId: ws._id,
+            parentId,
+            title,
+            icon: node.icon ?? "📄",
+            cover: null,
+            ...newPageBlockFields(blocks),
+            favorite: false,
+            trashed: false,
+            isPublic: false,
+            searchText: buildSearchText(title, blocks),
+            externalKey,
+            createdAt: now,
+            updatedAt: now,
+          });
+          await insertPageBlocks(ctx, pageId, blocks);
+          created++;
+        }
+        // Keep the knowledge graph consistent: wikilinks/tags in the
+        // incoming markdown must resolve like any human-authored page.
+        const fresh = await ctx.db.get(pageId);
+        if (fresh) await reindexPageLinks(ctx, fresh, blocks);
+
+        if (Array.isArray(node.children) && node.children.length) {
+          await walk(node.children as StructureNode[], pageId, depth + 1);
+        }
+      }
+    };
+
+    const rootParent = args.parentId ? (args.parentId as Id<"pages">) : null;
+    if (rootParent) {
+      const parent = await ctx.db.get(rootParent);
+      if (!parent || parent.userId !== args.userId) throw new Error("Tidak ditemukan");
+    }
+    await walk(args.nodes as StructureNode[], rootParent, 1);
+
+    return { created, updated, total: visited, source };
+  },
+});

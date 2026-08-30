@@ -153,6 +153,53 @@ curl $CONVEX_SITE_URL/mcp/v1 \
   }'
 ```
 
+## Cross-project ingest — `structure_upsert`
+
+The per-node tools (`pages_create`, `pages_append_markdown`) express a tree
+only as N round-trips with no identity, so a second send duplicates
+everything. `structure_upsert` is the tool for the case where **another
+project owns a body of structure and republishes it as its own source
+evolves** — a playbook, a standard doc set, a best-practice skeleton.
+
+```json
+{
+  "tool": "structure_upsert",
+  "params": {
+    "source": "konglo-os",
+    "nodes": [
+      { "key": "playbook", "title": "Family Office Playbook", "icon": "🏛",
+        "markdown": "# Overview\n\nGovernance first.",
+        "children": [
+          { "key": "playbook/governance", "title": "Governance",
+            "markdown": "Board cadence." }
+        ] }
+    ]
+  }
+}
+```
+
+**Idempotency is the whole point.** Each node carries a caller-assigned
+`key`; it is stored as `pages.externalKey` namespaced to `"<source>:<key>"`
+and resolved through the `by_workspace_externalKey` index. Re-sending the
+same `source` + `key` updates that page. Returns
+`{ created, updated, total, source }`.
+
+Semantics worth knowing before wiring a sender:
+
+- **Page bodies are replaced on update, not merged** — the external system is
+  the owner of that content, so a re-send is a sync rather than an edit. Do
+  not point a sender at pages humans are also editing.
+- **Human-authored pages are never adopted.** Matching is by `externalKey`
+  alone, and only this tool ever writes that field — a title collision with a
+  page someone made by hand does nothing.
+- **`source` namespaces the keys**, so konglo-os and CareerPack can both use
+  `key: "shared"` without colliding.
+- Markdown parses into real blocks, and `[[wikilinks]]` / `#tags` reindex into
+  the knowledge graph exactly as for a human-authored page.
+- Limits: **200 nodes, 6 levels deep**, standard per-page block cap.
+
+Covered by `convex/_test/mcp-structure-upsert.test.ts`.
+
 ## Roadmap
 
 - **Comments** (`nosion-create-comment`, `nosion-get-comments`) — the

@@ -12,6 +12,20 @@ notes under `docs/audit/`.
 
 ### Added
 
+- **`structure_upsert` — idempotent bulk page-tree ingest over MCP.** The
+  per-node tools express a tree only as N round-trips with no identity, so a
+  second send duplicated everything; that made open-silong unusable as a
+  *destination* for another project publishing structure into it. Each node
+  now carries a caller-assigned `key`, stored as `pages.externalKey`
+  namespaced `"<source>:<key>"` and resolved through a new
+  `by_workspace_externalKey` index, so re-sending the same source+key updates
+  in place. Page bodies are replaced on update (the sender owns that
+  content); pages a human created are never adopted, because matching is by
+  `externalKey` and only this tool writes it. Markdown parses into real
+  blocks and reindexes into the knowledge graph. Limits 200 nodes / 6 levels.
+  Six tests pin the idempotency guarantee — it is the whole point of the
+  tool, and if it broke, every sync would double the workspace.
+
 - **`agents/` — framework guidance for coding agents** (`svelte.md`,
   `convex.md`, `README.md`), linked from `CLAUDE.md`. A model's priors are not
   evenly distributed: React and Next.js dominate training data, so the default
