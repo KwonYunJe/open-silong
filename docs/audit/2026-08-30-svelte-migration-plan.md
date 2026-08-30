@@ -301,9 +301,19 @@ You asked for the plan. Here it is, with the load-bearing risk first.
 
 ### 3.1 Blocker: `@convex-dev/auth` has no Svelte support
 
+> **Refined 2026-08-30 after reading the actual libraries.** Two corrections to
+> what this section first claimed. (a) `convex-svelte` is considerably more
+> complete than "no Svelte client ships" implied — it is official, and supports
+> pagination, optimistic updates, auth plumbing (`setupAuth`) and SvelteKit SSR
+> (`convexLoad`). (b) The blocker is therefore *narrower and sharper* than
+> "Convex has no Svelte story": the plumbing exists, the
+> **`@convex-dev/auth` implementation for Svelte** does not. Detail in
+> `agents/convex.md` §5.
+
 `node_modules/convex/` ships `react/`, `nextjs/`, `react-auth0/`,
-`react-clerk/`. There is **no `svelte/`** in the core package, and no
-`@convex-dev/auth` Svelte binding exists.
+`react-clerk/` — no `svelte/` in the core package (the Svelte client is the
+separate `convex-svelte` package). No `@convex-dev/auth` Svelte binding
+exists.
 [convex-auth issue #89](https://github.com/get-convex/convex-auth/issues/89)
 asked for it on **2024-10-01** and is still open, ~2 years later.
 
@@ -331,8 +341,18 @@ keep untouched.
 | `svelte-dnd-action` | 0.9.79 | 2026-08-21 | healthy |
 | `@sveltejs/adapter-vercel` | 6.3.4 | 2026-08-21 | healthy |
 
-`convex-svelte` being official and recently published is the good news. It is
-still **0.x**, against a React client this repo uses in 300+ call sites.
+`convex-svelte` being official and recently published is the good news, and it
+covers more than expected: queries, mutations, actions, **pagination,
+optimistic updates, query skipping, auth adapters, and SvelteKit SSR** via
+`convexLoad`. Two of the hardest React-only Convex APIs are moot here anyway —
+this repo uses `usePaginatedQuery` **0 times** and `preloadQuery` **0 times**.
+It is still **0.x**, against a React client this repo uses in 300+ call sites.
+
+One structural cost this document missed: Svelte projects need `convex.json`
+pointing at **`src/convex/`** ("Svelte doesn't like referencing code outside of
+`src/`"). This repo's `convex/` is at the root, so a migration relocates the
+entire backend directory — changing every `@convex/*` import path and the
+deploy config.
 
 ### 3.3 Coupling inventory — what actually has to change
 
@@ -417,17 +437,27 @@ Two things deliberately did not move, and only one of them still should not:
 - **Tests stay on vitest** — correct, keep. `bun test`'s runner grabs the same
   globs and breaks the convex-test/jsdom suite. 29.4 s for 1175 tests is fine.
 - **Docker runtime stage is `node`** because `output: "standalone"` emits a
-  node `server.js`. **This is the one worth revisiting.** Bun runs
-  `server.js`; swapping the runtime stage to `oven/bun` is a Dockerfile
-  change measurable in an afternoon — faster cold start, smaller image, and
-  **zero application code touched**. Note it only affects the self-hosted
-  lane, which is currently off; Vercel runs its own Node/Fluid runtime.
+  node `server.js`. This document originally proposed swapping it to
+  `oven/bun` for a faster cold start. **Measured on 2026-08-30, and the
+  proposal is refuted:**
 
-Remaining Bun surface worth measuring, cheapest first:
+  | runtime | boot → first served request, 3 runs |
+  |---|---|
+  | `node server.js` | 602 / 627 / 647 ms |
+  | `bun server.js` | 1144 / 656 / 664 ms |
 
-1. Dockerfile runtime stage → `oven/bun`. Measure boot time and image size.
-2. `scripts/*.mjs` under `bun` instead of `node` (they already run via bun).
-3. **Do not** chase `bun test`. Documented ceiling, still true.
+  Bun serves the standalone output correctly but is **not faster** — it is
+  marginally slower at steady state and much slower cold. The Dockerfile's
+  existing comment was right; that measurement is now recorded in the
+  Dockerfile so the "upgrade" is not proposed again.
+
+Remaining Bun surface, after that measurement:
+
+1. ~~Dockerfile runtime stage → `oven/bun`.~~ **Measured, refuted** (above).
+2. **Do not** chase `bun test`. Documented ceiling, still true.
+
+So the Bun migration is, in substance, **done**. What was actually left of it
+was the 24 `.md` files still saying pnpm/npx (§2.3) — now swept.
 
 The 24 `.md` files still saying pnpm/npx (§2.3) are the actual unfinished
 part of the Bun migration.
@@ -447,8 +477,39 @@ Shipped in the same session as this document. Gates after: `check:rules`
 | 4 | **§2.4** typecheck the 28 Convex test files | ✅ done — was 0, now 28 |
 | 5 | **§2.5** add both `check:rules` checks | ✅ done — `dead-index`, `convex-api-ref` |
 | 6 | **§2.3** drift sweep + bun/pnpm text + the four Nosion-facing docs | ✅ done |
-| 7 | **§4.1** Dockerfile → `oven/bun`, measured | open |
+| 7 | **§4.1** Dockerfile → `oven/bun`, measured | ✅ measured → **refuted**, see §4 |
 | 8 | **§3** Svelte — only if §3.1 spikes clean | open, not recommended |
+
+Also shipped, beyond the original list:
+
+- **`agents/svelte.md` + `agents/convex.md`** — framework guidance written for
+  coding agents, because a model's priors are not evenly distributed: React and
+  Next are over-represented in training data, so the default Svelte answer is
+  usually a React answer in different syntax. `svelte.md` leads with a
+  reflex-correction table (`useEffect`-to-sync-state → `$derived`, module-level
+  `$state` leaking across SSR requests, the `contenteditable` binding gotcha
+  that hits this repo's editor directly). `convex.md` carries the long-form
+  reasoning behind the CLAUDE.md rules plus the two greps that lie (§2.4).
+  Linked from `CLAUDE.md` step 5 so they are actually found.
+- **Dockerfile** — the `NEXT_PUBLIC_CONVEX_URL` build-arg defaulted to
+  `https://api-silong.rahmanef.com`, the maintainer's own backend, down since
+  2026-06-04. A self-hoster who forgot the build-arg got an image silently
+  pointed at someone else's dead deployment. Default removed and replaced with
+  a build-time guard that fails loudly.
+- **`scripts/capture-screenshots.mjs`** — added the 5 shots it could not
+  produce (`command-palette`, `database-board`, `mobile-home`, `setup`,
+  `templates`). It now regenerates every image README embeds; before it
+  covered 6 of 11 and silently left 5 stale.
+- **A false positive in the `dead-index` rule, caught before it mattered.**
+  A single combined regex let an unindexed `.query()` swallow the indexed one
+  that followed, reporting the very-much-alive `feedbackEntries.by_status` as
+  dead. Real count is **18**, not 19. Every one of the 18 was then re-verified
+  by an independent script that resolves each `.withIndex` back to its
+  enclosing `.query()` table.
+- **A self-referential bug in `no-pnpm`.** The baseline records violation text
+  verbatim, so baselining a `no-pnpm` hit wrote the offending string into a
+  file the rule then scanned — each update generating a fresh violation. The
+  ledger is now excluded from its own scan.
 
 Notes from doing it:
 

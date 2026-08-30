@@ -12,6 +12,18 @@ notes under `docs/audit/`.
 
 ### Added
 
+- **`agents/` — framework guidance for coding agents** (`svelte.md`,
+  `convex.md`, `README.md`), linked from `CLAUDE.md`. A model's priors are not
+  evenly distributed: React and Next.js dominate training data, so the default
+  answer for another framework is often a React answer in different syntax.
+  `svelte.md` leads with a reflex-correction table and covers the traps that
+  bite hardest here — `$effect` used to sync state that should be `$derived`,
+  module-level `$state` in a `.svelte.ts` leaking across SSR requests, and the
+  `contenteditable` binding gotcha that lands directly on this repo's editor.
+  `convex.md` carries the long-form reasoning behind the CLAUDE.md rules, the
+  two greps that lie (index names are not unique across tables; function
+  references have two runtime-equivalent forms), and the real state of
+  `convex-svelte`. `CLAUDE.md` stays the SSOT and wins on conflict.
 - **Two mechanical rules in `scripts/check-rules.mjs`** — `dead-index` and
   `convex-api-ref`. Both close a class of drift that a plain grep cannot see,
   per CLAUDE.md's own "a rule that is not in that script is a rule that will
@@ -36,6 +48,11 @@ notes under `docs/audit/`.
   security assertions. Added to the root project, which already resolves the
   `@/` and `@convex/` aliases they need. They were type-clean; they were just
   unchecked.
+
+- **`scripts/capture-screenshots.mjs` now regenerates every README image.** It
+  could produce 6 of the 11 embedded shots, so re-running it silently left five
+  stale; added `command-palette`, `database-board`, `mobile-home`, `setup` and
+  `templates`, and documented the full output set at the top of the file.
 
 ### Removed
 
@@ -93,6 +110,7 @@ notes under `docs/audit/`.
   (`extending.md`, `export-to-notion.md`, `api/README.md`, `api/mcp.md`) now
   say open-silong. Internal ids (`nosion-*` MCP tool names,
   `nosion:theme-preset`, `X-Nosion-Signature`) are unchanged per CLAUDE.md.
+<!-- rules-allow: no-pnpm — quoting the stale commands this entry replaced -->
 - `.claude/RULES.md` and `.claude/SLICES.md` still handed out `npx tsc` /
   `npm run build` / `pnpm exec convex deploy` after the 2026-08-10 bun
   migration.
@@ -286,6 +304,11 @@ Every finding was adversarially verified before it counted — 30 confirmed,
   clean and is a usable gate again.
 - The pre-push hook invoked `scripts/rr-sync-status.mjs`, which does not
   exist in the repo (silently swallowed by `|| true`).
+
+- **`scripts/capture-screenshots.mjs` now regenerates every README image.** It
+  could produce 6 of the 11 embedded shots, so re-running it silently left five
+  stale; added `command-palette`, `database-board`, `mobile-home`, `setup` and
+  `templates`, and documented the full output set at the top of the file.
 
 ### Removed
 

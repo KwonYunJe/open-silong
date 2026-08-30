@@ -438,11 +438,18 @@ const RULES = [
       for (const file of ctx.files) {
         if (!under(file, "convex/") || !CODE_EXT.test(file)) continue;
         const { src } = ctx.read(file); // NOT masked — masking blanks string contents
-        // .query("table")…withIndex("name") — the ctx.db chain, table known.
-        for (const m of src.matchAll(
-          /\.query\(\s*["'`]([A-Za-z0-9_]+)["'`]\s*\)([\s\S]{0,400}?)\.withIndex\(\s*["'`]([A-Za-z0-9_]+)["'`]/g,
-        )) {
-          if (!m[2].includes(".query(")) used.add(`${m[1]}\u0000${m[3]}`);
+        // Walk each `.query("table")` and look ahead only as far as the NEXT
+        // `.query(`. A single combined regex gets this wrong: an unindexed
+        // query earlier in the file swallows the indexed one that follows and
+        // the pair is then discarded — which reported the very-much-alive
+        // feedbackEntries.by_status as dead.
+        const queries = [...src.matchAll(/\.query\(\s*["'`]([A-Za-z0-9_]+)["'`]\s*\)/g)];
+        for (let qi = 0; qi < queries.length; qi++) {
+          const q = queries[qi];
+          const from = q.index + q[0].length;
+          const to = qi + 1 < queries.length ? queries[qi + 1].index : src.length;
+          const ix = src.slice(from, to).match(/^[\s\S]{0,900}?\.withIndex\(\s*["'`]([A-Za-z0-9_]+)["'`]/);
+          if (ix) used.add(`${q[1]}\u0000${ix[1]}`);
         }
       }
 
@@ -642,6 +649,9 @@ function stripHashComments(src) {
  *  "bun" would falsify what actually happened at the time. */
 function pnpmScope(file) {
   if (under(file, "docs/archive/", "docs/audit/", "docs/rr-sync/")) return false;
+  // The baseline records violation TEXT verbatim, so scanning it turns every
+  // recorded no-pnpm hit into a fresh no-pnpm hit. Never scan the ledger.
+  if (file === "scripts/check-rules.baseline.json") return false;
   if (under(file, "scripts/")) return !/\.test\./.test(file);
   if (under(file, ".github/")) return true;
   if (under(file, "docs/")) return /\.mdx?$/.test(file);

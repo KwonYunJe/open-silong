@@ -105,6 +105,10 @@ reference deploy now.
 3. After editing: `bun run typecheck` + relevant `bun run test` before commit.
 4. Found rule-violating existing code? Flag it, but only fix if user asks
    (avoid scope creep).
+5. Touching `convex/` → read `agents/convex.md` first. Writing Svelte, or
+   advising on the Svelte migration → read `agents/svelte.md` first. Those
+   files hold the long-form reasoning and the traps that a React-shaped
+   prior gets wrong; this file stays the SSOT and wins on conflict.
 
 ## Layout
 

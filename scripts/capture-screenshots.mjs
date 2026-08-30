@@ -12,6 +12,16 @@
 //   SILONG_HEADLESS  '0' to watch (default headless)
 //   SILONG_OUT       output dir   (default docs/media)
 //
+// Emits every image README.md embeds, plus library.png and the two graph
+// shots. Keep this list and README in sync — a shot that lands here but is
+// referenced nowhere is dead weight, and a README image this cannot
+// regenerate goes stale the first time the UI moves.
+//
+//   README: admin · command-palette · dashboard · dashboard-dark ·
+//           database · database-board · editor · mobile-home · setup ·
+//           templates
+//   extra:  graph · graph-controls · library
+//
 // ponytail: one flat script, no page-object framework. Each shot is wrapped so
 // one failure never aborts the rest.
 
@@ -117,6 +127,68 @@ async function main() {
     await page.waitForURL(/\/dashboard\/db\//);
     await page.waitForTimeout(1500);
     await shot(page, "database");
+  });
+
+  // ── command-palette.png ──────────────────────────────────
+  await safe("command-palette", async () => {
+    await go("/dashboard");
+    await page.keyboard.press("Control+k");
+    await page.waitForTimeout(900);
+    await shot(page, "command-palette");
+    await page.keyboard.press("Escape");
+  });
+
+  // ── database-board.png — switch the open DB to its Board view ──
+  await safe("database-board", async () => {
+    await go("/dashboard");
+    await page.locator('a[href*="/dashboard/db/"]').first().click({ timeout: 8000 });
+    await page.waitForURL(/\/dashboard\/db\//);
+    await page.waitForTimeout(1200);
+    // View tabs render the view name as a button label; Board may need adding.
+    const boardTab = page.getByRole("button", { name: /board/i }).first();
+    if (await boardTab.count()) {
+      await boardTab.click();
+    } else {
+      await page.locator('button[aria-label="Add view"]').click();
+      await page.getByRole("menuitem", { name: /board/i }).click();
+    }
+    await page.waitForTimeout(1500);
+    await shot(page, "database-board");
+  });
+
+  // ── templates.png — the gallery dialog ───────────────────
+  await safe("templates", async () => {
+    await go("/dashboard");
+    const card = page.getByText(/try a template|browse all/i).first();
+    await card.click({ timeout: 8000 });
+    await page.waitForTimeout(1200);
+    await shot(page, "templates");
+    await page.keyboard.press("Escape");
+  });
+
+  // ── mobile-home.png — phone viewport ─────────────────────
+  await safe("mobile-home", async () => {
+    const mobile = await ctx.newPage();
+    await mobile.setViewportSize({ width: 390, height: 844 });
+    await mobile.goto(`${BASE}/dashboard`, { waitUntil: "networkidle" });
+    await mobile.waitForTimeout(1800);
+    await shot(mobile, "mobile-home");
+    await mobile.close();
+  });
+
+  // ── setup.png — the first-run setup route ────────────────
+  // Unauthenticated-looking route; capture in a clean context so the
+  // signed-in session does not redirect us away.
+  await safe("setup", async () => {
+    const anon = await browser.newContext({
+      viewport: { width: 1440, height: 900 },
+      deviceScaleFactor: 2,
+    });
+    const p2 = await anon.newPage();
+    await p2.goto(`${BASE}/setup`, { waitUntil: "networkidle" });
+    await p2.waitForTimeout(1500);
+    await shot(p2, "setup");
+    await anon.close();
   });
 
   // ── dark mode dashboard ──────────────────────────────────
