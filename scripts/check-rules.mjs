@@ -426,6 +426,90 @@ const RULES = [
       }
     },
   },
+  {
+    id: "dead-index",
+    title: "Index declared in convex/ schema but never used by a `.withIndex`",
+    fix: "Wire it up with `.withIndex(\"<name>\", …)` on that table, or drop the `.index(...)` line. Forward-declared for a planned feature? Waive it: `// rules-allow: dead-index — <the roadmap entry it belongs to>`",
+    run(ctx) {
+      // Table-aware on purpose. A plain `.withIndex("by_user"` grep is
+      // blind to a dead index whose name is live on a DIFFERENT table —
+      // that masking is why the 2026-08-10 audit undercounted 17 as 12.
+      const used = new Set(); // "table\u0000index" — always table-scoped
+      for (const file of ctx.files) {
+        if (!under(file, "convex/") || !CODE_EXT.test(file)) continue;
+        const { src } = ctx.read(file); // NOT masked — masking blanks string contents
+        // .query("table")…withIndex("name") — the ctx.db chain, table known.
+        for (const m of src.matchAll(
+          /\.query\(\s*["'`]([A-Za-z0-9_]+)["'`]\s*\)([\s\S]{0,400}?)\.withIndex\(\s*["'`]([A-Za-z0-9_]+)["'`]/g,
+        )) {
+          if (!m[2].includes(".query(")) used.add(`${m[1]}\u0000${m[3]}`);
+        }
+      }
+
+      for (const file of ctx.files) {
+        if (!under(file, "convex/") || !CODE_EXT.test(file)) continue;
+        if (!/schema\.ts$|tables\.ts$/.test(file)) continue;
+        const { src } = ctx.read(file);
+        // `name: defineTable({ … }).index("a", […]).index("b", […])`
+        for (const t of src.matchAll(/([A-Za-z0-9_]+)\s*:\s*defineTable\(/g)) {
+          const table = t[1];
+          const i = src.indexOf("defineTable(", t.index);
+          // walk to the end of this table's chain: the next `defineTable(` or EOF
+          const next = src.indexOf("defineTable(", i + 1);
+          const end = next === -1 ? src.length : next;
+          const chain = src.slice(i, end);
+          for (const ix of chain.matchAll(/\.index\(\s*["'`]([A-Za-z0-9_]+)["'`]/g)) {
+            const name = ix[1];
+            if (!used.has(`${table}\u0000${name}`)) ctx.report(file, i + ix.index, { detail: `${table}.${name}` });
+          }
+        }
+      }
+    },
+  },
+  {
+    id: "convex-api-ref",
+    title: "Reference to a convex function that does not exist in the generated api",
+    fix: "Fix the path, or regenerate `convex/_generated/api.d.ts`. Both reference forms count: `api.a.b.c` and `api[\"a/b\"].c`.",
+    run(ctx) {
+      // Both forms are runtime-equivalent and BOTH must be swept: nested
+      // modules appear as api["features/inbox/queries"].list in app/ +
+      // frontend/, but as api.features.inbox.queries.list in convex/_test/.
+      // A dotted-only sweep reports live functions as dead.
+      let decl;
+      try {
+        decl = ctx.read("convex/_generated/api.d.ts").src;
+      } catch {
+        return; // not generated yet — nothing to check against
+      }
+      const modules = new Set();
+      for (const m of decl.matchAll(/["'`]([A-Za-z0-9_/]+)["'`]\s*:\s*typeof/g)) modules.add(m[1]);
+      for (const m of decl.matchAll(/^\s{2}([A-Za-z0-9_]+)\s*:\s*typeof/gm)) modules.add(m[1]);
+      if (modules.size === 0) return;
+      const known = new Set([...modules].map((m) => m.replace(/\//g, ".")));
+
+      for (const file of ctx.files) {
+        if (!CODE_EXT.test(file) || under(file, "convex/_generated/")) continue;
+        // Bracket form needs the raw source (the module path IS a string
+        // literal); the dotted form needs the masked source, or every
+        // `https://api.openai.com/...` URL in a string matches.
+        const { src, masked } = ctx.read(file);
+        // bracket form: api["features/inbox/queries"].list
+        for (const m of src.matchAll(/\b(?:api|internal)\[\s*["'`]([A-Za-z0-9_/]+)["'`]\s*\]/g)) {
+          if (!modules.has(m[1])) ctx.report(file, m.index, { detail: m[1] });
+        }
+        // dotted form: api.features.inbox.queries.list
+        for (const m of masked.matchAll(/\b(?:api|internal)\.((?:[A-Za-z0-9_]+\.)+[A-Za-z0-9_]+)\b/g)) {
+          // `api.a.b.c` is ambiguous: module "a.b" + fn "c", or module
+          // "a.b.c" whose fn is reached later (a cast breaks the chain).
+          // Any prefix resolving to a real module clears it.
+          const parts = m[1].split(".");
+          let ok = false;
+          for (let n = parts.length; n >= 1; n--) if (known.has(parts.slice(0, n).join("."))) { ok = true; break; }
+          if (!ok) ctx.report(file, m.index, { detail: parts.slice(0, -1).join(".") });
+        }
+      }
+    },
+  },
 ];
 
 const THEME_FILES = [

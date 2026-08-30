@@ -10,6 +10,93 @@ notes under `docs/audit/`.
 
 ## [Unreleased]
 
+### Added
+
+- **Two mechanical rules in `scripts/check-rules.mjs`** — `dead-index` and
+  `convex-api-ref`. Both close a class of drift that a plain grep cannot see,
+  per CLAUDE.md's own "a rule that is not in that script is a rule that will
+  rot".
+  - `dead-index` pairs `(table, index)` instead of grepping the index name
+    globally. That matters: 7 dead indexes were invisible to the old
+    name-only sweep because the same name is live on a *different* table
+    (`comments.by_user` and `pageViews.by_user` hide behind 46 `by_user`
+    hits elsewhere). Real count is **19**, not the 12 the 2026-08-10 audit
+    held. Baselined as known debt, not deleted — dropping an index is the
+    only hard-to-reverse change in the set and several are deliberate
+    roadmap forward-declarations.
+  - `convex-api-ref` accepts **both** reference forms. Nested modules are
+    written `api["features/inbox/queries"].list` in `app/` and `frontend/`
+    but `api.features.inbox.queries.list` in `convex/_test/`; a dotted-only
+    sweep reports 16 live functions as dead. Currently green.
+- **The 28 Convex test files are now type-checked.** They were excluded from
+  `convex/tsconfig.json` and absent from the root `tsconfig.json` include, so
+  `bun run typecheck` compiled *neither* — the entire authz suite
+  (`authz-pages`, `authz-databases`, `authz-content`, `authz-workspaces`,
+  `page-grants`, `sharing`, `workspace-authz`) had zero type coverage on its
+  security assertions. Added to the root project, which already resolves the
+  `@/` and `@convex/` aliases they need. They were type-clean; they were just
+  unchecked.
+
+### Removed
+
+- ~600 LOC of dead code, all verified unreachable: `frontend/test/setup.ts`
+  (vitest declares no `setupFiles`), the demo seed tree
+  (`seed/pages.ts`, `seed/tasksDb.ts`, `seedWorkspace`, `seedPreferences` —
+  only `seedUser` had a consumer), `SidebarAction.tsx`, `isHiddenInView`,
+  `resolvePhosphorIcon`, `__resetErrorCapture`, the `CodeLanguage` interface,
+  the `IconStyle` barrel alias, and `docs/FEATURES.md` (a stale third copy of
+  the feature list that two prior audits had already deferred; `ROADMAP.md`
+  and `docs/api/` are the SSOT).
+- Two unused devDependencies: `@testing-library/jest-dom` (reachable only
+  from the dead setup file; no test uses a jest-dom matcher) and
+  `@types/geoip-lite` (its only consumer casts the module to `any`).
+  `@testing-library/react` and `@edge-runtime/vm` are **kept** — the latter
+  looks unused to a name-grep but is pragma-loaded by 11 test files.
+
+### Fixed
+
+- **28 documentation claims that were false against the code.** The ones that
+  cost a stranger real time: `SECURITY.md` pointed vulnerability reporters at
+  `silong.rahmanef.com`, which has returned 502 since the self-hosted lane was
+  turned off on 2026-06-04, leaving the actual production deploy nominally out
+  of scope; `DEPLOY.md`'s "public demo" lane and `docs/api/mcp.md`'s three
+  copy-pasteable curl recipes named the same dead hosts; `mcp.md` documented a
+  standalone `mcp/` server directory that does not exist and listed per-user
+  tokens as unbuilt when `mcpTokens` ships; `CONTRIBUTING.md` promised
+  TypeScript strict mode (the app tsconfig is `strict: false`), claimed CI runs
+  lint (it does not), and sent contributors to `convex/features/<name>/_schema.ts`
+  and `convex/migrations/`, neither of which exists.
+- **`CLAUDE.md`, the rule SSOT, named two paths that do not exist** —
+  `frontend/shared/providers/` (the 2026-05-12 promotion of
+  `WorkspaceIOProvider` was never landed; it is still in the slice) and
+  `router-compat.tsx`. Also pinned Convex at 1.36 against a `^1.43.0`
+  dependency.
+- `docs/api/slices.md`: 11 "Backend mirror" cells named directories that do
+  not exist, three slices were missing from a catalog claiming to list all 40,
+  and the theme-presets / files / comments rows advertised six symbols
+  (`<ThemePicker/>`, `useThemePreset()`, `THEME_PRESETS`,
+  `useLocalStorageFilesAdapter()`, `<CommentDrawer/>`) that appear nowhere in
+  the repo.
+- `docs/api/pages.md` and `blocks.md` contradicted a CLAUDE.md hard rule by
+  documenting `blocks` as a field of the page doc; block content has lived in
+  the `pageBlocks` table since 2026-07-14.
+- `useLocalStorageNotionAdapter()` was documented, given a copy-paste snippet
+  and a comparison-table row across three files. It does not exist — only
+  `adapter/convexAdapter/` ships.
+- Block-type docs listed 21 of 30 types (`blocks.md`, `types/domain.md`);
+  README and ROADMAP said "ten property types" against 27; README badges and
+  four prose sites still said v1.1.0 / Convex 1.36; ROADMAP claimed
+  `check:rules` reports ~68 violations when the gate is green, and three of
+  its eight "good first issues" — advertised as "verified to exist at the
+  paths given" — were already fixed.
+- The four user-facing docs that still greeted readers as "Nosion"
+  (`extending.md`, `export-to-notion.md`, `api/README.md`, `api/mcp.md`) now
+  say open-silong. Internal ids (`nosion-*` MCP tool names,
+  `nosion:theme-preset`, `X-Nosion-Signature`) are unchanged per CLAUDE.md.
+- `.claude/RULES.md` and `.claude/SLICES.md` still handed out `npx tsc` /
+  `npm run build` / `pnpm exec convex deploy` after the 2026-08-10 bun
+  migration.
+
 ### Fixed
 
 - `build:auto` was silent about which branch it took, so a Vercel build log

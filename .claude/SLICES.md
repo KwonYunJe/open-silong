@@ -58,7 +58,7 @@ If the feature replaces an existing stub (e.g. hardcoded "3" inbox badge or
 ## 6. Validate
 
 ```bash
-npx tsc --noEmit && npm run build
+bun run typecheck && bun run build
 ```
 
 ## 7. Commit

@@ -107,8 +107,9 @@ When adding a new feature:
    `frontend/shared/components/`; multi-file feature → slice).
 2. Scaffold `frontend/slices/<name>/` with `components/`, `hooks/`,
    `lib/`, `types.ts`, `index.ts`.
-3. If it needs backend, add `convex/features/<name>/` with `_schema.ts`,
-   `queries.ts`, `mutations.ts`.
+3. If it needs backend, add `convex/features/<name>/` with
+   `queries.ts` + `mutations.ts`. Schema stays central in
+   `convex/schema.ts` — features do not carry their own schema file.
 4. Add a doc page at `docs/api/<name>.md`.
 
 ## Conventions
@@ -126,7 +127,10 @@ chore(deps): bump convex to 1.37
 
 ### Code style
 
-- TypeScript strict mode (no `any` without justification).
+- The app `tsconfig.json` is **not** strict (`strict: false`,
+  `noImplicitAny: false`, `strictNullChecks: false`); only
+  `convex/tsconfig.json` is. "No `any` without justification" is a
+  convention here, not a compiler guarantee.
 - Tailwind v4 + theme tokens only — no hex literals.
 - shadcn primitives only — never raw `<button>` / `<dialog>` /
   `<input type=date>`.
@@ -150,13 +154,15 @@ handler** — use `requireOwned` / `requireWorkspaceMember` from
    Rebase on `main` — it moves without PRs.
 4. Open the PR against `main`. The template prompts for context,
    screenshots (UI), and breaking-change callouts.
-5. CI runs typecheck + lint + tests. Triage target is a week; nudge the
+5. CI runs `check:rules` → typecheck → tests → build (no lint step).
+   Triage target is a week; nudge the
    PR if it goes quiet.
 
 ### Breaking changes
 
-Backend schema migrations require a migration script under
-`convex/migrations/` and a callout in the PR description. Frontend
+Backend schema migrations require a backfill/migration function under
+`convex/admin/` (e.g. `admin/pageBlocksBackfill:run`) and a callout in
+the PR description. Frontend
 prop renames need a deprecation note in the changelog.
 
 ## Reporting bugs

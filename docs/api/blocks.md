@@ -11,12 +11,12 @@ Renderer dispatch: `frontend/slices/editor/blocks/registry.tsx:BLOCK_RENDERERS`.
 
 ---
 
-## Block type registry (21 leaf + container types)
+## Block type registry (30 leaf + container types)
 
 | type | category | text-bearing | container | extra fields |
 |---|---|---|---|---|
 | `paragraph` | basic | yes | — | — |
-| `h1` / `h2` / `h3` | basic | yes | — | — |
+| `h1` … `h6` | basic | yes | — | — |
 | `bullet` / `numbered` | basic | yes | — | — |
 | `todo` | basic | yes | — | `checked: boolean` |
 | `quote` | basic | yes | — | — |
@@ -33,6 +33,11 @@ Renderer dispatch: `frontend/slices/editor/blocks/registry.tsx:BLOCK_RENDERERS`.
 | `toggle` | container | yes (heading) | linear | `children: Block[]`, `collapsed?: boolean` |
 | `columns2` | container | — | 2 columns | `columns: [Block[], Block[]]`, `colWidths?: [n,n]` |
 | `columns3` | container | — | 3 columns | `columns: [Block[], Block[], Block[]]`, `colWidths?: [n,n,n]` |
+| `columns4` / `columns5` | container | — | 4 / 5 columns | same shape, 4 or 5 panes |
+| `synced` | container | — | linear | source owns `children`, ref mirrors its source |
+| `toc` | nav | — | — | auto-derived from sibling headings, no stored content |
+| `audio` | media | — | — | `url` (Convex storage), `caption` |
+| `video` | media | — | — | `url` (Convex storage), `caption` |
 
 Every block carries optional `color` / `bgColor` (10-color Notion
 palette key — see `frontend/slices/editor/lib/colors.ts`).
@@ -41,7 +46,12 @@ palette key — see `frontend/slices/editor/lib/colors.ts`).
 
 ## Nesting rules
 
-- **Top-level blocks** are stored on `page.blocks[]`.
+- **Top-level blocks live in the `pageBlocks` table, not on the page
+  doc.** Read and write them through `readPageBlocks` /
+  `writePageBlocks` / `newPageBlockFields` in
+  `convex/_shared/pageContent.ts` — never touch `page.blocks` directly.
+  (`pages.blocks` is retained-but-emptied as a fallback for rows that
+  predate the 2026-07-14 split; backfill via `admin/pageBlocksBackfill:run`.)
 - **`toggle.children`** is a linear `Block[]`. Children themselves can
   be any type INCLUDING another `toggle` or `columns*`.
 - **`columns*.columns[i]`** is a `Block[]` per pane. Children can be

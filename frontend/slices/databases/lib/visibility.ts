@@ -7,7 +7,3 @@ export function getVisibleProps(db: Database, view: DatabaseViewConfig | undefin
   const hidden = new Set(view?.hiddenPropIds ?? []);
   return db.properties.filter((p) => !hidden.has(p.id));
 }
-
-export function isHiddenInView(view: DatabaseViewConfig | undefined, propId: string): boolean {
-  return !!view?.hiddenPropIds?.includes(propId);
-}

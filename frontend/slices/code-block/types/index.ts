@@ -8,9 +8,3 @@ export interface CodeBlockProps {
   onLang: (next: string) => void;
   onKeyDown: (e: KeyboardEvent<HTMLElement>) => void;
 }
-
-export interface CodeLanguage {
-  value: string;
-  label: string;
-  aliases?: readonly string[];
-}

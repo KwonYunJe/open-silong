@@ -12,41 +12,44 @@ table below is the index.
 | Slice | Public API surface | Backend mirror | Deeper doc |
 |---|---|---|---|
 | [admin-panel](#admin-panel) | `<AdminPanel/>`, `useAdminRole()` | `convex/admin/` | [admin.md](./admin.md) |
-| [ai-agent](#ai-agent) | `<AIAgentConsole/>`, `useAIChat()`, `SLASH_COMMANDS` | `convex/agent/` | [ai.md](./ai.md) |
-| [analytics](#analytics) | `usePageAnalytics()`, `<AnalyticsPopover/>` | `convex/features/analytics/` | — |
-| [backlinks](#backlinks) | `<BacklinksPanel/>`, `useBacklinks()` | `convex/features/mentions/` | — |
+| [ai-agent](#ai-agent) | `<AIAgentConsole/>`, `useAIChat()`, `SLASH_COMMANDS` | `convex/ai/` | [ai.md](./ai.md) |
+| [ai-keys](#ai-keys) | `<AISection/>`, `useAIKeys()` | `convex/aiKeys/` | [ai.md](./ai.md) |
+| [analytics](#analytics) | `usePageAnalytics()`, `<AnalyticsPopover/>` | `convex/features/traffic/` + `convex/pageViews.ts` | — |
+| [backlinks](#backlinks) | `<BacklinksPanel/>`, `useBacklinks()` | `convex/features/graph/` | — |
 | [block-selection](#block-selection) | `<BlockSelectionProvider/>`, `<SelectionToolbar/>`, `<MarqueeOverlay/>` | n/a (local state) | — |
 | [code-block](#code-block) | `<CodeBlock/>`, `CODE_LANGUAGES`, `normalizeLang()` | n/a | — |
 | [command-palette](#command-palette) | `<CommandPalette/>` (Nosion-bound), `CommandPaletteCore` (renderless) | n/a | — |
-| [comments](#comments) | `CommentsProvider`, `useComments()`, `useBlockComments()`, `<CommentDrawer/>` | `convex/features/comments/` | [comments.md](./comments.md) |
+| [comments](#comments) | `CommentsProvider`, `useCommentsCore()`, `<PageCommentsPanel/>`, `<BlockCommentsPopover/>`, `<ThreadPopover/>` | `convex/features/comments/` | [comments.md](./comments.md) |
 | [cover](#cover) | `<CoverBanner/>`, `<CoverPicker/>`, `<AddCoverButton/>`, `parseCover()` | n/a | — |
 | [dashboard](#dashboard) | `<Dashboard/>` (route shell) | n/a | — |
 | [database-cell-selection](#database-cell-selection) | `useDragFill()`, `<SelectableCell/>` | n/a | — |
-| [database-csv](#database-csv) | `<CsvActions/>`, `<CsvImportDialog/>`, `exportDatabaseToCsv()`, `parseCsv()` | n/a | [databases.md](./databases.md) |
+| [database-csv](#database-csv) | `<CsvImportDialog/>`, `exportDatabaseToCsv()`, `parseCsv()`; `<CsvActions/>` is a portable standalone menu this app does not mount (`<DataMenu/>` is) | n/a | [databases.md](./databases.md) |
 | [database-json](#database-json) | `<DataMenu/>`, `<JsonImportDialog/>`, `<AIAssistDialog/>`, `exportDatabase()` | n/a | [databases.md](./databases.md) |
-| [database-presets](#database-presets) | `<DatabasePresetPicker/>`, `DATABASE_PRESETS` | n/a | — |
-| [database-templates](#database-templates) | `<NewRowMenu/>`, `<TemplatesDialog/>` | `convex/features/databases/` | — |
-| [databases](#databases) | `<DatabaseBlock/>`, `<DatabasePage/>`, `<PropertyCell/>`, `PROPERTY_TYPES` | `convex/features/databases/` | [databases.md](./databases.md) |
+| [database-presets](#database-presets) | `DATABASE_PRESETS`; `<DatabasePresetPicker/>` is portable surface this app does not mount | n/a | — |
+| [database-templates](#database-templates) | `<NewRowMenu/>`, `<TemplatesDialog/>` | `convex/databases.ts` | — |
+| [databases](#databases) | `<DatabaseBlock/>`, `<DatabasePage/>`, `<PropertyCell/>`, `PROPERTY_TYPES` | `convex/databases.ts` | [databases.md](./databases.md) |
 | [editor](#editor) | `<PageEditor/>`, `<BlockEditor/>`, `<PageActionsMenu/>`, `<RowPropertiesPanel/>`, `useFullPage()` | `convex/pages.ts` | [blocks.md](./blocks.md), [block-controls.md](./block-controls.md), [inline-decorator.md](./inline-decorator.md), [pages.md](./pages.md) |
 | [equation](#equation) | `<EquationBlock/>` | n/a | — |
-| [feedback](#feedback) | `<FeedbackDialog/>`, `<NewTicketForm/>`, `<UserTicketsList/>`, ticket metadata enums | `convex/features/feedback/` | — |
-| [files](#files) | `useFileUpload()`, `useFileUrl()`, `<FileChip/>`, `<FileUploadButton/>`, `FilesAdapterProvider`, `useLocalStorageFilesAdapter()` | `convex/files/` | [files.md](./files.md) |
+| [feedback](#feedback) | `<FeedbackDialog/>`, `<NewTicketForm/>`, `<UserTicketsList/>`, ticket metadata enums | `convex/feedback/` | — |
+| [files](#files) | `useFileUpload()`, `useFileUrl()`, `<FileChip/>`, `<FileUploadButton/>`, `FilesAdapterProvider`, `useFilesAdapter()`, `parseFileRef()` | `convex/features/files/` | [files.md](./files.md) |
 | [inbox](#inbox) | `useInbox()`, `<InboxPage/>`, `<InboxBadge/>` | `convex/features/inbox/` | [inbox.md](./inbox.md) |
 | [library](#library) | `<LibraryView/>`, `groupPagesForLibrary()`, `pageBreadcrumb()` | `convex/pages.ts` | [library.md](./library.md) |
-| [mentions](#mentions) | `useMentions()`, `<MentionsPopover/>` | `convex/features/mentions/` | — |
+| [mentions](#mentions) | `useMentions()`, `<MentionsPopover/>` | `convex/features/graph/` | — |
+| [memory-graph](#memory-graph) | `<MemoryGraphView/>`, `graphSettings` | `convex/features/graph/` | — |
 | [mobile-nav](#mobile-nav) | `<MobileBottomNav/>`, `<MoreDrawer/>` | n/a | — |
-| [notifications](#notifications) | `useSubscription()`, `<NotifyMePopover/>`, `SUBSCRIPTION_SCOPE_LABELS` | `convex/features/notifications/` | — |
+| [notifications](#notifications) | `useSubscription()`, `<NotifyMePopover/>`, `SUBSCRIPTION_SCOPE_LABELS` | `convex/features/inbox/` | — |
 | [notion](#notion) | `NotionAppProvider`, `NotionPage`, `NotionDatabase`, `NotionSidebar` (mega-slice) | n/a | — |
-| [search](#search) | `useSearch()`, `<SearchModal/>` | `convex/search.ts` | [search.md](./search.md) |
-| [sharing](#sharing) | `<ShareDialog/>` | `convex/sharing.ts` + `convex/http.ts` | — |
+| [product-tour](#product-tour) | `<ProductTour/>` | n/a (localStorage) | — |
+| [search](#search) | `useSearch()`, `<SearchModal/>` | `convex/features/search/` | [search.md](./search.md) |
+| [sharing](#sharing) | `<ShareDialog/>` | `convex/pageGrants.ts` + `convex/sites.ts` + `convex/http.ts` | — |
 | [simple-table](#simple-table) | `<SimpleTableBlock/>` | n/a | — |
 | [snapshots](#snapshots) | `<VersionHistory/>` | `convex/snapshots.ts` | [snapshots.md](./snapshots.md) |
 | [templates](#templates) | `<TemplateGalleryDialog/>`, `<TemplatePagePreview/>`, `useInstantiateTemplate()` | `convex/templates/` | [templates.md](./templates.md) |
-| [theme-presets](#theme-presets) | `<ThemePicker/>`, `<TweakcnSwitcher/>`, `useThemePreset()`, `THEME_PRESETS` | n/a (localStorage) | — |
+| [theme-presets](#theme-presets) | `<TweakcnSwitcher/>`, `<WorkspaceThemePicker/>`, `<ThemeColorSync/>`, `TWEAKCN_PRESET_GROUPS` | n/a (localStorage) | — |
 | [trash](#trash) | `<TrashView/>` | `convex/pages.ts` (soft-delete) | — |
-| [wiki](#wiki) | `useWiki()`, `<WikiToggleAction/>`, `<WikiBadge/>` | `convex/wiki.ts` | — |
+| [wiki](#wiki) | `useWiki()`, `<WikiToggleAction/>`, `<WikiBadge/>` | `convex/features/wiki/` | — |
 | [workspace-io](#workspace-io) | `<WorkspaceIODialog/>`, `WorkspaceIOProvider`, `buildSelectionExport()` | `convex/import/` | [import-export.md](./import-export.md) |
-| [workspace-members](#workspace-members) | `<MembersDialog/>` | `convex/features/workspaces/` | [workspaces.md](./workspaces.md) |
+| [workspace-members](#workspace-members) | `<MembersDialog/>` | `convex/workspaces.ts` + `convex/invites.ts` | [workspaces.md](./workspaces.md) |
 | [workspace-sidebar](#workspace-sidebar) | `<AppSidebar/>`, `<PagesPanel/>`, `useSidebarDnd()` | n/a (consumes pages/databases queries) | — |
 
 ---
@@ -196,11 +199,12 @@ exported so the admin slice can render the same labels.
 ## files
 
 Pluggable file storage. The default `convexAdapter.tsx`
-(skip-listed for downstream lifts) uses Convex file storage; the
-shipped `useLocalStorageFilesAdapter()` lets downstream consumers
-run without a backend; an S3 adapter is straightforward to add.
+(skip-listed for downstream lifts) uses Convex file storage; a
+backend-free or S3 adapter is straightforward to add against the
+same contract — **no localStorage adapter ships today**.
 Public surface: `useFileUpload()`, `useFileUrl()`, `<FileChip/>`,
-`<FileUploadButton/>`. Detailed adapter contract: [`files.md`](./files.md).
+`<FileUploadButton/>`, `FilesAdapterProvider`, `useFilesAdapter()`,
+`parseFileRef()`. Detailed adapter contract: [`files.md`](./files.md).
 
 ## inbox
 
@@ -285,8 +289,8 @@ Page templates (full-page starter content, not row templates).
 
 Visual theme presets. Two layers:
 
-- `THEME_PRESETS` — built-in palette catalogue, `<ThemePicker/>`
-  renders the simple picker, `useThemePreset()` applies via CSS
+- `TWEAKCN_PRESET_GROUPS` — built-in palette catalogue;
+  `<WorkspaceThemePicker/>` renders the picker and applies via CSS
   vars.
 - `<TweakcnSwitcher/>` — fetches ~36 community presets from a
   registry JSON and applies the same way. `<ThemeColorSync/>` keeps

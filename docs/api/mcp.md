@@ -1,16 +1,14 @@
-# Nosion MCP
+# open-silong MCP
 
 Notion-canonical Model Context Protocol surface — lets Claude Desktop,
-Claude Code, or any MCP-compatible client drive Nosion the same way
+Claude Code, or any MCP-compatible client drive open-silong the same way
 it drives Notion.
 
 ## Architecture
 
 ```
 Claude Desktop / Claude Code
-        │  (stdio, MCP)
-        ▼
-mcp/server.ts       ←  Bridges stdio MCP ↔ HTTPS JSON
+        │  (HTTP MCP / JSON-RPC)
         │  POST /mcp/v1
         ▼
 convex/http.ts      ←  Mounts the route
@@ -31,12 +29,12 @@ Two layers:
 1. **HTTPS endpoint `/mcp/v1`** (`convex/mcp/http.ts`) — single POST
    accepts `{tool, params}`, returns `{ok, data | error}`. Bearer
    token auth.
-2. **Stdio MCP server** (`mcp/`) — thin Node bridge. Exposes the
-   tools to MCP clients, forwards every call as a single HTTPS POST.
+2. **JSON-RPC surface** (`convex/mcp/jsonrpc.ts`) — `tools/list` +
+   `tools/call` over the same endpoint, for MCP clients that speak
+   JSON-RPC directly.
 
-You can use either layer independently. `curl` against `/mcp/v1`
-works for ad-hoc scripting; the stdio server is what Claude Desktop
-expects.
+Both layers are in-repo Convex HTTP routes. `curl` against `/mcp/v1`
+works for ad-hoc scripting.
 
 ## Tool catalog
 
@@ -58,7 +56,7 @@ expects.
 | `nosion-update-row` | Patch row properties (partial merge) | `page_id` |
 
 Tool discovery is served over JSON-RPC `tools/list` from the client
-catalog (`mcp/tools.ts:TOOLS`, JSON Schema).
+catalog (`convex/mcp/jsonrpc.ts:98` — `TOOLS`, JSON Schema).
 
 ## Wire format
 
@@ -89,13 +87,15 @@ Single shared token (single-tenant cut):
 
 ```env
 # convex deployment
-MCP_API_TOKEN=<long random string>
+MCP_API_KEY=<long random string>   # MCP_API_TOKEN still accepted as a fallback
 MCP_USER_ID=<convex users._id this token represents>
 ```
 
-Every request is performed as `MCP_USER_ID`. Per-user tokens are a
-follow-up (would add a `mcpTokens` table with hashed tokens, scopes,
-last-used timestamps).
+This env pair is the **single-tenant fallback**; every request under it
+is performed as `MCP_USER_ID`. **Per-user tokens ship today** — the
+`mcpTokens` table (`convex/schema.ts:477`) stores hashed, scoped tokens
+with last-used timestamps; issue and revoke them from Settings
+(`convex/mcp/tokens.ts`).
 
 ## Rate limits
 
@@ -112,13 +112,13 @@ top of `mcpHandler`.
 
 ```bash
 # Search
-curl https://api-silong.rahmanef.com/mcp/v1 \
+curl $CONVEX_SITE_URL/mcp/v1 \
   -H "authorization: Bearer $TOKEN" \
   -H "content-type: application/json" \
   -d '{"tool":"nosion-search","params":{"query":"meeting notes"}}'
 
 # Create a page
-curl https://api-silong.rahmanef.com/mcp/v1 \
+curl $CONVEX_SITE_URL/mcp/v1 \
   -H "authorization: Bearer $TOKEN" \
   -H "content-type: application/json" \
   -d '{
@@ -138,7 +138,7 @@ curl https://api-silong.rahmanef.com/mcp/v1 \
   }'
 
 # Insert a row in a database
-curl https://api-silong.rahmanef.com/mcp/v1 \
+curl $CONVEX_SITE_URL/mcp/v1 \
   -H "authorization: Bearer $TOKEN" \
   -H "content-type: application/json" \
   -d '{
@@ -153,25 +153,12 @@ curl https://api-silong.rahmanef.com/mcp/v1 \
   }'
 ```
 
-## Standalone MCP server
-
-`mcp/` directory. Build + register:
-
-```bash
-cd mcp
-npm install
-npm run build
-```
-
-Then add to your MCP client config — see `mcp/README.md` for
-`claude_desktop_config.json` and Claude Code recipes.
-
 ## Roadmap
 
-- **Per-user tokens** (`mcpTokens` table, hashed, scoped).
-- **Comments** (`nosion-create-comment`, `nosion-get-comments`) —
-  blocked on backend table (no comments table today).
-- **Users / teams** (`nosion-get-users`) — single-user model today.
+- **Comments** (`nosion-create-comment`, `nosion-get-comments`) — the
+  comments backend ships; the MCP tools are not written yet.
+- **Users / teams** (`nosion-get-users`) — multi-workspace membership
+  ships; the MCP tools are not written yet.
 - **Database schema PATCH** via `properties` MAP (not array) on
   `nosion-update-database`.
 - **`nosion-create-view` / `nosion-update-view`** — view CRUD.

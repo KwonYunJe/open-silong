@@ -42,7 +42,6 @@ export {
   useIconStyle,
   setIconStyle,
   readIconStyle,
-  type Style as IconStyle,
 } from "./lib/style-pref";
 
 // Recents (lets host apps reset / read the ring outside the picker).

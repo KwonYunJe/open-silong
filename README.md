@@ -4,11 +4,11 @@
 
 **Open-source, self-hostable collaborative workspace — inspired by Notion & Obsidian.**
 
-[![Release](https://img.shields.io/badge/release-v1.1.0-success.svg)](./CHANGELOG.md)
+[![Release](https://img.shields.io/badge/release-v1.2.0-success.svg)](./CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![Stack](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org)
 [![React](https://img.shields.io/badge/React-19-61dafb?logo=react)](https://react.dev)
-[![Convex](https://img.shields.io/badge/Convex-1.36-cc4444)](https://convex.dev)
+[![Convex](https://img.shields.io/badge/Convex-1.43-cc4444)](https://convex.dev)
 [![Tailwind](https://img.shields.io/badge/Tailwind-v4-38bdf8?logo=tailwindcss)](https://tailwindcss.com)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
 
@@ -60,7 +60,7 @@ lock-in.
   video, embed, columns, divider, synced, …).
 - **Databases.** Eleven views (Table · Board · List · Gallery · Calendar
   · Feed · Timeline · Chart · Map · Form · Dashboard). Filter, sort,
-  search, group, hide. Ten property types. Inline embed in any page OR
+  search, group, hide. 27 property types. Inline embed in any page OR
   open as full page.
 - **Knowledge graph.** Obsidian-style interactive graph of every page,
   `[[wikilink]]`, `@mention`, `#tag`, and database row — with backlinks
@@ -162,7 +162,7 @@ bunx rahman-resources@latest add notion-page-clone-os
 |---|---|---|
 | Frontend | Next 16 (App Router) + React 19 | RSC, streaming, file-based routing |
 | Styling | Tailwind v4 + shadcn/ui | Theme tokens, primitives, dark mode |
-| Backend | Convex 1.36 (self-hostable) | Realtime, optimistic, typed end-to-end |
+| Backend | Convex 1.43 (self-hostable) | Realtime, optimistic, typed end-to-end |
 | Auth | `@convex-dev/auth` | Magic-link, OAuth-ready, no Clerk |
 | Storage | Convex file storage OR S3 adapter | Pluggable per slice |
 | Search | Convex full-text index | No external search service |

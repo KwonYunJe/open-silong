@@ -1,7 +1,7 @@
 # open-silong — Claude / Agent Conventions
 
 Open-source collaborative workspace (Notion-inspired). Next 16 (App Router) +
-React 19 + Convex 1.36 (cloud reference deploy; self-hosted lane supported).
+React 19 + Convex 1.43 (cloud reference deploy; self-hosted lane supported).
 License MIT.
 
 Live: https://silong-os.vercel.app (Vercel + Convex cloud prod
@@ -27,7 +27,7 @@ reference deploy now.
 ### Hard pins
 - **Next ^16 + React ^19, Tailwind v4** — `proxy.ts` only, no `middleware.ts`.
   `experimental.cacheComponents` opt-in per page.
-- **Convex self-hosted ^1.36** — Docker Compose on Dokploy node. Deploy via
+- **Convex ^1.43** — Docker Compose on Dokploy node. Deploy via
   the pre-push hook (`scripts/install-pre-push.sh`) which sources
   `.env.local` then runs `bunx convex deploy --yes`. Manual deploy:
   `set -a && source .env.local && set +a && bunx convex deploy --yes`
@@ -127,13 +127,13 @@ reference deploy now.
   - `shared/lib/router/` — portable router primitives. Wrap layouts
     with `<RouterProvider basename="/dashboard">`; slices use
     `useNavigate` / `useLocation` / `Link` / `Navigate` / `useParams`
-    from `@/shared/lib/router`. Old `router-compat.tsx` is now a thin
-    re-export. Downstream consumers can mount slices under any prefix
-    by changing the `basename` prop.
-  - `shared/providers/` — cross-cutting providers shared across
-    slices. Currently exports `WorkspaceIOProvider` / `useWorkspaceIO`
-    (moved out of `slices/workspace-io/` 2026-05-12; old slice index
-    re-exports for back compat).
+    from `@/shared/lib/router`. Single file — `index.tsx`, 122 lines.
+    Downstream consumers can mount slices under any prefix by changing
+    the `basename` prop.
+  - `WorkspaceIOProvider` / `useWorkspaceIO` live in
+    `slices/workspace-io/components/`, exported through the slice
+    barrel. (A 2026-05-12 plan to promote them to a `shared/providers/`
+    directory was never landed — that directory does not exist.)
   - `shared/lib/store/hooks.ts` — per-domain selector hooks
     (`usePages`, `useDatabases`, `useBlocks`, `useWorkspaces`,
     `usePreferences`, …) over the monolithic `useStore()`. Opt-in;

@@ -1,5 +1,14 @@
 # `notion` mega-slice lift plan — 2026-05-21
 
+> **Status check, 2026-08-30.** Still a plan; none of it has landed. The
+> `pnpm` gates below predate the 2026-08-10 bun migration (use `bun run
+> typecheck` / `bun run test` in *this* repo). Two scripts this document
+> hands out as runnable recipes — `scripts/sync-to-rr.mjs` and
+> `scripts/copy-slice.mjs` — **do not exist**, and no
+> `slice.manifest.json` files are generated. `eslint.config.mjs:74`
+> cites this file in a live rule message, which is why it is kept out of
+> `docs/archive/`.
+
 > Forward plan, not retrospective. Written so any agent (Claude / rr's
 > agent / human contributor) can pick up the work cold.
 

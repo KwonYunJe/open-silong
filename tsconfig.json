@@ -43,6 +43,8 @@
     "frontend/**/*.ts",
     "frontend/**/*.tsx",
     "frontend/**/*.d.ts",
+    "convex/**/*.test.ts",
+    "convex/**/*.test.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],

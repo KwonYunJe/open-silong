@@ -50,7 +50,7 @@
 12. **`sed -i` for bulk import path updates.** Faster than per-file edits, and
     more auditable in the diff.
 
-13. **Build after every move.** `npx tsc --noEmit && npm run build`. Don't pile
+13. **Build after every move.** `bun run typecheck && bun run build`. Don't pile
     up moves before checking.
 
 ## Convex
@@ -70,9 +70,10 @@
 
 17. **Self-hosted Convex deploys need the project-specific admin key.**
     Sourcing `CONVEX_SELF_HOSTED_*` from `.env.local` and running
-    `pnpm exec convex deploy --yes` is the canonical local path. The
+    `bunx convex deploy --yes` (after sourcing `.env.local`) is the
+    canonical local path. The
     pre-push hook automates this when `convex/` changed. Raw
-    `npx convex deploy` against a different `CONVEX_DEPLOYMENT` fails
+    `convex deploy` against a different `CONVEX_DEPLOYMENT` fails
     with `BadAdminKey` — unset that var first or use a wrapper.
 
 18. **Module path keys with slashes.** Convex codegen emits string keys

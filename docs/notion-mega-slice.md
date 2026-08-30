@@ -20,12 +20,12 @@ for the in-slice quick-start.
 
 ```tsx
 import {
-  NotionAppProvider, useLocalStorageNotionAdapter,
+  NotionAppProvider, useConvexNotionAdapter,
   NotionPage, NotionDatabase, NotionSidebar,
 } from "@/slices/notion";
 
 function Demo() {
-  const adapter = useLocalStorageNotionAdapter();
+  const adapter = useConvexNotionAdapter();
   return (
     <NotionAppProvider adapter={adapter}>
       <NotionSidebar pages={pages} onSelect={openId => router.push(...)} />
@@ -51,7 +51,7 @@ contract from [`adapter/types.ts`](../frontend/slices/notion/adapter/types.ts).
 | `adapter/context.tsx` | `NotionAdapterProvider` + `useNotionAdapter` |
 | `adapter/noopAdapter.ts` | Throws-on-call shim for tests / fallback |
 | `adapter/convexAdapter/` | Production impl (skip-listed at rr-lift time) |
-| `adapter/localStorageAdapter/` | rr / demo default (skeleton today, full impl Phase 4+) |
+| `adapter/localStorageAdapter/` | **not shipped** — only `convexAdapter/` exists |
 
 The wrappers themselves (`NotionPage` / `NotionDatabase` / `NotionHeader`
 / `NotionSidebar` / `NotionBlock` / `NotionProperty`) live under

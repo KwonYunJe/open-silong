@@ -22,11 +22,11 @@ Lift status: ✅ standalone-ready (Phase 4 of the mega-lift plan, see
 ```tsx
 // 2. Mount the umbrella once near your app root.
 import {
-  NotionAppProvider, useLocalStorageNotionAdapter,
+  NotionAppProvider, useConvexNotionAdapter,
 } from "@/slices/notion";
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
-  const adapter = useLocalStorageNotionAdapter();
+  const adapter = useConvexNotionAdapter();
   return <NotionAppProvider adapter={adapter}>{children}</NotionAppProvider>;
 }
 ```
@@ -105,7 +105,7 @@ Full consumer docs: [`docs/api/notion-adapter.md`](../../../docs/api/notion-adap
 
 | Hook | Backend | When to use |
 |---|---|---|
-| `useLocalStorageNotionAdapter()` | localStorage (~5–10 MB browser quota) | Demos, portfolios, templates, no-backend onboarding |
+| _(a localStorage adapter)_ | **not shipped** — write your own against `adapter/types.ts` | Demos, portfolios, no-backend onboarding |
 | `useConvexNotionAdapter()` | Self-hosted Convex | Production. Imported directly from `@/slices/notion/adapter/convexAdapter` (skip-listed at rr lift time so it never lands in rr) |
 
 ### Roll your own
@@ -162,7 +162,7 @@ frontend/slices/notion/
     ├── types.ts                  # NotionAdapter interface (the contract)
     ├── context.tsx               # NotionAdapterProvider + useNotionAdapter
     ├── noopAdapter.ts            # throws-on-call shim for tests / fallback
-    ├── localStorageAdapter/      # rr-side default (skeleton + Phase 4+ impl)
+
     │   └── index.ts
     └── convexAdapter/            # production impl (SKIP-LISTED at lift time)
         ├── pages.ts

@@ -1,7 +1,6 @@
 export { AppSidebar } from "./components/AppSidebar";
 export { PagesPanel } from "./components/PagesPanel";
 export { Section } from "./components/Section";
-export { SidebarAction } from "./components/SidebarAction";
 export { SidebarPageLink } from "./components/SidebarPageLink";
 export { DatabaseSidebarRow } from "./components/DatabaseSidebarRow";
 export { SortablePageRow } from "./components/SortablePageRow";

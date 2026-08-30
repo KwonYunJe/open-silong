@@ -1,8 +1,8 @@
 # Roadmap
 
-Where open-silong actually is, as of **2026-08-10** (v1.1.0). Derived from
+Where open-silong actually is, as of **2026-08-30** (v1.2.0). Derived from
 `CHANGELOG.md`, the current audit
-(`docs/audit/2026-08-10-audit-bun-perf.md`) and the pre-open-source backlog
+(`docs/audit/2026-08-30-svelte-migration-plan.md`) and the pre-open-source backlog
 now archived at `docs/archive/notion-clone/`.
 
 This file is the honest version. If something is half-built, it says so.
@@ -11,7 +11,7 @@ This file is the honest version. If something is half-built, it says so.
 
 Block editor (30+ block types, slash menu, drag reorder, nesting, inline
 markdown decoration, synced blocks, code + KaTeX) · databases (eleven views,
-ten property types, filter/sort/group/hide, relations, rollups, 18 formula
+27 property types, filter/sort/group/hide, relations, rollups, 18 formula
 functions, per-database templates) · multi-workspace with member roles and
 invites · public share links, custom slugs, wiki mode, per-page viewer/editor
 grants · threaded comments, `@page` mentions, `[[wikilinks]]`, `#tags`,
@@ -60,12 +60,11 @@ Real problems, deliberately not fixed yet. Reasoning in
 - **Adapter re-render churn.** Every sub-adapter memoizes on `[store]`, so
   the context value is new on every push and `memo()` on cells buys nothing.
   The real fix is splitting `StoreCtx`, not adding memos.
-- **`bun run check:rules` reports ~68 violations.** Many are deliberate
-  choices (`role="checkbox"` elements that a shadcn `Button` would break)
-  written as prose comments the checker cannot read. See the good-first
-  issues.
-- **`docs/FEATURES.md` is stale** — still titled `notion-page-clone` and
-  describes property types as having "mock behavior".
+- **`check:rules` carries 47 baselined known-debt entries.** The gate
+  itself is green (0 new violations, 5 waivers) — the remaining work is
+  burning down that baseline, not fixing a red check.
+- **32 of 40 slices have no `docs/api/` page**, including `editor` and
+  `admin-panel` (the 1st and 3rd largest).
 - **Legacy `Nosion` identifiers** remain across the code: storage keys
   (`nosion:theme-preset`), the `nosion://sync/` URL scheme, the
   `X-Nosion-Signature` webhook header. These are **persisted data and public
@@ -92,19 +91,11 @@ Not "someday" — decided against.
 
 ## Good first issues
 
-Verified to exist at the paths given. Each is small and self-contained.
-Comment on an issue (or open one) before starting so two people do not
-collide.
+Each is small and self-contained. Re-verify the path before starting —
+three entries in the previous list had already been fixed. Comment on an
+issue (or open one) before starting so two people do not collide.
 
-1. **Hex colour hardcoded in a className.**
-   `frontend/slices/code-block/components/CodeBlock.tsx:44` uses
-   `bg-[#0d1117]`. The surface is intentionally always-dark (the toolbar on
-   top of it is `text-white/60`), so keep the colour — just define it as a
-   token in `app/globals.css` and reference the token instead. "Theme tokens
-   only, no hex" is a project rule, and `bun run check:rules` flags this as
-   its single `hex-in-classname` violation.
-
-2. **Turn informal rule exemptions into real waivers.** Seven places carry a
+1. **Turn informal rule exemptions into real waivers.** Seven places carry a
    prose comment like `{/* shadcn Button skipped: role="checkbox" listbox
    semantics */}` (e.g.
    `frontend/slices/databases/views/table/Checkboxes.tsx`,
@@ -114,33 +105,23 @@ collide.
    reason text, and watch the `raw-ui-primitive` count drop when you run
    `bun run check:rules`.
 
-3. **Same, for the one bare `.collect()`.** `convex/workspaces.ts:258` is
-   deliberately unbounded and explains why in a comment above it. Add
-   `// rules-allow: no-collect — …` so `bun run check:rules` stops reporting
-   it. Do **not** change the query.
-
-4. **Hardcoded dashboard route.**
+2. **Hardcoded dashboard route.**
    `frontend/slices/ai-keys/components/AISection.tsx:38` calls
    `router.replace("/dashboard/settings?s=ai")`. Slice code must not contain
    `/dashboard` literals — import `ROUTES_ABS` from `@/shared/lib/routes`
    and build the URL from `ROUTES_ABS.settings`.
 
-5. **Stale package runner in the deploy guide.** `DEPLOY.md:30` still
-   invokes `convex dev` through npm's runner; the repo is on bun. Switch it
-   to `bunx convex dev`, then confirm `bun run check:rules` reports one
-   fewer `no-pnpm` violation.
-
-6. **Three slices missing from the catalog.** `docs/api/slices.md` omits
+3. **Three slices missing from the catalog.** `docs/api/slices.md` omits
    `ai-keys`, `memory-graph` and `product-tour`, all of which exist under
    `frontend/slices/`. Add a row for each, matching the format of the
    existing entries.
 
-7. **Write `docs/api/trash.md`.** The `trash` slice
+4. **Write `docs/api/trash.md`.** The `trash` slice
    (`frontend/slices/trash/`) powers `/dashboard/trash` and has no doc page.
    Use `docs/api/inbox.md` as the shape to copy — surface, the Convex
    functions it calls, and the restore/purge behaviour.
 
-8. **Document the editor debug flag.** Appending `?debug=blocks` to a
+5. **Document the editor debug flag.** Appending `?debug=blocks` to a
    dashboard URL turns on block-lifecycle logging in
    `frontend/shared/lib/store/pageActions/blockCrud.ts` and
    `frontend/slices/editor/blocks/nested-block/handlers.ts`. It is

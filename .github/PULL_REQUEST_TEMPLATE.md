@@ -23,7 +23,8 @@
 - [ ] Yes (describe migration path below)
 
 <!-- Schema migrations: link the migration script under
-convex/migrations/. Prop renames: note the deprecation path. -->
+convex/admin/ (e.g. admin/pageBlocksBackfill:run). Prop renames: note
+the deprecation path. -->
 
 ## Docs touched?
 

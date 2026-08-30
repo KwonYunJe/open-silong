@@ -47,7 +47,7 @@ Per-surface contracts. [`api/README.md`](./api/README.md) is the index.
 | `api/import-export.md` | JSON round-trip + CSV + ZIP |
 | `api/notion-shape.md` | Notion-canonical JSON adapter |
 | `api/notion-adapter.md` | `useNotionAdapter()` — the slice ↔ backend seam |
-| `api/mcp.md` | MCP HTTP surface + stdio server |
+| `api/mcp.md` | MCP HTTP + JSON-RPC surface |
 | `api/ai.md` | OpenRouter chat action |
 | `api/integration.md` | how a slice consumes pages/databases |
 
@@ -59,7 +59,6 @@ Per-surface contracts. [`api/README.md`](./api/README.md) is the index.
 | [`export-to-notion.md`](./export-to-notion.md) | moving content between open-silong and Notion |
 | [`notion-mega-slice.md`](./notion-mega-slice.md) | embedding the editor + databases bundle in another React app |
 | [`FORMULA-ENGINE-API.md`](./FORMULA-ENGINE-API.md) | formula engine API + the plan to publish it standalone |
-| [`FEATURES.md`](./FEATURES.md) | feature checklist (parts are stale — see `ROADMAP.md` for the honest status) |
 
 ## Architecture & audits
 
@@ -74,8 +73,10 @@ Per-surface contracts. [`api/README.md`](./api/README.md) is the index.
   `2026-05-09-modularity-audit.md`, `2026-05-10-multiworkspace-roadmap.md`,
   `2026-05-11-portability.md`, `2026-05-12-portability-status.md`,
   `2026-05-12-database-route-refactor.md`).
-- [`rr-sync/`](./rr-sync/) — the two adapter-lift documents still referenced
-  by the live `eslint.config.mjs` rule.
+- [`rr-sync/`](./rr-sync/) — adapter-lift plans. One of the two,
+  `2026-05-21-notion-mega-lift-plan.md`, is cited by the live
+  `eslint.config.mjs:74` rule message. Both are forward-looking plans,
+  not descriptions of shipped code.
 
 ## Source of truth
 

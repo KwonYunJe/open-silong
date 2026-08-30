@@ -16,7 +16,7 @@ Include in your report:
 
 - A brief description of the issue (one paragraph is fine)
 - Steps to reproduce (or a proof-of-concept payload / minimal repro)
-- Affected version (commit SHA + which lane: cloud / self-hosted / demo)
+- Affected version (commit SHA + which lane: cloud / self-hosted)
 - Your impact assessment (what an attacker can do)
 - Whether the issue is currently exploited in the wild (best to your knowledge)
 
@@ -37,7 +37,7 @@ Reporters get credit in the advisory unless they request anonymity.
 
 In scope (we care about these):
 
-- The web app at `silong.rahmanef.com` and any future official deploy.
+- The web app at `silong-os.vercel.app` and any future official deploy.
 - The npm-published / published Docker images of this repo.
 - The source code in this repository.
 

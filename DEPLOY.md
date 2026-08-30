@@ -7,7 +7,7 @@ same Next 16 frontend; what changes is **how Convex is hosted**.
 |---|---|---|---|---|---|
 | 1. Convex Cloud | Managed by Convex | Vercel / Netlify / Cloudflare | Low | Free tier covers <1k MAU | You want it running today |
 | 2. Self-hosted Docker | Your VPS via Docker Compose | Same VPS or split | Medium | $10–20/mo VPS | You want full data ownership |
-| 3. Public demo | (this repo's deploy) | silong.rahmanef.com | Zero | Free | Just want to try the UI |
+| 3. Public demo | (this repo's deploy) | silong-os.vercel.app | Zero | Free | Just want to try the UI |
 
 ---
 
@@ -175,10 +175,10 @@ bun run start                          # next start on port 3000
   (NOT the frontend), path `/api/auth/callback/google`:
   - Convex Cloud: `https://<your-project>.convex.site/api/auth/callback/google`
   - Self-hosted: `https://<CONVEX_SITE_ORIGIN>/api/auth/callback/google`
-    (e.g. `https://api-silong.rahmanef.com/api/auth/callback/google` if
-    your Convex backend serves httpActions on the same host as queries,
-    or `https://site-silong.rahmanef.com/api/auth/callback/google` if
-    you split `site-` from `api-` per the Convex self-host pattern)
+    (e.g. `https://api.example.com/api/auth/callback/google` if your
+    Convex backend serves httpActions on the same host as queries, or
+    `https://site.example.com/api/auth/callback/google` if you split
+    `site-` from `api-` per the Convex self-host pattern)
 - Copy the **Client ID** + **Client secret** that Google generates
 
 **2. Set the env vars on the Convex backend**
@@ -229,9 +229,9 @@ bunx convex export --path /tmp/silong-snapshot.zip
 
 ## Lane 3 — Use the public demo
 
-[silong.rahmanef.com](https://silong.rahmanef.com) is a live deploy
-maintained by the maintainers. Sign up with a magic link and start
-writing.
+[silong-os.vercel.app](https://silong-os.vercel.app) is the reference
+deploy (Vercel + Convex Cloud), maintained by the maintainers. Sign up
+with a magic link and start writing.
 
 ⚠ The demo is for **evaluation**. Data persistence + uptime are
 best-effort. Don't rely on it for anything important.

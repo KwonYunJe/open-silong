@@ -14,6 +14,16 @@ Schema: `convex/schema.ts:pages`. Indexes: `by_user`, `by_user_parent`,
 `by_share_slug`. Search index: `search_content` over `searchText`,
 filtered by `userId`/`trashed`.
 
+> **Storage — page blocks are NOT on the page doc.** Since the
+> 2026-07-14 split, block content lives in the separate `pageBlocks`
+> table. Never read or write `page.blocks` directly — go through
+> `readPageBlocks` / `writePageBlocks` / `newPageBlockFields` in
+> `convex/_shared/pageContent.ts`. `searchText` stays on `pages`.
+> `pages.blocks` is retained-but-emptied as a fallback for rows that
+> predate the split; backfill them with `admin/pageBlocksBackfill:run`.
+> Where a DTO below shows a `blocks` field, that array is assembled by
+> `readPageBlocks` at query time — it is not a stored column.
+
 ---
 
 ## Identity / DTO conventions
@@ -145,7 +155,7 @@ Whitelisted patch — these fields only:
 | `title` | string | capped 200 chars |
 | `icon` | string | unbounded (emoji / lucide / twemoji) |
 | `cover` | string \| null | gradient css or url |
-| `blocks` | Block[] | full replace; rebuilds `searchText` |
+| `blocks` | Block[] | full replace **via `writePageBlocks` into `pageBlocks`**; rebuilds `searchText` on the page doc |
 | `favorite` | boolean | |
 | `parentId` | string \| null | move in tree |
 | `font` / `smallText` / `fullWidth` / `locked` | typography flags | |

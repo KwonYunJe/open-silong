@@ -1,4 +1,4 @@
-# Extending Nosion
+# Extending open-silong
 
 How to add new block types, property types, view types, or accept new
 external shapes (e.g. Notion JSON) — every extension surface is
@@ -104,10 +104,10 @@ Two paths into the system:
 matching Notion's public API JSON: `NotionPage`, `NotionDatabase`,
 `NotionBlock`, every property type. If you're feeding raw Notion JSON
 in, validate / convert via the helpers there first — they normalise
-into Nosion's internal `Block` / `Database` / `Property` shapes.
+into open-silong's internal `Block` / `Database` / `Property` shapes.
 
-**Mapping table** (Notion → Nosion):
-| Notion block type | Nosion `BlockType` |
+**Mapping table** (Notion → open-silong):
+| Notion block type | open-silong `BlockType` |
 |---|---|
 | `paragraph` | `paragraph` |
 | `heading_1` / `2` / `3` | `h1` / `h2` / `h3` |
@@ -133,7 +133,7 @@ into Nosion's internal `Block` / `Database` / `Property` shapes.
 | `table_of_contents` | `toc` |
 | `button` | `button` |
 
-| Notion property type | Nosion `PropertyType` |
+| Notion property type | open-silong `PropertyType` |
 |---|---|
 | `title` | `text` |
 | `rich_text` | `text` |
@@ -157,7 +157,7 @@ into Nosion's internal `Block` / `Database` / `Property` shapes.
 | `button` | `button` |
 | `verification` | `verification` |
 
-| Notion view type | Nosion `DbView` |
+| Notion view type | open-silong `DbView` |
 |---|---|
 | `table` | `table` |
 | `board` | `board` |
@@ -167,7 +167,7 @@ into Nosion's internal `Block` / `Database` / `Property` shapes.
 | `timeline` | `timeline` |
 
 Anything Notion-side not in the table above either has a native equivalent
-already (charts, dashboards, feeds, maps, forms — Nosion-specific) or
+already (charts, dashboards, feeds, maps, forms — open-silong-specific) or
 falls back to `paragraph` / `text` with original content preserved.
 
 ---

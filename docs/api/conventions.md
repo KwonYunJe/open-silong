@@ -17,9 +17,8 @@ modules every consumer should import instead of defining their own.
 
 | module | what it gives you |
 |---|---|
-| `frontend/slices/databases/lib/propertyTypeMeta.ts` | `PROPERTY_TYPE_META`, `PROPERTY_TYPE_LABELS`, `PROPERTY_TYPE_ICONS`, `PROPERTY_TYPES`, `defaultPropName` |
+| `frontend/shared/lib/databases/propertyTypeMeta.ts` (the SSOT — `slices/databases/lib/propertyTypeMeta.ts` is a deprecated re-export shim) | `PROPERTY_TYPE_META`, `PROPERTY_TYPE_LABELS`, `PROPERTY_TYPE_ICONS`, `PROPERTY_TYPES`, `defaultPropName` |
 | `frontend/slices/editor/blocks/placeholders.ts` | `TOP_LEVEL_PLACEHOLDERS`, `NESTED_PLACEHOLDERS` |
-| `frontend/slices/databases/components/PropertyTypeIcon.tsx` | reusable `<PropertyTypeIcon type=>` element |
 
 Adding a new property type? Add ONE entry in `PROPERTY_TYPE_META` and
 every consumer (label, icon, default name, slash-group, change-type
@@ -37,8 +36,10 @@ in a component file.
 |---|---|
 | `auth.ts` | `requireAuth`, `requireOwned`, `requireAdmin*`, `requireSuperAdmin`, `actorEmail`, `ensureUserProfile` |
 | `rateLimit.ts` | `rateLimit(ctx, userId, cfg)` — fixed-window counter |
-| `limits.ts` | `RATE_LIMITS`, `CHAR_CAPS`, `COUNT_CAPS`, `RETENTION`, `FILE_SIZES`, `SHARE_SLUG_RE` constants |
+| `limits.ts` | `RATE_LIMITS`, `CHAR_CAPS`, `COUNT_CAPS`, `AI_QUOTA`, `FILE_SIZES`, `SHARE_SLUG_RE` constants |
 | `pageTree.ts` | `collectDescendants(pages, rootId)` — page-tree walk, cycle-safe |
+| `pageContent.ts` | `readPageBlocks`, `writePageBlocks`, `newPageBlockFields` — **mandatory**; page blocks live in `pageBlocks`, never on the page doc |
+| `workspace.ts` | `requireWorkspaceMember`, `getActiveWorkspaceMutation`, `readActiveWorkspace`, `rowInActiveWorkspace` |
 | `blocks.ts` | `regenBlockIdsDeep`, `regenAllBlockIds`, `walkBlocks`, `findDuplicateBlockId`, `topLevelDatabaseIds` |
 
 When you find yourself writing a helper that operates on `pages` or
@@ -304,11 +305,12 @@ as you remember to add modules.
 
 - Pure helpers (block tree, multi-move, formula engine, inline-md,
   parse helpers, error sanitizer, format helpers): vitest, co-located
-  `*.test.ts` next to the file. 130 tests today.
-- Convex functions: no server-side test harness. Rely on:
-  1. Validator catching arg-shape errors at call time
-  2. `requireOwned` catching auth misses
-  3. Manual smoke after `npm run build`
+  `*.test.ts` next to the file. **87 test files / 1175 tests today.**
+- Convex functions: `convex-test` harness — see
+  `convex/testHarness.test.ts` and the 28 suites under `convex/_test/`
+  (including the authz suites). Run with `bun run test`, never
+  `bun test`. **Caveat:** these files are currently excluded from both
+  tsconfig projects, so `bun run typecheck` does not type-check them.
 - UI / E2E: not yet.
 
 When in doubt, add a unit test for the pure helper that the mutation

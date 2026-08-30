@@ -294,12 +294,6 @@ export function captureError(scope: string, err: unknown, extra?: Record<string,
   }
 }
 
-/** Test seam — resets the flood guard between cases. */
-export function __resetErrorCapture(): void {
-  seen.clear();
-  emitted = 0;
-}
-
 /** Convenience: sanitize + log in one call. Returns the SanitizedError so
  *  callers can pass `.message` straight into a toast.
  *

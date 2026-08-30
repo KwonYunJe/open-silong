@@ -18,14 +18,14 @@ internals to USE this contract), see the lift plan at
 ```tsx
 import {
   NotionAppProvider,
-  useLocalStorageNotionAdapter,
+  useConvexNotionAdapter,
   NotionSidebar,
   NotionPage,
 } from "@/slices/notion";
 
 export default function App() {
   // No backend → use localStorage default
-  const adapter = useLocalStorageNotionAdapter();
+  const adapter = useConvexNotionAdapter();
   return (
     <NotionAppProvider adapter={adapter}>
       <div className="grid grid-cols-[260px_1fr]">
@@ -67,7 +67,7 @@ image, etc.) is wired internally.
        ┌─────────────────────────────────────────────────────┐
        │  Your adapter implementation                         │
        │  ─ useConvexNotionAdapter()    (production)          │
-       │  ─ useLocalStorageNotionAdapter() (demo / portfolio) │
+       │  ─ (a localStorage adapter is NOT shipped — see below) │
        │  ─ useS3NotionAdapter()        (hypothetical custom) │
        └─────────────────────────────────────────────────────┘
 ```
@@ -185,11 +185,14 @@ Use this when:
 - You want realtime updates without writing your own pub/sub
 - You're deploying open-silong as-shipped
 
-### 2. `useLocalStorageNotionAdapter()` — demo
+### 2. A localStorage adapter — NOT SHIPPED
 
 Stores everything in `localStorage` under namespaced keys. No
 backend, no auth, single hard-coded workspace. Lives at
-`frontend/slices/notion/adapter/localStorageAdapter.ts`.
+`frontend/slices/notion/adapter/localStorageAdapter.ts` — **this file does
+not exist**. Only `adapter/convexAdapter/` ships today. Write your own
+against the `NotionAdapter` interface in `adapter/types.ts` if you need a
+backend-free demo mode.
 
 Use this when:
 - You're shipping a portfolio / template / demo deploy

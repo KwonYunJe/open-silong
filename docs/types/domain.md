@@ -12,12 +12,15 @@ Import from `@/shared/types/domain` in any frontend module.
 ## `Block` — the unit of page content
 
 ```ts
-type BlockType =
-  | "paragraph" | "h1" | "h2" | "h3"
+type BlockType =                                    // 30 members
+  | "paragraph" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6"
   | "todo" | "bullet" | "numbered" | "quote" | "callout"
   | "code" | "divider" | "page" | "database"
-  | "columns2" | "columns3" | "toggle"
-  | "image" | "equation" | "table" | "embed" | "button";
+  | "columns2" | "columns3" | "columns4" | "columns5" | "toggle"
+  | "image" | "equation" | "table" | "embed" | "button"
+  | "synced"   // source (owns children) or ref (mirrors source)
+  | "toc"      // auto-derived from sibling headings
+  | "audio" | "video";
 
 interface Block {
   id: string;          // 8-char base36, unique-per-page
@@ -36,7 +39,7 @@ interface Block {
   pageId?: string;
   databaseId?: string;
 
-  // columns2 / columns3
+  // columns2 / columns3 / columns4 / columns5
   columns?: Block[][];
   colWidths?: number[];
 
@@ -53,6 +56,14 @@ interface Block {
   // table
   tableRows?: string[][];
   tableHeader?: boolean;
+
+  // database — per-block view selection / overrides
+  activeViewId?: string;
+  viewOverrides?: Record<string, unknown>;
+
+  // layout grouping + callout variant
+  layoutGroup?: string;
+  admonition?: string;
 }
 ```
 

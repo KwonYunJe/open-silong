@@ -1,12 +1,12 @@
 # Export to Notion — Round-Trip Guide
 
-Nosion ships **two export tracks** so you can move content between
-Nosion and Notion without losing the round-trip with itself:
+open-silong ships **two export tracks** so you can move content between
+open-silong and Notion without losing the round-trip with itself:
 
 | Track | Format | Use when |
 |---|---|---|
 | **Notion-compatible** | `.md` · `.html` · `.txt` · `.pdf` · `.csv` · `.zip` | You want to import into Notion. |
-| **Nosion-native** | `.json` (per-page or full workspace) | You want a lossless backup or to re-import into Nosion. |
+| **open-silong-native** | `.json` (per-page or full workspace) | You want a lossless backup or to re-import into open-silong. |
 
 Notion's importer accepts: Plaintext, Markdown, Word, CSV, HTML, PDF,
 ZIP — see <https://www.notion.com/help/import-data-into-notion>.
@@ -23,7 +23,7 @@ Open any page → **⋯ kabab menu → Data**. Sub-menu items:
 | **HTML (.html)** | Standalone HTML with inline styles. Best fidelity for Notion paste / import. |
 | **Plain text (.txt)** | Title + readable text, no decoration. |
 | **PDF (.pdf)** | Browser print → "Save as PDF". Uses the same print stylesheet that hides chrome. |
-| **JSON (.json)** | Opens the workspace-io dialog scoped to this page. Nosion-only. |
+| **JSON (.json)** | Opens the workspace-io dialog scoped to this page. open-silong-only. |
 
 ### Copy page contents (multi-format)
 
@@ -49,7 +49,7 @@ nosion-export-YYYY-MM-DD.zip
 │  └─ <ChildPageTitle>.md
 ├─ databases/
 │  └─ <DbName>.csv
-└─ _manifest.json     ← Nosion-only, Notion ignores
+└─ _manifest.json     ← open-silong-only, Notion ignores
 ```
 
 Each `.md` is parsed by Notion as a page; the folder named after the
@@ -59,7 +59,7 @@ property names, rows are pages.
 
 ### What survives the round-trip
 
-| Nosion concept | Notion after import |
+| open-silong concept | Notion after import |
 |---|---|
 | Page title + icon | ✅ title; icon as text emoji |
 | Headings / paragraphs / lists / quotes / code / toggles | ✅ |
@@ -87,9 +87,9 @@ property names, rows are pages.
 
 ---
 
-## Nosion-native JSON
+## open-silong-native JSON
 
-Use this for backups / migration between Nosion instances. Reachable
+Use this for backups / migration between open-silong instances. Reachable
 from:
 
 - Sidebar → **Import / Export** → Export tab → format `JSON`

@@ -1,5 +1,9 @@
 # Adapter site map — Phase 0 deliverable
 
+> **Status check, 2026-08-30.** Still a Phase 0 checklist; the lift has
+> not landed. `pnpm` commands below predate the 2026-08-10 bun migration —
+> use `bun run typecheck` in this repo.
+
 Maps every direct Convex import + every `@/shared/lib/store` import
 inside `frontend/slices/editor/` + `frontend/slices/databases/` to
 its target `NotionAdapter` method.

@@ -244,7 +244,3 @@ export const PHOSPHOR_ICONS: Readonly<Record<string, Icon>> = {
 export type PhosphorIconName = keyof typeof PHOSPHOR_ICONS;
 
 export { FileText as FallbackPhosphorIcon };
-
-export function resolvePhosphorIcon(name: string): Icon | null {
-  return PHOSPHOR_ICONS[name] ?? null;
-}
