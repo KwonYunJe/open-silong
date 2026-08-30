@@ -4,7 +4,7 @@
  *  Uses shadcn Dialog (already in deps). Dark-mode by default via
  *  theme tokens (bg-background / text-foreground). */
 
-import { useState } from "react";
+import { Suspense, lazy, useState } from "react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/shared/ui/dialog";
@@ -12,7 +12,13 @@ import { cn } from "@/shared/lib/utils";
 import { GalleryTab } from "./cover-picker/GalleryTab";
 import { UploadTab } from "./cover-picker/UploadTab";
 import { LinkTab } from "./cover-picker/LinkTab";
-import { UnsplashTab } from "./cover-picker/UnsplashTab";
+/** The Unsplash tab carries a curated photo catalog (~90 entries with
+ *  attribution) that no other tab needs, and it is not the default tab.
+ *  Static-importing it put that catalog in the dashboard shell chunk, so
+ *  every dashboard route paid for a picker most sessions never open. */
+const UnsplashTab = lazy(() =>
+  import("./cover-picker/UnsplashTab").then((m) => ({ default: m.UnsplashTab })),
+);
 import type { CoverData } from "@/shared/types/domain";
 
 type Tab = "gallery" | "upload" | "link" | "unsplash";
@@ -65,7 +71,11 @@ export function CoverPicker({ open, onOpenChange, onPick }: Props) {
           {tab === "gallery" && <GalleryTab onPick={handlePick} />}
           {tab === "upload" && <UploadTab onPick={handlePick} />}
           {tab === "link" && <LinkTab onPick={handlePick} />}
-          {tab === "unsplash" && <UnsplashTab onPick={handlePick} />}
+          {tab === "unsplash" && (
+            <Suspense fallback={<div className="h-40 animate-pulse rounded-md bg-muted" />}>
+              <UnsplashTab onPick={handlePick} />
+            </Suspense>
+          )}
         </div>
       </DialogContent>
     </Dialog>

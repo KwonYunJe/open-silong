@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { ShieldAlert, Sparkles, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/shared/ui/button";
-import { useAdminRole } from "@/slices/admin-panel";
+import { useAdminRole } from "@/shared/hooks/useAdminRole";
 import { reportError } from "@/shared/lib/error";
 
 // Admin-only bundle — non-admins never download it. The auth gate

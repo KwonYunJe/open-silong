@@ -46,6 +46,13 @@ reference deploy now.
   `convex/features/<slug>/` (schema + queries + mutations).
 - **Barrel-only cross-slice imports.** `@/features/<slug>` ✅ —
   `@/features/foo/lib/internal-thing` ❌. Barrels = contract.
+- **A barrel must not value-re-export a lazy-loaded module.** `React.lazy`
+  only splits a module nothing else pulls statically; one
+  `export { HeavyThing } from "./HeavyThing"` in `index.ts` puts it back in
+  the chunk of every file that imports the barrel for an unrelated hook.
+  Use `export type { … }` (erased) or a second entry file beside the barrel
+  (`icon-picker/catalog.ts` is the worked example). Enforced by
+  `lazy-barrel-leak`.
 - **Props-driven portability.** No hardcoded URLs / env names / role enums
   inside slice code — pass via props or env-configured allowlist.
 

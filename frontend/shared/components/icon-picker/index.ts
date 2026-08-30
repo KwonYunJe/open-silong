@@ -11,7 +11,7 @@
 
 export { DynamicIcon, RawIcon, DEFAULT_ICON_SIZE } from "./components/DynamicIcon";
 export { ICON_FILL_RATIO, renderSizeFor, type IconRenderKind } from "./lib/icon-render-config";
-export { IconPickerInline, IconPickerPopover } from "./components/IconPicker";
+export { IconPickerPopover } from "./components/IconPicker";
 export { PickerSkeleton } from "./components/PickerSkeleton";
 
 export {
@@ -26,15 +26,12 @@ export {
   type IconValue,
 } from "./lib/parse";
 
-// Catalog (groups + flat list) — exported so consumers can render their
-// own picker variants (e.g. a sidebar search) without rebuilding the data.
-export { EMOJI_GROUPS, ALL_EMOJIS } from "./lib/emoji-catalog";
-export { LUCIDE_GROUPS, ALL_LUCIDE } from "./lib/lucide-catalog";
-export { LUCIDE_ICONS, resolveLucideIcon, type LucideIconName } from "./lib/lucide-icons";
-export { PHOSPHOR_GROUPS, ALL_PHOSPHOR } from "./lib/phosphor-catalog";
-// NOTE: the heavy PHOSPHOR_ICONS component map is intentionally NOT re-exported
-// here — it is code-split via DynamicIcon's React.lazy(./components/LazyPhosphor)
-// so it stays out of the eager shell chunk. Import it only from that lazy path.
+// Catalog data (emoji list, icon-name groups, the lucide component map) and
+// the bare inline picker live in `./catalog` — a SECOND entry point, not this
+// barrel. A re-export here is not free: anything that imports `DynamicIcon`
+// from this barrel gets every module the barrel names in its chunk, which put
+// ~615 emoji and the icon-name lists in the dashboard shell for routes that
+// never open a picker.
 
 // Theming + style preference.
 export { ICON_COLORS, type IconColor } from "./lib/colors";

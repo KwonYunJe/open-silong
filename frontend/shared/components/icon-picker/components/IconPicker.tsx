@@ -204,7 +204,9 @@ export function IconPickerPopover({
   );
 }
 
-/** Re-export the inline picker (eager) for consumers that already render
- *  it inside an existing surface (e.g. a Dialog) and don't want the
- *  popover/lazy wrapper. */
-export { IconPickerInline } from "./IconPickerInline";
+// IconPickerInline is deliberately NOT re-exported here. This module lazy-loads
+// it above; a sibling `export { IconPickerInline }` put it back in the static
+// graph, so every importer of IconPickerPopover — the sidebar dialogs included —
+// paid for the ~615-emoji catalog plus the lucide/phosphor name lists up front.
+// Consumers that want the bare inline picker import it from
+// `@/shared/components/icon-picker/catalog`.

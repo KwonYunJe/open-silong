@@ -10,7 +10,7 @@ import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 import { useStore } from "@/shared/lib/store";
 import { ROUTES } from "@/shared/lib/routes";
-import { useAdminRole } from "@/slices/admin-panel";
+import { useAdminRole } from "@/shared/hooks/useAdminRole";
 import { TemplateGalleryDialog } from "@/slices/templates";
 import { AIAgentConsole, type ActiveContext } from "@/slices/ai-agent";
 import { MoreDrawer } from "./MoreDrawer";

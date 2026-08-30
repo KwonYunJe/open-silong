@@ -480,6 +480,66 @@ const RULES = [
     },
   },
   {
+    id: "lazy-barrel-leak",
+    title: "Barrel value-re-exports a module that is lazy-loaded elsewhere",
+    fix: "Drop the value re-export (a `export type { … }` is free), or move it to a second entry point next to the barrel. React.lazy only splits a module that nothing else pulls statically — a barrel naming it puts it back in every importer's chunk, so the lazy boundary silently stops working.",
+    run(ctx) {
+      // This is the failure mode that put the whole admin panel, the ~615-emoji
+      // icon catalog and the export/import dialog in the dashboard shell: each
+      // was correctly lazy-loaded at its use site AND named by a barrel that
+      // unrelated code imported for a hook. ~56 KB gzipped, invisible in review.
+      const alias = (spec) =>
+        spec.startsWith("@/") ? "frontend/" + spec.slice(2)
+        : spec.startsWith("@convex/") ? "convex/" + spec.slice(8)
+        : null;
+
+      // Resolve a specifier to the set of repo-relative paths it could name.
+      const resolve = (fromFile, spec) => {
+        let base = alias(spec);
+        if (base === null) {
+          if (!spec.startsWith(".")) return [];         // bare package
+          const dir = fromFile.split("/").slice(0, -1);
+          for (const part of spec.split("/")) {
+            if (part === "." || part === "") continue;
+            if (part === "..") dir.pop();
+            else dir.push(part);
+          }
+          base = dir.join("/");
+        }
+        return [base, `${base}.ts`, `${base}.tsx`, `${base}/index.ts`, `${base}/index.tsx`];
+      };
+
+      const known = new Set(ctx.files);
+      const pick = (cands) => cands.find((c) => known.has(c)) ?? null;
+
+      // 1. Everything that is lazy-loaded somewhere.
+      const lazyTargets = new Set();
+      for (const file of ctx.files) {
+        if (!CODE_EXT.test(file) || !under(file, "frontend/", "app/")) continue;
+        const { src } = ctx.read(file);
+        for (const m of src.matchAll(/\b(?:lazy|dynamic)\(\s*\(\)\s*=>\s*import\(\s*["'`]([^"'`]+)["'`]/g)) {
+          const hit = pick(resolve(file, m[1]));
+          if (hit) lazyTargets.add(hit);
+        }
+      }
+      if (lazyTargets.size === 0) return;
+
+      // 2. Barrels that name one of them as a VALUE.
+      for (const file of ctx.files) {
+        if (!/\/index\.tsx?$/.test(file) || !under(file, "frontend/")) continue;
+        if (lazyTargets.has(file)) continue;  // the barrel IS the lazy boundary
+        const { src } = ctx.read(file);
+        for (const m of src.matchAll(/export\s+(type\s+)?\{([^}]*)\}\s*from\s*["'`]([^"'`]+)["'`]/g)) {
+          if (m[1]) continue;                                   // `export type { … }` — erased
+          const names = m[2].split(",").map((n) => n.trim()).filter(Boolean);
+          if (names.length && names.every((n) => /^type\s/.test(n))) continue; // all inline-type
+          const hit = pick(resolve(file, m[3]));
+          if (hit && lazyTargets.has(hit)) ctx.report(file, m.index, { detail: hit });
+        }
+      }
+    },
+  },
+  {
     id: "convex-api-ref",
     title: "Reference to a convex function that does not exist in the generated api",
     fix: "Fix the path, or regenerate `convex/_generated/api.d.ts`. Both reference forms count: `api.a.b.c` and `api[\"a/b\"].c`.",

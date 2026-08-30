@@ -12,6 +12,53 @@ notes under `docs/audit/`.
 
 ### Changed
 
+- **The dashboard ships ~56 KB less JavaScript** (gzipped, per route). Every
+  measurement so far had targeted the anonymous public routes; the dashboard —
+  where users actually spend their time — was carrying three surfaces it never
+  rendered.
+
+  | route | before | after |
+  |---|---|---|
+  | `/dashboard` | 314.7 KB | **258.9 KB** |
+  | `/dashboard/p/[id]` | 376.3 KB | **327.0 KB** |
+  | `/dashboard/db/[id]` | 370.1 KB | **317.0 KB** |
+  | `/dashboard/settings` | 330.0 KB | **281.7 KB** |
+  | `/setup` | 213.4 KB | **99.8 KB** |
+  | `/forms/[slug]` | 173.2 KB | **160.1 KB** |
+
+  (Client-reference chunks + entry CSS per route, gzipped, from the production
+  build manifests. Excludes the framework runtime, which is shared and
+  unchanged. Public routes are unchanged — they never imported any of this.)
+
+  One root cause behind all of it: **a barrel that value-re-exports a module
+  someone else lazy-loads cancels the lazy boundary.** `React.lazy` only splits
+  a module nothing pulls statically, and a barrel names its modules whether or
+  not you use the binding. Each of these was individually "already lazy":
+  - `useAdminRole` — a 40-line Convex hook — was exported from
+    `@/slices/admin-panel` alongside `AdminPanel`. The sidebar, mobile nav and
+    `/setup` imported the hook, so the **entire admin panel** rode along into
+    the dashboard shell (and made up more than half of `/setup`). Hook moved to
+    `@/shared/hooks/useAdminRole`.
+  - `IconPicker.tsx` lazy-loaded `IconPickerInline` and then re-exported it
+    eagerly on the next line, so anything using `IconPickerPopover` still paid
+    for the ~615-emoji catalog and the lucide/phosphor name lists. The catalogs
+    and the inline picker now live in a second entry,
+    `@/shared/components/icon-picker/catalog`.
+  - `WorkspaceIOProvider` lazy-loads its dialog; the slice barrel re-exported
+    the dialog too, so the four files that import `useWorkspaceIO` — the whole
+    shell — pulled it back in. Now a type-only export.
+  - `CoverPicker` static-imported the Unsplash tab (a ~90-photo curated catalog
+    with attribution) even though it is not the default tab. Now lazy.
+  - `CreatePageDialog` imported the full emoji catalog to pick **one** random
+    starter icon. Replaced with a 24-emoji list.
+
+  `check-rules` gained **`lazy-barrel-leak`**, which resolves every
+  `lazy(() => import(…))` / `dynamic(() => import(…))` target and fails on any
+  `index.ts` that value-re-exports one. Verified to fire by re-introducing the
+  `workspace-io` export. This class of regression is invisible in review — the
+  lazy call site still looks correct — so it needed a machine check, per
+  CLAUDE.md's own rule about rules.
+
 - **Public routes are ~9% lighter.** `DynamicIcon` statically imported the
   icon-picker's 255-component lucide map, so every page that rendered a
   single icon paid for all 255 — including `/share/[id]` and `/site/[ws]`,

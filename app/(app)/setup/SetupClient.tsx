@@ -7,7 +7,7 @@ import { useMutation, useQuery } from "convex/react";
 import { CheckCircle2, Circle, Crown, Database, LogIn, Rocket, UserPlus } from "lucide-react";
 import { api } from "@convex/_generated/api";
 import { Button } from "@/shared/ui/button";
-import { useAdminRole } from "@/slices/admin-panel";
+import { useAdminRole } from "@/shared/hooks/useAdminRole";
 
 /** First-run onboarding wizard — same flow as the rest of the template
  *  fleet: the first visitor creates an account, claims ownership

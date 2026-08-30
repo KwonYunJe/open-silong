@@ -23,7 +23,7 @@ import {
 import { Button } from "@/shared/ui/button";
 import { useStore } from "@/shared/lib/store";
 import type { ActiveContext } from "@/slices/ai-agent";
-import { useAdminRole } from "@/slices/admin-panel";
+import { useAdminRole } from "@/shared/hooks/useAdminRole";
 import { TemplateGalleryDialog } from "@/slices/templates";
 import { AIAgentConsole } from "@/slices/ai-agent";
 import { InboxBadge } from "@/slices/inbox";

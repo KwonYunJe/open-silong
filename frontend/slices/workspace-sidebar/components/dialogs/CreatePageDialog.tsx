@@ -7,9 +7,21 @@ import {
 } from "@/shared/ui/dialog";
 import { Input } from "@/shared/ui/input";
 import { Button } from "@/shared/ui/button";
-import { ALL_EMOJIS, DynamicIcon, IconPickerPopover, DEFAULT_PAGE_ICON } from "@/shared/components/icon-picker";
+import { DynamicIcon, IconPickerPopover, DEFAULT_PAGE_ICON } from "@/shared/components/icon-picker";
 
 const DEFAULT_ICON = DEFAULT_PAGE_ICON;
+
+/** Seed icons for a new page. This used to draw from the picker's full
+ *  ~615-emoji catalog, which meant one random default dragged that catalog
+ *  into the dashboard shell chunk for every route. The picker itself already
+ *  loads the catalog lazily when opened; a starting suggestion does not need
+ *  it. */
+const STARTER_ICONS = [
+  "\u{1F4C4}", "\u{1F4DD}", "\u{1F4D2}", "\u{1F4CB}", "\u{1F5C2}\uFE0F", "\u{1F4C1}",
+  "\u{1F4A1}", "\u2728", "\u{1F680}", "\u{1F3AF}", "\u{1F9ED}", "\u{1F5FA}\uFE0F",
+  "\u{1F331}", "\u{1F333}", "\u{1F304}", "\u{1F30A}", "\u{1F525}", "\u2B50",
+  "\u{1F9E9}", "\u{1F527}", "\u{1F4CA}", "\u{1F4C8}", "\u{1F4DA}", "\u2615",
+] as const;
 
 interface Props {
   open: boolean;
@@ -31,7 +43,7 @@ export function CreatePageDialog({ open, onOpenChange, parentId, onSubmit }: Pro
   useEffect(() => {
     if (open) {
       setTitle("");
-      setIcon(ALL_EMOJIS[Math.floor(Math.random() * ALL_EMOJIS.length)] ?? DEFAULT_ICON);
+      setIcon(STARTER_ICONS[Math.floor(Math.random() * STARTER_ICONS.length)] ?? DEFAULT_ICON);
     }
   }, [open]);
 

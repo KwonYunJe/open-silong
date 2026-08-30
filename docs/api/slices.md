@@ -11,7 +11,7 @@ table below is the index.
 
 | Slice | Public API surface | Backend mirror | Deeper doc |
 |---|---|---|---|
-| [admin-panel](#admin-panel) | `<AdminPanel/>`, `useAdminRole()` | `convex/admin/` | [admin.md](./admin.md) |
+| [admin-panel](#admin-panel) | `<AdminPanel/>` (`useAdminRole()` moved to `@/shared/hooks/useAdminRole`) | `convex/admin/` | [admin.md](./admin.md) |
 | [ai-agent](#ai-agent) | `<AIAgentConsole/>`, `useAIChat()`, `SLASH_COMMANDS` | `convex/ai/` | [ai.md](./ai.md) |
 | [ai-keys](#ai-keys) | `<AISection/>`, `useAIKeys()` | `convex/aiKeys/` | [ai.md](./ai.md) |
 | [analytics](#analytics) | `usePageAnalytics()`, `<AnalyticsPopover/>` | `convex/features/traffic/` + `convex/pageViews.ts` | — |
@@ -48,7 +48,7 @@ table below is the index.
 | [theme-presets](#theme-presets) | `<TweakcnSwitcher/>`, `<WorkspaceThemePicker/>`, `<ThemeColorSync/>`, `TWEAKCN_PRESET_GROUPS` | n/a (localStorage) | — |
 | [trash](#trash) | `<TrashView/>` | `convex/pages.ts` (soft-delete) | — |
 | [wiki](#wiki) | `useWiki()`, `<WikiToggleAction/>`, `<WikiBadge/>` | `convex/features/wiki/` | — |
-| [workspace-io](#workspace-io) | `<WorkspaceIODialog/>`, `WorkspaceIOProvider`, `buildSelectionExport()` | `convex/import/` | [import-export.md](./import-export.md) |
+| [workspace-io](#workspace-io) | `WorkspaceIOProvider`, `useWorkspaceIO()`, `buildSelectionExport()` (the dialog is lazy-only, not a barrel export) | `convex/import/` | [import-export.md](./import-export.md) |
 | [workspace-members](#workspace-members) | `<MembersDialog/>` | `convex/workspaces.ts` + `convex/invites.ts` | [workspaces.md](./workspaces.md) |
 | [workspace-sidebar](#workspace-sidebar) | `<AppSidebar/>`, `<PagesPanel/>`, `useSidebarDnd()` | n/a (consumes pages/databases queries) | — |
 
@@ -57,7 +57,9 @@ table below is the index.
 ## admin-panel
 
 Admin-only routes: overview analytics, users table, audit log,
-templates manager, feedback inbox. `useAdminRole()` gates rendering;
+templates manager, feedback inbox. `useAdminRole()` (now in
+`@/shared/hooks/useAdminRole`, so importing it does not drag the panel)
+gates rendering;
 real authz lives inside Convex (`requireAdmin` / `requireAdminQuery`,
 which accept both the `admin` and `superadmin` roles).
 Mounted at `/dashboard/admin`. Detailed UX: [`admin.md`](./admin.md).
