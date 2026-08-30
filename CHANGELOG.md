@@ -48,6 +48,39 @@ notes under `docs/audit/`.
 
 ### Added
 
+- **Eight MCP tools for comments, version history and workspace scope**
+  (41 → 49). These were the three surfaces an agent could see the *effects*
+  of but never touch: it read pages whose review notes lived in comments it
+  could not fetch, overwrote page bodies with no way to take or restore a
+  checkpoint, and wrote into "the workspace" without being able to name which
+  one. Added `comments_list` / `comments_create` / `comments_resolve` /
+  `comments_delete`, `snapshots_list` / `snapshots_create` /
+  `snapshots_restore`, and `workspaces_list`.
+  - **`pages_replace_blocks` now snapshots before it overwrites.** It was the
+    most destructive non-delete call in the surface — the previous body was
+    simply gone — and this is what turns `snapshots_restore` into a real undo
+    rather than a suggestion. Skipped while the page is still blank, so
+    creating a page doesn't spend a retention slot; a freshly created page
+    already carries one empty paragraph, so the check is "has content", not
+    "has blocks". The REST `nosion-update-page` route inherits it.
+  - `snapshots_restore` checkpoints the pre-restore state too, so restoring
+    the wrong version is itself undoable — the alternative is an "undo" that
+    destroys the thing you might have wanted back.
+  - Retention is the existing 50-per-page prune, shared with
+    `snapshots.create` rather than reimplemented; two copies of a prune drift
+    and quietly stop bounding the table.
+  - `comments_resolve` takes `resolved: false` to reopen, so one tool covers
+    both directions instead of a near-duplicate pair. Page owners can
+    moderate comments they did not author, matching the UI's rule.
+  - Switching the active workspace is deliberately **not** exposed: a tool
+    call that moves the surface under a human who is looking at it is a
+    surprise, not a feature. `workspaces_list` marks the active one so an
+    agent can say plainly where it is writing.
+  - Files/uploads stay off the surface — binary over JSON-RPC means base64 in
+    a tool argument, and the browser upload path remains the right one.
+  - `convex/_test/mcp-collab.test.ts` — 8 tests, including cross-user refusal
+    on every new read and write.
+
 - **Six MCP tools completing the CRUD lifecycle.** The surface could `trash` a
   page but not restore it, permanently delete it, or even list what was
   trashed — half a delete lifecycle, which invites the destructive call while

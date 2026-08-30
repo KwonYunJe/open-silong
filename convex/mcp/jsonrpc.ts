@@ -464,6 +464,76 @@ const TOOLS: ToolDef[] = [
     }, ["source", "nodes"]),
     annotations: { destructiveHint: false, idempotentHint: true },
   },
+
+  // ── comments ──
+  {
+    name: "comments_list",
+    description: "Read the discussion on a page. Returns open comments oldest-first; pass includeResolved to see settled ones too. Call this before summarising or editing a page the user has been reviewing — the feedback lives here, not in the blocks.",
+    inputSchema: obj({
+      pageId: { type: "string" },
+      includeResolved: { type: "boolean", description: "Default false — open comments only." },
+    }, ["pageId"]),
+    annotations: { readOnlyHint: true },
+  },
+  {
+    name: "comments_create",
+    description: "Leave a comment on a page, or on one block of it. Use for review notes, questions and TODOs that should NOT alter the page body. Prefer this over editing blocks when the user asks you to 'note', 'flag' or 'ask about' something.",
+    inputSchema: obj({
+      pageId: { type: "string" },
+      text: { type: "string", description: "Comment body, max 5000 chars." },
+      blockId: { type: "string", description: "Optional block id to anchor to. Omit for a page-level comment." },
+    }, ["pageId", "text"]),
+    annotations: { destructiveHint: false, idempotentHint: false },
+  },
+  {
+    name: "comments_resolve",
+    description: "Mark a comment resolved, or reopen it with resolved:false. Resolved comments drop out of comments_list unless includeResolved is set.",
+    inputSchema: obj({
+      commentId: { type: "string" },
+      resolved: { type: "boolean", description: "true to resolve, false to reopen." },
+    }, ["commentId", "resolved"]),
+    annotations: { destructiveHint: false, idempotentHint: true },
+  },
+  {
+    name: "comments_delete",
+    description: "Delete a comment outright. Prefer comments_resolve — resolving keeps the record, deleting does not.",
+    inputSchema: obj({ commentId: { type: "string" } }, ["commentId"]),
+    annotations: { destructiveHint: true, idempotentHint: true },
+  },
+
+  // ── version history ──
+  {
+    name: "snapshots_list",
+    description: "Version history for a page, newest first. Use when the user asks what changed, wants an earlier version back, or says an edit went wrong.",
+    inputSchema: obj({
+      pageId: { type: "string" },
+      limit: { type: "number", description: "Default 20, max 50." },
+    }, ["pageId"]),
+    annotations: { readOnlyHint: true },
+  },
+  {
+    name: "snapshots_create",
+    description: "Save the page's current state as a named restore point. pages_replace_blocks already snapshots automatically, so reach for this before a MULTI-STEP rewrite you want to roll back as one unit.",
+    inputSchema: obj({
+      pageId: { type: "string" },
+      label: { type: "string", description: "Short name for the restore point, e.g. 'before Q3 rewrite'." },
+    }, ["pageId"]),
+    annotations: { destructiveHint: false, idempotentHint: false },
+  },
+  {
+    name: "snapshots_restore",
+    description: "Roll a page back to a snapshot, replacing its title, icon, cover and blocks. The pre-restore state is snapshotted first, so restoring the wrong version is itself undoable. Get ids from snapshots_list.",
+    inputSchema: obj({ snapshotId: { type: "string" } }, ["snapshotId"]),
+    annotations: { destructiveHint: true, idempotentHint: true },
+  },
+
+  // ── workspaces ──
+  {
+    name: "workspaces_list",
+    description: "List the workspaces this user belongs to and show which one is active. New pages and databases land in the ACTIVE workspace — call this when the user names a workspace, so you can say plainly whether you are writing into the one they mean. Switching the active workspace is deliberately not exposed: a person may be looking at it.",
+    inputSchema: obj({}, []),
+    annotations: { readOnlyHint: true },
+  },
 ];
 
 // ─────────────────────── tool dispatch ───────────────────────
@@ -1044,6 +1114,99 @@ async function dispatchTool(
         return textResult(r);
       } catch (e) {
         return errResult(e instanceof Error ? e.message : String(e));
+      }
+    }
+
+    case "comments_list": {
+      const pageId = String(args.pageId ?? "");
+      if (!pageId) return errResult("pageId is required");
+      try {
+        const items = await ctx.runQuery(internal.mcp.internal.listComments, {
+          userId, pageId, includeResolved: args.includeResolved === true,
+        });
+        return textResult({ items, count: items.length });
+      } catch (e) {
+        return errResult(e instanceof Error ? e.message : "comments_list failed");
+      }
+    }
+
+    case "comments_create": {
+      const pageId = String(args.pageId ?? "");
+      const text = String(args.text ?? "");
+      if (!pageId) return errResult("pageId is required");
+      if (!text.trim()) return errResult("text is required");
+      try {
+        return textResult(await ctx.runMutation(internal.mcp.internal.createComment, {
+          userId, pageId, text, blockId: args.blockId ? String(args.blockId) : undefined,
+        }));
+      } catch (e) {
+        return errResult(e instanceof Error ? e.message : "comments_create failed");
+      }
+    }
+
+    case "comments_resolve": {
+      const commentId = String(args.commentId ?? "");
+      if (!commentId) return errResult("commentId is required");
+      try {
+        return textResult(await ctx.runMutation(internal.mcp.internal.setCommentResolved, {
+          userId, commentId, resolved: args.resolved !== false,
+        }));
+      } catch (e) {
+        return errResult(e instanceof Error ? e.message : "comments_resolve failed");
+      }
+    }
+
+    case "comments_delete": {
+      const commentId = String(args.commentId ?? "");
+      if (!commentId) return errResult("commentId is required");
+      try {
+        return textResult(await ctx.runMutation(internal.mcp.internal.deleteComment, { userId, commentId }));
+      } catch (e) {
+        return errResult(e instanceof Error ? e.message : "comments_delete failed");
+      }
+    }
+
+    case "snapshots_list": {
+      const pageId = String(args.pageId ?? "");
+      if (!pageId) return errResult("pageId is required");
+      try {
+        const items = await ctx.runQuery(internal.mcp.internal.listSnapshots, {
+          userId, pageId, limit: typeof args.limit === "number" ? args.limit : undefined,
+        });
+        return textResult({ items, count: items.length });
+      } catch (e) {
+        return errResult(e instanceof Error ? e.message : "snapshots_list failed");
+      }
+    }
+
+    case "snapshots_create": {
+      const pageId = String(args.pageId ?? "");
+      if (!pageId) return errResult("pageId is required");
+      try {
+        return textResult(await ctx.runMutation(internal.mcp.internal.createSnapshot, {
+          userId, pageId, label: args.label ? String(args.label) : undefined,
+        }));
+      } catch (e) {
+        return errResult(e instanceof Error ? e.message : "snapshots_create failed");
+      }
+    }
+
+    case "snapshots_restore": {
+      const snapshotId = String(args.snapshotId ?? "");
+      if (!snapshotId) return errResult("snapshotId is required");
+      try {
+        return textResult(await ctx.runMutation(internal.mcp.internal.restoreSnapshot, { userId, snapshotId }));
+      } catch (e) {
+        return errResult(e instanceof Error ? e.message : "snapshots_restore failed");
+      }
+    }
+
+    case "workspaces_list": {
+      try {
+        const items = await ctx.runQuery(internal.mcp.internal.listWorkspaces, { userId });
+        return textResult({ items, count: items.length });
+      } catch (e) {
+        return errResult(e instanceof Error ? e.message : "workspaces_list failed");
       }
     }
 

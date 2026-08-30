@@ -175,6 +175,40 @@ descendant and detach the subtree from the root; that guard is now shared.
 
 Covered by `convex/_test/mcp-lifecycle.test.ts`.
 
+## Collaboration & history tools
+
+Three surfaces an agent could see the *effects* of but never touch: review
+notes it could not fetch, an overwrite it could not undo, and a workspace it
+could not name.
+
+| tool | notes |
+|---|---|
+| `comments_list` | Open comments oldest-first; `includeResolved` for settled ones. |
+| `comments_create` | Page-level, or anchored to one block via `blockId`. Authored as the token's owner. |
+| `comments_resolve` | `resolved: false` reopens — one tool, both directions. |
+| `comments_delete` | Outright delete. Resolving keeps the record; this does not. |
+| `snapshots_list` | Version history, newest first. |
+| `snapshots_create` | Named restore point before a multi-step rewrite. |
+| `snapshots_restore` | Roll back title/icon/cover/blocks. |
+| `workspaces_list` | Which workspaces exist, and which one new content lands in. |
+
+**`pages_replace_blocks` now snapshots automatically.** Overwriting a page was
+the most destructive non-delete call in the surface — the previous body was
+simply gone. It now checkpoints first (skipped when the page is still blank,
+so creating a page doesn't burn a retention slot), which is what makes
+`snapshots_restore` a real undo rather than a suggestion. `snapshots_restore`
+checkpoints too, so restoring the wrong version is itself undoable. Retention
+is the same 50-per-page rule `snapshots.create` uses — one shared
+implementation, because two copies of a prune drift and quietly stop bounding
+the table.
+
+Switching the active workspace is deliberately **not** exposed. A tool call
+that moves the surface under a human who is looking at it is a surprise, not
+a feature; `workspaces_list` lets an agent say plainly which workspace it is
+writing into instead.
+
+Covered by `convex/_test/mcp-collab.test.ts`.
+
 ## Cross-project ingest — `structure_upsert`
 
 The per-node tools (`pages_create`, `pages_append_markdown`) express a tree
@@ -224,10 +258,12 @@ Covered by `convex/_test/mcp-structure-upsert.test.ts`.
 
 ## Roadmap
 
-- **Comments** (`nosion-create-comment`, `nosion-get-comments`) — the
-  comments backend ships; the MCP tools are not written yet.
-- **Users / teams** (`nosion-get-users`) — multi-workspace membership
-  ships; the MCP tools are not written yet.
+- **Comments / workspaces on the REST surface** — both ship as JSON-RPC
+  tools (above). The Notion-canonical REST envelopes
+  (`nosion-get-comments`, `nosion-get-users`) are not written yet.
+- **Files / uploads** — deliberately absent. Binary over JSON-RPC means
+  base64 in a tool argument; the browser upload path stays the right one
+  until there is a concrete agent use case.
 - **Database schema PATCH** via `properties` MAP (not array) on
   `nosion-update-database`.
 - **`nosion-create-view` / `nosion-update-view`** — view CRUD.

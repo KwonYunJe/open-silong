@@ -13,7 +13,7 @@
  *       touching the live UI fns.
  */
 
-import { internalQuery, internalMutation, type QueryCtx } from "../_generated/server";
+import { internalQuery, internalMutation, type QueryCtx, type MutationCtx } from "../_generated/server";
 import { v } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
 import { buildSearchText } from "../features/search/lib";
@@ -33,6 +33,7 @@ import { getActiveWorkspaceMutation } from "../_shared/workspace";
 // tools return.
 import { reindexPageLinks, slug } from "../_shared/links";
 import { collectDescendantIds } from "../pages";
+import { listMyWorkspaces, readActiveWorkspace } from "../_shared/workspace";
 import { deletePageBlocks } from "../_shared/pageContent";
 import { deletePageGrantsForPage } from "../_shared/pageGrants";
 import {
@@ -210,6 +211,18 @@ export const updatePage = internalMutation({
       ? (patch.blocks as unknown[])
       : await readPageBlocks(ctx, doc);
     if (hasBlocks) {
+      // Replacing a page's blocks is the most destructive non-delete call in
+      // this surface: the previous body is simply gone. Checkpoint first, so
+      // `snapshots_restore` is a real undo and not a suggestion. Skipped when
+      // there is nothing to lose, so creating a page doesn't burn a slot.
+      // "Nothing to lose" is not `length === 0` — a freshly created page
+      // already carries one empty paragraph, and snapshotting that on the
+      // very first write would spend a retention slot on a blank page.
+      const prior = await readPageBlocks(ctx, doc);
+      const priorHasContent =
+        prior.length > 1 || buildSearchText("", prior).trim().length > 0;
+      if (priorHasContent) await captureSnapshot(ctx, doc, "before MCP overwrite");
+
       // Block edit → split writer (writes pageBlocks + denorm, empties doc).
       const rest: Record<string, unknown> = { ...patch };
       delete rest.blocks;
@@ -1206,5 +1219,242 @@ export const restoreDatabase = internalMutation({
     if (!doc || doc.userId !== args.userId) throw new Error("Tidak ditemukan");
     await ctx.db.patch(args.dbId as Id<"databases">, { trashed: false, updatedAt: Date.now() });
     return { ok: true, dbId: args.dbId, name: doc.name };
+  },
+});
+
+// ─────────────────────────────────────────────────────────────────────
+// Comments, version history, workspaces.
+//
+// The three surfaces an agent could see the *effects* of but never touch:
+// it could read a page whose review notes lived in comments it couldn't
+// fetch, overwrite a page with no way to take or restore a checkpoint,
+// and write into "the workspace" without being able to name which one.
+// ─────────────────────────────────────────────────────────────────────
+
+/** Comment authorship. MCP callers act AS the token's owner, so comments
+ *  carry that user's display name — same as if they'd typed it in the UI. */
+async function authorNameFor(ctx: QueryCtx, userId: Id<"users">): Promise<string> {
+  const user = await ctx.db.get(userId);
+  return user?.name ?? user?.email ?? "Anonim";
+}
+
+/** Page-ownership gate shared by every comment/snapshot fn below.
+ *  Collapses missing-vs-forbidden into one message, as the rest of this
+ *  module does — a token holder should not be able to probe for page ids. */
+async function requirePage(ctx: QueryCtx, userId: Id<"users">, pageId: string) {
+  let doc: Doc<"pages"> | null = null;
+  try {
+    doc = await ctx.db.get(pageId as Id<"pages">);
+  } catch {
+    throw new Error("Tidak ditemukan");
+  }
+  if (!doc || doc.userId !== userId) throw new Error("Tidak ditemukan");
+  return doc;
+}
+
+export const listComments = internalQuery({
+  args: {
+    userId: v.id("users"),
+    pageId: v.string(),
+    includeResolved: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    await requirePage(ctx, args.userId, args.pageId);
+    const rows = await ctx.db
+      .query("comments")
+      .withIndex("by_page", (q) => q.eq("pageId", args.pageId as Id<"pages">))
+      .take(COUNT_CAPS.commentsPerPage);
+    return rows
+      .filter((c) => args.includeResolved === true || !c.resolved)
+      .sort((a, b) => a.createdAt - b.createdAt)
+      .map((c) => ({
+        commentId: c._id,
+        pageId: c.pageId,
+        blockId: c.blockId ?? null,
+        text: c.text,
+        authorName: c.authorName,
+        resolved: c.resolved,
+        createdAt: c.createdAt,
+        updatedAt: c.updatedAt,
+      }));
+  },
+});
+
+export const createComment = internalMutation({
+  args: {
+    userId: v.id("users"),
+    pageId: v.string(),
+    text: v.string(),
+    blockId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const text = args.text.trim();
+    if (!text) throw new Error("text is required");
+    if (text.length > CHAR_CAPS.commentText) throw new Error("Comment too long");
+    const page = await requirePage(ctx, args.userId, args.pageId);
+    const now = Date.now();
+    const commentId = await ctx.db.insert("comments", {
+      userId: args.userId,
+      workspaceId: page.workspaceId,
+      pageId: page._id,
+      blockId: args.blockId,
+      text,
+      authorName: await authorNameFor(ctx, args.userId),
+      authorIcon: "",
+      resolved: false,
+      createdAt: now,
+      updatedAt: now,
+    });
+    return { ok: true, commentId, pageId: page._id };
+  },
+});
+
+/** Resolve or reopen. `resolved: false` is the reopen, so one tool covers
+ *  both directions rather than shipping a near-duplicate. */
+export const setCommentResolved = internalMutation({
+  args: { userId: v.id("users"), commentId: v.string(), resolved: v.boolean() },
+  handler: async (ctx, args) => {
+    const c = await ctx.db.get(args.commentId as Id<"comments">);
+    if (!c) throw new Error("Tidak ditemukan");
+    // Author OR page owner, matching the UI's moderation rule.
+    if (c.userId !== args.userId) await requirePage(ctx, args.userId, c.pageId);
+    await ctx.db.patch(c._id, { resolved: args.resolved, updatedAt: Date.now() });
+    return { ok: true, commentId: c._id, resolved: args.resolved };
+  },
+});
+
+export const deleteComment = internalMutation({
+  args: { userId: v.id("users"), commentId: v.string() },
+  handler: async (ctx, args) => {
+    const c = await ctx.db.get(args.commentId as Id<"comments">);
+    if (!c) throw new Error("Tidak ditemukan");
+    if (c.userId !== args.userId) await requirePage(ctx, args.userId, c.pageId);
+    await ctx.db.delete(c._id);
+    return { ok: true, commentId: args.commentId };
+  },
+});
+
+/** Capture a page's CURRENT state as a restore point.
+ *
+ *  One implementation shared by the `snapshots_create` tool and the
+ *  automatic pre-overwrite capture in `updatePage` — two copies of the
+ *  retention prune would drift and quietly stop bounding the table. */
+async function captureSnapshot(
+  ctx: MutationCtx,
+  page: Doc<"pages">,
+  authorName: string,
+): Promise<Id<"snapshots">> {
+  const blocks = await readPageBlocks(ctx, page);
+  const id = await ctx.db.insert("snapshots", {
+    userId: page.userId,
+    workspaceId: page.workspaceId,
+    pageId: page._id,
+    authorId: page.userId,
+    authorName,
+    takenAt: Date.now(),
+    title: page.title,
+    icon: page.icon,
+    cover: page.cover ?? null,
+    blocks: structuredClone(blocks),
+    rowProps: page.rowProps,
+  });
+  // Same retention rule as `snapshots.create`: keep the newest N.
+  const recent = await ctx.db
+    .query("snapshots")
+    .withIndex("by_user_page", (q) => q.eq("userId", page.userId).eq("pageId", page._id))
+    .order("desc")
+    .take(COUNT_CAPS.snapshotsPerPage + 10);
+  for (const stale of recent.slice(COUNT_CAPS.snapshotsPerPage)) {
+    await ctx.db.delete(stale._id);
+  }
+  return id;
+}
+
+export const listSnapshots = internalQuery({
+  args: { userId: v.id("users"), pageId: v.string(), limit: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    await requirePage(ctx, args.userId, args.pageId);
+    const limit = Math.min(Math.max(args.limit ?? 20, 1), COUNT_CAPS.snapshotsPerPage);
+    const rows = await ctx.db
+      .query("snapshots")
+      .withIndex("by_user_page", (q) =>
+        q.eq("userId", args.userId).eq("pageId", args.pageId as Id<"pages">),
+      )
+      .order("desc")
+      .take(limit);
+    return rows.map((s) => ({
+      snapshotId: s._id,
+      pageId: s.pageId,
+      title: s.title,
+      takenAt: s.takenAt,
+      authorName: s.authorName,
+      blockCount: s.blocks.length,
+    }));
+  },
+});
+
+export const createSnapshot = internalMutation({
+  args: { userId: v.id("users"), pageId: v.string(), label: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    const page = await requirePage(ctx, args.userId, args.pageId);
+    const label = (args.label ?? "").trim().slice(0, 120);
+    const snapshotId = await captureSnapshot(
+      ctx,
+      page,
+      label || (await authorNameFor(ctx, args.userId)),
+    );
+    return { ok: true, snapshotId, pageId: page._id, title: page.title };
+  },
+});
+
+/** Roll a page back. Snapshots the pre-restore state first, so restoring
+ *  the wrong version is itself undoable — the alternative is an "undo"
+ *  that destroys the thing you might have wanted. */
+export const restoreSnapshot = internalMutation({
+  args: { userId: v.id("users"), snapshotId: v.string() },
+  handler: async (ctx, args) => {
+    let snap: Doc<"snapshots"> | null = null;
+    try {
+      snap = await ctx.db.get(args.snapshotId as Id<"snapshots">);
+    } catch {
+      throw new Error("Tidak ditemukan");
+    }
+    if (!snap || snap.userId !== args.userId) throw new Error("Tidak ditemukan");
+    const page = await requirePage(ctx, args.userId, snap.pageId);
+
+    await captureSnapshot(ctx, page, "before restore");
+
+    const blocks = structuredClone(snap.blocks);
+    await writePageBlocks(ctx, page._id, blocks, {
+      title: snap.title,
+      icon: snap.icon,
+      cover: snap.cover,
+      rowProps: snap.rowProps ? structuredClone(snap.rowProps) : page.rowProps,
+      searchText: buildSearchText(snap.title, blocks),
+    });
+    await reindexPageLinks(ctx, (await ctx.db.get(page._id))!);
+    return { ok: true, pageId: page._id, restoredTo: snap.takenAt, title: snap.title };
+  },
+});
+
+/** Which workspaces exist and which one new content lands in.
+ *  Read-only on purpose: switching the active workspace from a tool call
+ *  would silently move the surface under a human who is looking at it. */
+export const listWorkspaces = internalQuery({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const [all, active] = await Promise.all([
+      listMyWorkspaces(ctx, args.userId),
+      readActiveWorkspace(ctx, args.userId),
+    ]);
+    return all.map((w) => ({
+      workspaceId: w._id,
+      name: w.name,
+      emoji: w.emoji,
+      slug: w.slug ?? null,
+      role: w.role,
+      isPersonal: w.isPersonal === true,
+      isActive: active?._id === w._id,
+    }));
   },
 });
