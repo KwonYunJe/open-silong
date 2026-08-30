@@ -6,12 +6,12 @@ import { useConvexAuth } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { Sparkles } from "lucide-react";
 import { Button } from "@/shared/ui/button";
+import { IS_DEMO } from "@/shared/lib/demoMode";
 
 /** Demo-only escape hatch on the auth page. Visitors bounced here (or
  *  curious ones) get a one-click guest entry into the workspace —
  *  no form. Owners/teams still use the email form below to sign in or
  *  claim the instance. Hidden on cloned/self-hosted deployments. */
-const IS_DEMO = process.env.NEXT_PUBLIC_DEMO === "1";
 
 export function DemoGuestEntry() {
   const router = useRouter();

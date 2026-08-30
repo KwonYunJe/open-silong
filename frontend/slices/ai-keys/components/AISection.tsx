@@ -16,6 +16,7 @@ import { useAiKeys, type UserKeyRow } from "../hooks/useAiKeys";
 import { AddKeyDialog } from "./AddKeyDialog";
 import { ProviderKeyCard } from "./ProviderKeyCard";
 import { ChatGPTConnectButton } from "./ChatGPTConnectButton";
+import { IS_DEMO } from "@/shared/lib/demoMode";
 
 export function AISection() {
   const { workspace } = useWorkspaces();
@@ -51,6 +52,21 @@ export function AISection() {
 
   return (
     <div className="space-y-4">
+      {/* The demo is a shared deployment anyone can sign up to. Keys are
+        * per-user and encrypted at rest, but a visitor pasting a real
+        * provider key into a throwaway showcase is still their credential
+        * at risk — say so plainly instead of hiding the feature, which is
+        * one of the things the demo exists to show. */}
+      {IS_DEMO && (
+        <div className="rounded-xl border border-warning/40 bg-warning/10 p-4 text-sm">
+          <p className="font-medium text-foreground">This is the public demo.</p>
+          <p className="mt-1 text-muted-foreground">
+            Don&apos;t paste a real provider API key here — this deployment is
+            shared and periodically reset. Deploy your own copy first, then add
+            keys there.
+          </p>
+        </div>
+      )}
       <div className="rounded-xl border border-border bg-card p-5 space-y-1">
         <div className="flex items-start justify-between gap-3">
           <div>

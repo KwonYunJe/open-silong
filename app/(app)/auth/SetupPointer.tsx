@@ -4,12 +4,12 @@ import Link from "next/link";
 import { useQuery } from "convex/react";
 import { Wrench } from "lucide-react";
 import { api } from "@convex/_generated/api";
+import { IS_DEMO } from "@/shared/lib/demoMode";
 
 /** Fresh-instance pointer under the auth card — when no owner has been
  *  claimed yet, the visitor is almost certainly the cloner: route them to
  *  the onboarding wizard instead of leaving them guessing. Hidden on the
  *  public demo (the owner slot there is intentionally unclaimed). */
-const IS_DEMO = process.env.NEXT_PUBLIC_DEMO === "1";
 
 export function SetupPointer() {
   const status = useQuery(api.setup.status);

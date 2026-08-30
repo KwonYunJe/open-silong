@@ -5,12 +5,13 @@ import { cn } from "@/shared/lib/utils";
 import { parseIconValue, type IconValue } from "../lib/parse";
 import { twemojiUrl } from "../lib/twemoji";
 import { useIconStyle, type Style } from "../lib/style-pref";
-import { LUCIDE_ICONS, FallbackLucideIcon } from "../lib/lucide-icons";
 import { renderSizeFor, type IconRenderKind } from "../lib/icon-render-config";
 
-// Code-split the heavy ~200-icon phosphor map out of the eager shell chunk;
-// it loads on demand the first time a `phosphor:` icon actually renders.
+// Code-split the heavy icon maps out of the eager shell chunk; each loads on
+// demand the first time an icon of that kind actually renders. Emoji icons —
+// the common case — pull neither.
 const LazyPhosphor = React.lazy(() => import("./LazyPhosphor"));
+const LazyLucide = React.lazy(() => import("./LazyLucide"));
 
 interface CommonProps {
   value: string | null | undefined;
@@ -59,15 +60,11 @@ function RawIconImpl({ value, style, className, fallback = "📄", title, size }
   const parsed = React.useMemo(() => resolveValue(value, fallback), [value, fallback]);
 
   if (parsed.kind === "lucide") {
-    const Cmp = LUCIDE_ICONS[parsed.name] ?? FallbackLucideIcon;
-    if (Cmp === FallbackLucideIcon && process.env.NODE_ENV !== "production") {
-      console.warn(`[DynamicIcon] Unknown lucide icon: "${parsed.name}". Falling back to FileText.`);
-    }
-    return renderWithKind("lucide", size, parsed.color, className, title, (renderSize) =>
-      renderSize !== undefined
-        ? <Cmp size={renderSize} style={{ width: renderSize, height: renderSize }} />
-        : <Cmp className="h-[1em] w-[1em]" />,
-    );
+    return renderWithKind("lucide", size, parsed.color, className, title, (renderSize) => (
+      <React.Suspense fallback={null}>
+        <LazyLucide name={parsed.name} renderSize={renderSize} />
+      </React.Suspense>
+    ));
   }
 
   if (parsed.kind === "phosphor") {

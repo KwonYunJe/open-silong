@@ -10,6 +10,36 @@ notes under `docs/audit/`.
 
 ## [Unreleased]
 
+### Changed
+
+- **Public routes are ~9% lighter.** `DynamicIcon` statically imported the
+  icon-picker's 255-component lucide map, so every page that rendered a
+  single icon paid for all 255 — including `/share/[id]` and `/site/[ws]`,
+  the anonymous read-only routes that should be the leanest in the app. The
+  map is now code-split behind `React.lazy` exactly as the phosphor map
+  already was. Measured on a running production server, gzipped, counting
+  every script and stylesheet the HTML references:
+
+  | route | before | after |
+  |---|---|---|
+  | `/share/[id]` | 280 KB | **254 KB** |
+  | `/site/[ws]` | 270 KB | **245 KB** |
+
+  `/` and `/auth` are unchanged — they import lucide icons directly rather
+  than through `DynamicIcon`. Trade: the first `lucide:` icon on a page now
+  renders a frame late and is absent from the server HTML, same as phosphor
+  already behaved. Emoji page icons, the common case, now cost nothing.
+- **The public demo no longer exposes its integration surface.** With
+  `NEXT_PUBLIC_DEMO=1`, Settings hides MCP, Script tokens and Webhooks, and
+  the AI tab warns against pasting a real provider key into a shared,
+  periodically-reset deployment. The tabs are filtered in the nav AND in the
+  key resolver, so `?s=mcp-apps` cannot deep-link past it. The MCP endpoint
+  is not secret (it is discoverable via `.well-known`), but inviting an
+  anonymous visitor to wire a real ChatGPT connector or mint bearer tokens
+  against the shared demo backend is a footgun for them and a spam vector
+  for it. `IS_DEMO` moved to `frontend/shared/lib/demoMode.ts` — it had been
+  copy-pasted into four files.
+
 ### Added
 
 - **`structure_upsert` — idempotent bulk page-tree ingest over MCP.** The

@@ -5,6 +5,7 @@ import { Button } from "@/shared/ui/button";
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
 } from "@/shared/ui/dropdown-menu";
+import { IS_DEMO } from "@/shared/lib/demoMode";
 
 /** Demo-stage only: a single floating "deploy your own copy" dropdown.
  *  Renders exclusively when NEXT_PUBLIC_DEMO=1 (set on the showcase
@@ -14,7 +15,6 @@ import {
  *  on desktop the nav is hidden so it drops back to bottom-4. One button
  *  (was two, which overlapped the mobile navbar) with a smooth wiggle to
  *  draw the eye. Deploy + source collapse into the dropdown. */
-const IS_DEMO = process.env.NEXT_PUBLIC_DEMO === "1";
 const REPO = "https://github.com/rahmanef63/open-silong";
 // Only CONVEX_DEPLOY_KEY is asked for — the build (vercel.json →
 // build:auto) deploys Convex functions, provisions auth keys

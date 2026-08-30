@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useConvexAuth, useQuery } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { api } from "@convex/_generated/api";
+import { IS_DEMO } from "@/shared/lib/demoMode";
 
 /** No marketing landing — this deployment IS the workspace.
  *  Demo (NEXT_PUBLIC_DEMO=1): visitors are signed in anonymously and land
@@ -13,7 +14,6 @@ import { api } from "@convex/_generated/api";
  *  wizard — fleet-standard onboarding; once an owner exists, straight to
  *  /dashboard (proxy bounces signed-out visitors to /auth as usual).
  *  Old landing lives in git history. */
-const IS_DEMO = process.env.NEXT_PUBLIC_DEMO === "1";
 
 export default function Home() {
   const router = useRouter();

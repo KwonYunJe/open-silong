@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import type { ComponentType } from "react";
 import { cn } from "@/shared/lib/utils";
+import { IS_DEMO } from "@/shared/lib/demoMode";
 
 export type SettingsKey =
   | "workspace" | "appearance" | "ai" | "pages" | "backup"
@@ -33,11 +34,25 @@ const NAV: NavItem[] = [
   { key: "tickets",    label: "Tickets",     icon: LifeBuoy,   description: "Report bugs + feature requests" },
 ];
 
+/** Integration surfaces hidden on the public demo. Each one either publishes
+ *  the shared demo backend's endpoint or mints a long-lived credential
+ *  against it — see `@/shared/lib/demoMode`. */
+const DEMO_HIDDEN: ReadonlySet<SettingsKey> = new Set(["mcp-apps", "mcp", "webhooks"]);
+
+/** The nav a viewer may actually reach. Exported because the page's section
+ *  resolver validates against the SAME list — hiding a tab in the sidebar
+ *  while `?s=mcp-apps` still renders it would not be hiding anything. */
+export const VISIBLE_SETTINGS_KEYS: readonly SettingsKey[] = NAV
+  .filter((n) => !(IS_DEMO && DEMO_HIDDEN.has(n.key)))
+  .map((n) => n.key);
+
+const VISIBLE_NAV = NAV.filter((n) => VISIBLE_SETTINGS_KEYS.includes(n.key));
+
 export const DEFAULT_SETTINGS_KEY: SettingsKey = "workspace";
 
 export function getActiveSettingsKey(searchParams: ReadonlyURLSearchParams | URLSearchParams | null): SettingsKey {
   const s = searchParams?.get("s") as SettingsKey | null;
-  return NAV.some((n) => n.key === s) ? s! : DEFAULT_SETTINGS_KEY;
+  return s && VISIBLE_SETTINGS_KEYS.includes(s) ? s : DEFAULT_SETTINGS_KEY;
 }
 
 // Type alias for compat with Next 16's readonly variant.
@@ -64,7 +79,7 @@ export function SettingsSidebar() {
     // scroll if it ever outgrows the viewport.
     <nav className="w-full md:w-56 shrink-0 md:border-r md:border-border md:pr-3 md:sticky md:top-6 md:self-start md:max-h-[calc(100vh-3rem)] md:overflow-y-auto md:scrollbar-thin">
       <ul className="flex flex-row gap-1 overflow-x-auto md:flex-col md:overflow-visible">
-        {NAV.map(({ key, label, icon: Icon, description }) => {
+        {VISIBLE_NAV.map(({ key, label, icon: Icon, description }) => {
           const isActive = key === active;
           return (
             <li key={key}>
