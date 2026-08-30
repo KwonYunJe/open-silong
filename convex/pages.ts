@@ -44,7 +44,11 @@ function emptyBlock() {
  *  `.paginate`, because Convex allows only one paginated query per function
  *  execution, so paginating inside this BFS threw on any multi-node subtree.
  *  A visited-set guards corrupt self-referential parent chains. */
-async function collectDescendantIds(
+/** Exported for `convex/mcp/internal.ts` — the MCP permanent-delete path must
+ *  cascade over exactly the same subtree this module does, and duplicating a
+ *  tree walk is how the two drift apart. Not a Convex function (no
+ *  query/mutation wrapper), just a shared helper. */
+export async function collectDescendantIds(
   ctx: MutationCtx,
   rootId: Id<"pages">,
   userId: Id<"users">,

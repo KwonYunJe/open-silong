@@ -402,6 +402,48 @@ const TOOLS: ToolDef[] = [
     annotations: { destructiveHint: false, idempotentHint: true },
   },
   {
+    name: "pages_move",
+    description: "Reparent a page — move it under a different parent, or to the top level with parentId omitted. Use for 'move X into Y', 'make X a subpage of Y', 'pull X out to the top level'. Rejects a move that would put a page inside its own subtree.",
+    inputSchema: obj({
+      pageId: { type: "string" },
+      parentId: { type: "string", description: "New parent pageId. Omit or pass null for top level." },
+    }, ["pageId"]),
+    annotations: { destructiveHint: false, idempotentHint: true },
+  },
+  {
+    name: "pages_restore",
+    description: "Restore a trashed page (undo pages_trash). Idempotent — restoring a live page is a no-op. Find candidates with trash_list.",
+    inputSchema: obj({ pageId: { type: "string" } }, ["pageId"]),
+    annotations: { destructiveHint: false, idempotentHint: true },
+  },
+  {
+    name: "pages_delete_permanent",
+    description: "IRREVERSIBLE. Permanently delete a page AND its whole subtree, plus its snapshots, blocks and share grants. The page must already be trashed (call pages_trash first) — this is deliberate, so destroying content always takes two deliberate steps. Prefer pages_trash unless the user explicitly asked to delete permanently / empty the trash.",
+    inputSchema: obj({ pageId: { type: "string" } }, ["pageId"]),
+    annotations: { destructiveHint: true, idempotentHint: false },
+  },
+  {
+    name: "trash_list",
+    description: "List trashed pages, most recently trashed first. Call this before pages_restore so you can name what is recoverable, and when the user asks 'what did I delete'.",
+    inputSchema: obj({ limit: { type: "number", description: "Default 50, max 200" } }, []),
+    annotations: { readOnlyHint: true },
+  },
+  {
+    name: "pages_set_favorite",
+    description: "Star or unstar a page. Favorites surface in the sidebar and in the dashboard's Favorites section.",
+    inputSchema: obj({
+      pageId: { type: "string" },
+      favorite: { type: "boolean", description: "true to star, false to unstar" },
+    }, ["pageId", "favorite"]),
+    annotations: { destructiveHint: false, idempotentHint: true },
+  },
+  {
+    name: "databases_restore",
+    description: "Restore a trashed database (undo databases_trash). Idempotent.",
+    inputSchema: obj({ dbId: { type: "string" } }, ["dbId"]),
+    annotations: { destructiveHint: false, idempotentHint: true },
+  },
+  {
     name: "structure_upsert",
     description:
       "IDEMPOTENT bulk import of a page TREE from an external system. Use this — not repeated pages_create — when another project publishes a body of structure (a playbook, a standard doc set, a best-practice skeleton) into this workspace and will re-publish it as its own source evolves. Each node carries a caller-assigned stable `key`; re-sending the same source+key UPDATES that page instead of creating a duplicate, so the operation is safe to run on every sync. Page BODIES are replaced on update (the external system owns that content), while pages a human created here are never touched. Markdown parses into real blocks, wikilinks and #tags reindex into the graph. Limits: 200 nodes, 6 levels deep.",
@@ -908,6 +950,72 @@ async function dispatchTool(
         return errResult(e instanceof Error ? e.message : String(e));
       }
     }
+    case "pages_move": {
+      const pageId = String(args.pageId ?? "");
+      if (!pageId) return errResult("pageId is required");
+      try {
+        await ctx.runMutation(internal.mcp.internal.movePage, {
+          userId,
+          pageId,
+          parentId: args.parentId ? String(args.parentId) : null,
+        });
+        return textResult({ ok: true, pageId, parentId: args.parentId ?? null });
+      } catch (e) {
+        return errResult(e instanceof Error ? e.message : "pages_move failed");
+      }
+    }
+
+    case "pages_restore": {
+      const pageId = String(args.pageId ?? "");
+      if (!pageId) return errResult("pageId is required");
+      try {
+        return textResult(await ctx.runMutation(internal.mcp.internal.restorePage, { userId, pageId }));
+      } catch (e) {
+        return errResult(e instanceof Error ? e.message : "pages_restore failed");
+      }
+    }
+
+    case "pages_delete_permanent": {
+      const pageId = String(args.pageId ?? "");
+      if (!pageId) return errResult("pageId is required");
+      try {
+        return textResult(await ctx.runMutation(internal.mcp.internal.permanentlyDeletePage, { userId, pageId }));
+      } catch (e) {
+        return errResult(e instanceof Error ? e.message : "pages_delete_permanent failed");
+      }
+    }
+
+    case "trash_list": {
+      try {
+        const limit = typeof args.limit === "number" ? args.limit : undefined;
+        return textResult({ items: await ctx.runQuery(internal.mcp.internal.listTrash, { userId, limit }) });
+      } catch (e) {
+        return errResult(e instanceof Error ? e.message : "trash_list failed");
+      }
+    }
+
+    case "pages_set_favorite": {
+      const pageId = String(args.pageId ?? "");
+      if (!pageId) return errResult("pageId is required");
+      try {
+        return textResult(await ctx.runMutation(internal.mcp.internal.setFavorite, {
+          userId, pageId, favorite: args.favorite !== false,
+        }));
+      } catch (e) {
+        return errResult(e instanceof Error ? e.message : "pages_set_favorite failed");
+      }
+    }
+
+    case "databases_restore": {
+      const dbId = String(args.dbId ?? "");
+      if (!dbId) return errResult("dbId is required");
+      try {
+        return textResult(await ctx.runMutation(internal.mcp.internal.restoreDatabase, { userId, dbId }));
+      } catch (e) {
+        return errResult(e instanceof Error ? e.message : "databases_restore failed");
+      }
+    }
+
     case "structure_upsert": {
       const source = String(args.source ?? "").trim();
       const nodes = Array.isArray(args.nodes) ? args.nodes : [];

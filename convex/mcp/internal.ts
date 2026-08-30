@@ -32,6 +32,9 @@ import { getActiveWorkspaceMutation } from "../_shared/workspace";
 // read queries build the Graph shape + BFS ego graphs the MCP graph_*
 // tools return.
 import { reindexPageLinks, slug } from "../_shared/links";
+import { collectDescendantIds } from "../pages";
+import { deletePageBlocks } from "../_shared/pageContent";
+import { deletePageGrantsForPage } from "../_shared/pageGrants";
 import {
   buildGraphFromEdges,
   buildAdjacency,
@@ -230,7 +233,29 @@ export const movePage = internalMutation({
   handler: async (ctx, args) => {
     const doc = await ctx.db.get(args.pageId as Id<"pages">);
     if (!doc || doc.userId !== args.userId) throw new Error("Tidak ditemukan");
-    await ctx.db.patch(args.pageId as Id<"pages">, { parentId: args.parentId as Id<"pages"> | null, updatedAt: Date.now() });
+
+    // Same reparent validation `pages.update` performs. It was missing here,
+    // so the REST surface (which has dispatched movePage all along) could
+    // reparent a page under its own descendant — detaching the whole subtree
+    // from the root and making every parentId walk loop forever.
+    const newParentId = args.parentId as Id<"pages"> | null;
+    if (newParentId != null && newParentId !== doc.parentId) {
+      if (String(newParentId) === args.pageId) throw new Error("A page cannot be its own parent");
+      const target = await ctx.db.get(newParentId);
+      // Not-found-vs-forbidden collapse, as everywhere else in this module.
+      if (!target || target.trashed || target.userId !== args.userId) {
+        throw new Error("Tidak ditemukan");
+      }
+      if ((target.workspaceId ?? null) !== (doc.workspaceId ?? null)) {
+        throw new Error("Tidak ditemukan");
+      }
+      const subtree = await collectDescendantIds(ctx, args.pageId as Id<"pages">, args.userId, doc.workspaceId);
+      if (subtree.includes(newParentId)) {
+        throw new Error("A page cannot be moved under its own descendant");
+      }
+    }
+
+    await ctx.db.patch(args.pageId as Id<"pages">, { parentId: newParentId, updatedAt: Date.now() });
     return { ok: true };
   },
 });
@@ -1083,5 +1108,103 @@ export const structureUpsert = internalMutation({
     await walk(args.nodes as StructureNode[], rootParent, 1);
 
     return { created, updated, total: visited, source };
+  },
+});
+
+// ─────────────────────────────────────────────────────────────────────
+// Lifecycle completion.
+//
+// The MCP surface could TRASH a page but not restore it, permanently delete
+// it, or even list what was trashed — so an agent that made a mistake had no
+// way to undo it, and a user asking "put that back" could not be served. A
+// half a delete lifecycle is worse than none: it invites the destructive call
+// while withholding the repair.
+// ─────────────────────────────────────────────────────────────────────
+
+/** Inverse of `trashPage`. Idempotent — restoring a live page is a no-op. */
+export const restorePage = internalMutation({
+  args: { userId: v.id("users"), pageId: v.string() },
+  handler: async (ctx, args) => {
+    const doc = await ctx.db.get(args.pageId as Id<"pages">);
+    if (!doc || doc.userId !== args.userId) throw new Error("Tidak ditemukan");
+    await ctx.db.patch(args.pageId as Id<"pages">, { trashed: false, updatedAt: Date.now() });
+    return { ok: true, pageId: args.pageId, title: doc.title };
+  },
+});
+
+/** Irreversible. Cascades over the whole subtree using the SAME walk
+ *  `pages.permanentlyDelete` uses — imported rather than reimplemented, because
+ *  two copies of a cascade drift and the failure mode is orphaned rows.
+ *
+ *  Deliberately requires the page to be trashed first: an agent must take the
+ *  reversible step and then confirm, rather than being one tool call away from
+ *  destroying a live subtree. */
+export const permanentlyDeletePage = internalMutation({
+  args: { userId: v.id("users"), pageId: v.string() },
+  handler: async (ctx, args) => {
+    const page = await ctx.db.get(args.pageId as Id<"pages">);
+    if (!page || page.userId !== args.userId) throw new Error("Tidak ditemukan");
+    if (!page.trashed) {
+      throw new Error("Page must be trashed before it can be permanently deleted — call pages_trash first");
+    }
+    const ids = await collectDescendantIds(ctx, args.pageId as Id<"pages">, args.userId, page.workspaceId);
+    for (const id of ids) {
+      const snaps = await ctx.db
+        .query("snapshots")
+        .withIndex("by_user_page", (q) => q.eq("userId", args.userId).eq("pageId", id))
+        .take(100);
+      for (const snap of snaps) await ctx.db.delete(snap._id);
+      await deletePageBlocks(ctx, id);
+      await deletePageGrantsForPage(ctx, id);
+      await ctx.db.delete(id);
+    }
+    return { ok: true, deletedCount: ids.length };
+  },
+});
+
+/** What is in the trash, so `pages_restore` has something to aim at. */
+export const listTrash = internalQuery({
+  args: { userId: v.id("users"), limit: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const limit = Math.min(Math.max(args.limit ?? 50, 1), 200);
+    const rows = await ctx.db
+      .query("pages")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .take(COUNT_CAPS.pagesPerWorkspaceScan);
+    return rows
+      .filter((p) => p.trashed)
+      .sort((a, b) => b.updatedAt - a.updatedAt)
+      .slice(0, limit)
+      .map((p) => ({
+        pageId: p._id,
+        title: p.title,
+        icon: p.icon,
+        updatedAt: p.updatedAt,
+        isDatabaseRow: p.rowOfDatabaseId !== undefined,
+      }));
+  },
+});
+
+/** Star / unstar. Small, but it is the one page attribute an agent could read
+ *  (via pages_list) and not write. */
+export const setFavorite = internalMutation({
+  args: { userId: v.id("users"), pageId: v.string(), favorite: v.boolean() },
+  handler: async (ctx, args) => {
+    const doc = await ctx.db.get(args.pageId as Id<"pages">);
+    if (!doc || doc.userId !== args.userId) throw new Error("Tidak ditemukan");
+    await ctx.db.patch(args.pageId as Id<"pages">, { favorite: args.favorite, updatedAt: Date.now() });
+    return { ok: true, favorite: args.favorite };
+  },
+});
+
+/** Restore a trashed database. Mirrors `databases.restore`; row pages were
+ *  never trashed with it, so nothing to un-cascade. */
+export const restoreDatabase = internalMutation({
+  args: { userId: v.id("users"), dbId: v.string() },
+  handler: async (ctx, args) => {
+    const doc = await ctx.db.get(args.dbId as Id<"databases">);
+    if (!doc || doc.userId !== args.userId) throw new Error("Tidak ditemukan");
+    await ctx.db.patch(args.dbId as Id<"databases">, { trashed: false, updatedAt: Date.now() });
+    return { ok: true, dbId: args.dbId, name: doc.name };
   },
 });

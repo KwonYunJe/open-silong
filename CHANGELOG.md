@@ -22,8 +22,14 @@ notes under `docs/audit/`.
 
   | route | before | after |
   |---|---|---|
-  | `/share/[id]` | 280 KB | **254 KB** |
-  | `/site/[ws]` | 270 KB | **245 KB** |
+  | `/share/[id]` | 242 KB | **216 KB** |
+  | `/site/[ws]` | 232 KB | **207 KB** |
+
+  (Figures corrected after the first measurement: the totals originally
+  published here — 280→254 and 270→245 — counted Next's legacy polyfill
+  bundle, which is served `noModule` and therefore never fetched by a modern
+  browser. It is 38.5 KB gzipped and was inflating every row equally, so the
+  ~26 KB delta stands; only the absolute numbers were wrong.)
 
   `/` and `/auth` are unchanged — they import lucide icons directly rather
   than through `DynamicIcon`. Trade: the first `lucide:` icon on a page now
@@ -42,6 +48,18 @@ notes under `docs/audit/`.
 
 ### Added
 
+- **Six MCP tools completing the CRUD lifecycle.** The surface could `trash` a
+  page but not restore it, permanently delete it, or even list what was
+  trashed — half a delete lifecycle, which invites the destructive call while
+  withholding the repair. Added `pages_restore`, `pages_delete_permanent`,
+  `trash_list`, `pages_set_favorite`, `databases_restore`, and `pages_move`.
+  - `pages_move` needed no new backend code: `movePage` had existed all along
+    and was dispatched by the REST surface, but was **never wired into
+    JSON-RPC** — so curl could reparent a page and ChatGPT could not.
+  - `pages_delete_permanent` reuses `pages.permanentlyDelete`'s cascade walk
+    (now exported rather than duplicated — two copies of a cascade drift, and
+    the failure mode is orphaned rows) and **requires the page to be trashed
+    first**, so destroying a subtree always takes two deliberate steps.
 - **`structure_upsert` — idempotent bulk page-tree ingest over MCP.** The
   per-node tools express a tree only as N round-trips with no identity, so a
   second send duplicated everything; that made open-silong unusable as a

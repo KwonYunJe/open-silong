@@ -153,6 +153,28 @@ curl $CONVEX_SITE_URL/mcp/v1 \
   }'
 ```
 
+## Lifecycle tools
+
+`trash` used to be a one-way door: there was no restore, no permanent delete,
+and no way to see what had been trashed. The set is now complete.
+
+| tool | notes |
+|---|---|
+| `pages_move` | Reparent, or omit `parentId` for top level. Rejects a move into the page's own subtree. |
+| `pages_restore` | Undo `pages_trash`. Idempotent. |
+| `pages_delete_permanent` | **Irreversible.** Cascades over the subtree plus snapshots, blocks and share grants. **Requires the page to be trashed first** — destroying content always takes two deliberate steps. |
+| `trash_list` | What is recoverable, newest first. Call before `pages_restore`. |
+| `pages_set_favorite` | Star / unstar. |
+| `databases_restore` | Undo `databases_trash`. |
+
+`pages_move` is not new backend code — `movePage` existed and the REST surface
+dispatched it, but it was never wired into JSON-RPC, so `curl` could reparent
+a page and ChatGPT could not. It was also missing the reparent validation
+`pages.update` performs, which meant a page could be moved under its own
+descendant and detach the subtree from the root; that guard is now shared.
+
+Covered by `convex/_test/mcp-lifecycle.test.ts`.
+
 ## Cross-project ingest — `structure_upsert`
 
 The per-node tools (`pages_create`, `pages_append_markdown`) express a tree
