@@ -27,8 +27,8 @@ function dayLabel(ts: number): string {
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const yest = new Date(today); yest.setDate(yest.getDate() - 1);
   const dd = new Date(d); dd.setHours(0, 0, 0, 0);
-  if (dd.getTime() === today.getTime()) return "Today";
-  if (dd.getTime() === yest.getTime()) return "Yesterday";
+  if (dd.getTime() === today.getTime()) return "오늘";
+  if (dd.getTime() === yest.getTime()) return "어제";
   return formatDateWeekday(ts);
 }
 
@@ -77,7 +77,7 @@ export function FeedView({ db, view, rows, onOpenRow }: Props) {
           onClick={() => setQuickOpen(true)}
           className="h-auto gap-1 rounded-md bg-card px-2 py-1 text-xs font-normal text-muted-foreground [&_svg]:size-3"
         >
-          <Plus className="h-3 w-3" /> New row
+          <Plus className="h-3 w-3" /> 새 행
         </Button>
         <div className="flex items-center gap-1">
           <span className="text-muted-foreground">정렬 기준:</span>

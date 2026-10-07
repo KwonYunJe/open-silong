@@ -34,7 +34,7 @@ export function buildActionRows({
 }: BuildDeps): ActionRow[] {
   const insertItems: ActionRow[] = BLOCK_SPECS.map((s) => ({
     key: `insert:${s.type}`,
-    label: `Add ${s.label.toLowerCase()} below`,
+    label: `아래에 ${s.label} 추가`,
     keywords: ["add", "new", "block", "insert", s.label.toLowerCase(), ...s.keywords],
     icon: s.icon,
     run: async () => {
@@ -70,7 +70,7 @@ export function buildActionRows({
   }));
   const turnItems: ActionRow[] = TURN_INTO_SPECS.map((s) => ({
     key: `turn:${s.type}`,
-    label: `Turn into ${s.label}`,
+    label: `${s.label} 블록으로 변경`,
     keywords: ["turn", "into", "convert", "transform", s.label.toLowerCase(), ...s.keywords],
     icon: s.icon,
     run: () => convertTo(s.type),

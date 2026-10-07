@@ -38,7 +38,7 @@ export function CalendarView({ db, view, rows, onOpenRow }: Props) {
   const { undated, overdue } = useOverdueAndUndated(rows, dateProp, nav.todayStart);
 
   const todayStr = ymd(nav.now);
-  const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const dayLabels = ["일", "월", "화", "수", "목", "금", "토"];
   const orderedDays = [...dayLabels.slice(weekStart), ...dayLabels.slice(0, weekStart)];
 
   const sensors = useSensors(
@@ -88,7 +88,7 @@ export function CalendarView({ db, view, rows, onOpenRow }: Props) {
           </Button>
           {!nav.isCurrentNav && (
             <Button variant="outline" onClick={nav.goToday} className="ml-1 h-auto rounded px-2 py-1 text-xs font-normal text-muted-foreground">
-              Today
+              오늘
             </Button>
           )}
           <ModeToggle db={db} view={view} />
@@ -96,7 +96,7 @@ export function CalendarView({ db, view, rows, onOpenRow }: Props) {
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold">{nav.headerLabel}</span>
           {!dateProp && (
-            <span className="text-xs text-muted-foreground">(add a Date property)</span>
+            <span className="text-xs text-muted-foreground">(날짜 속성을 추가하세요)</span>
           )}
           <Button
             variant="outline"
@@ -106,7 +106,7 @@ export function CalendarView({ db, view, rows, onOpenRow }: Props) {
             }}
             className="ml-1 h-auto gap-1 rounded-md bg-card px-2 py-1 text-xs font-normal text-muted-foreground [&_svg]:size-3"
           >
-            <Plus className="h-3 w-3" /> New
+            <Plus className="h-3 w-3" /> 새 항목
           </Button>
         </div>
       </div>
@@ -157,7 +157,7 @@ export function CalendarView({ db, view, rows, onOpenRow }: Props) {
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             {overdue.length > 0 && (
               <OverflowPanel
-                title={`Overdue · ${overdue.length}`}
+                title={`기한 지남 · ${overdue.length}`}
                 tone="destructive"
                 rows={overdue}
                 onOpenRow={onOpenRow}
@@ -166,7 +166,7 @@ export function CalendarView({ db, view, rows, onOpenRow }: Props) {
             )}
             {undated.length > 0 && (
               <OverflowPanel
-                title={`No date · ${undated.length}`}
+                title={`날짜 없음 · ${undated.length}`}
                 tone="muted"
                 rows={undated}
                 onOpenRow={onOpenRow}
@@ -185,7 +185,7 @@ export function CalendarView({ db, view, rows, onOpenRow }: Props) {
         open={quickOpen}
         onOpenChange={setQuickOpen}
         prefill={quickPrefill}
-        title="Add to calendar"
+        title="캘린더에 추가"
         onCreated={(id) => onOpenRow(id)}
       />
     </div>

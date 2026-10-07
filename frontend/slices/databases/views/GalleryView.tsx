@@ -146,7 +146,7 @@ export function GalleryView({ db, view, rows, onOpenRow }: Props) {
         onClick={() => setQuickOpen(true)}
         className="flex h-auto min-h-[120px] items-center justify-center rounded-lg border-dashed p-3 text-sm font-normal text-muted-foreground hover:border-border-strong [&_svg]:size-4"
       >
-        <Plus className="mr-1 h-4 w-4" /> New
+        <Plus className="mr-1 h-4 w-4" /> 새 항목
       </Button>
       <QuickCreateDialog db={db} view={view} open={quickOpen} onOpenChange={setQuickOpen} onCreated={onOpenRow} />
     </div>

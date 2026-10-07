@@ -53,7 +53,7 @@ export function ActionCard({ icon: Icon, title, subtitle, onClick, primary }: an
 }
 
 export function PageCard({ page, onClick }: { page: Page; onClick: () => void }) {
-  const preview = page.previewText || "Empty page";
+  const preview = page.previewText || "빈 페이지";
   return (
     <Button
       variant="ghost"
@@ -66,7 +66,7 @@ export function PageCard({ page, onClick }: { page: Page; onClick: () => void })
       />
       <div className="flex items-center gap-2">
         <DynamicIcon value={page.icon} className="text-lg" />
-        <div className="font-medium text-sm truncate">{page.title || "Untitled"}</div>
+        <div className="font-medium text-sm truncate">{page.title || "제목 없음"}</div>
       </div>
       <div className="text-xs text-muted-foreground line-clamp-2">{preview}</div>
     </Button>

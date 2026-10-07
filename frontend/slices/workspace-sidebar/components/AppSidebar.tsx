@@ -112,7 +112,7 @@ export function AppSidebar({ onOpenSearch }: Props) {
     { icon: Network, label: "그래프", onClick: () => go("/graph"), active: pathname === path("/graph") },
     { icon: Bot, label: "AI", onClick: () => setAiOpen(true), active: false },
     {
-      icon: Inbox, label: "받은 알림", onClick: () => go("/inbox"),
+      icon: Inbox, label: "받은 편지함", onClick: () => go("/inbox"),
       active: pathname === path("/inbox"), badge: <InboxBadge />,
     },
     { icon: FileBox, label: "템플릿", onClick: () => setTemplatesOpen(true), active: false },
@@ -128,7 +128,7 @@ export function AppSidebar({ onOpenSearch }: Props) {
   if (isAdmin || claimableSuperAdmin) {
     accountItems.push({
       icon: ShieldAlert,
-      label: claimableSuperAdmin && !isAdmin ? "Claim admin" : "Admin",
+      label: claimableSuperAdmin && !isAdmin ? "관리자 권한 받기" : "관리자",
       onClick: () => { router.push(path("/admin")); closeMobile(); },
       active: pathname.startsWith(path("/admin")),
     });
@@ -173,7 +173,7 @@ export function AppSidebar({ onOpenSearch }: Props) {
           className="h-auto w-full justify-start gap-2 rounded-md bg-foreground px-2.5 py-1.5 text-sm font-medium text-background hover:bg-foreground hover:opacity-90 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:!p-0 [&_svg]:size-4"
         >
           <Plus className="h-4 w-4 shrink-0" />
-          <span className="group-data-[collapsible=icon]:hidden">New page</span>
+          <span className="group-data-[collapsible=icon]:hidden">새 페이지</span>
         </Button>
         <NavUser />
       </SidebarFooter>

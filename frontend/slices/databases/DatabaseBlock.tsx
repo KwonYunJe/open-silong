@@ -95,9 +95,9 @@ export function DatabaseBlock({
   if (db?.trashed) {
     return (
       <div className="rounded-lg border border-dashed border-warning/40 bg-warning/5 p-6 text-center text-sm">
-        <div className="font-medium text-warning">Database moved to Trash</div>
+        <div className="font-medium text-warning">데이터베이스가 휴지통으로 이동되었습니다</div>
         <div className="mt-1 text-xs text-muted-foreground">
-          Restore from <Link to={ROUTES.trash} className="underline">Trash</Link> to view it again.
+          <Link to={ROUTES.trash} className="underline">휴지통</Link>에서 복원하면 다시 볼 수 있습니다.
         </div>
       </div>
     );
@@ -105,7 +105,7 @@ export function DatabaseBlock({
   if (!db || !view) {
     return (
       <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-        Database not found.
+        데이터베이스를 찾을 수 없습니다.
       </div>
     );
   }

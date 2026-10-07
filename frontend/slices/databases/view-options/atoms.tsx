@@ -92,11 +92,11 @@ export function PropPicker({ value, onPick, props, allowEmpty, emptyLabel }: {
       <DropdownMenuContent align="start" className="w-56 max-h-72 overflow-y-auto">
         {allowEmpty && (
           <DropdownMenuItem onClick={() => onPick(undefined)}>
-            <span className="text-muted-foreground">{emptyLabel ?? "None"}</span>
+            <span className="text-muted-foreground">{emptyLabel ?? "없음"}</span>
           </DropdownMenuItem>
         )}
         {props.length === 0 ? (
-          <DropdownMenuItem disabled>No matching properties</DropdownMenuItem>
+          <DropdownMenuItem disabled>일치하는 속성이 없습니다</DropdownMenuItem>
         ) : props.map(p => (
           <DropdownMenuItem key={p.id} onClick={() => onPick(p.id)}>
             {p.name} <span className="ml-auto text-[10px] text-muted-foreground">{p.type}</span>
@@ -122,7 +122,7 @@ export function MultiPropChecklist({ db, value, onChange, filter, max }: {
   };
   return (
     <div className="rounded-md border border-border max-h-40 overflow-y-auto divide-y divide-border">
-      {list.length === 0 && <div className="px-2 py-2 text-[10px] text-muted-foreground">No matching properties</div>}
+      {list.length === 0 && <div className="px-2 py-2 text-[10px] text-muted-foreground">일치하는 속성이 없습니다</div>}
       {list.map(p => (
         <label key={p.id} className="flex items-center gap-2 px-2 py-1.5 text-xs hover:bg-accent/50 cursor-pointer">
           <Checkbox checked={ids.includes(p.id)} onCheckedChange={() => toggle(p.id)} />
@@ -131,7 +131,7 @@ export function MultiPropChecklist({ db, value, onChange, filter, max }: {
         </label>
       ))}
       {max != null && (
-        <div className="px-2 py-1 text-[10px] text-muted-foreground">{ids.length}/{max} selected</div>
+        <div className="px-2 py-1 text-[10px] text-muted-foreground">{ids.length}/{max} 선택됨</div>
       )}
     </div>
   );

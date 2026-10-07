@@ -71,8 +71,8 @@ export function BlockControls({ pageId, block, index, listeners, convertTo, askO
               <Button
                 variant="ghost"
                 size="icon"
-                title="Block menu"
-                aria-label="Block menu"
+                title="블록 메뉴"
+                aria-label="블록 메뉴"
                 className="h-6 w-5 text-muted-foreground"
               >
                 <MoreHorizontal className="h-3.5 w-3.5" />
@@ -92,7 +92,7 @@ export function BlockControls({ pageId, block, index, listeners, convertTo, askO
                         e.stopPropagation();
                       }
                     }}
-                    placeholder="Search actions…"
+                    placeholder="작업 검색…"
                     className="w-full rounded-md border border-border bg-background pl-7 pr-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-ring"
                   />
                 </div>
@@ -101,7 +101,7 @@ export function BlockControls({ pageId, block, index, listeners, convertTo, askO
                 {q.trim() ? (
                   filteredRows.length === 0 ? (
                     <div className="px-3 py-6 text-center text-xs text-muted-foreground">
-                      No actions match &ldquo;{q}&rdquo;.
+                      &ldquo;{q}&rdquo;와 일치하는 작업이 없습니다.
                     </div>
                   ) : (
                     filteredRows.map((r) => (

@@ -20,14 +20,14 @@ export function FormSettings({ db, view, formableProps, onClose, onSave }: {
     () => new Set(view.formShownProps ?? formableProps.map(p => p.id))
   );
   const [required, setRequired] = useState<Set<string>>(() => new Set(view.formRequiredProps ?? []));
-  const [successMessage, setSuccessMessage] = useState(view.formSuccessMessage ?? "Submitted!");
+  const [successMessage, setSuccessMessage] = useState(view.formSuccessMessage ?? "제출되었습니다!");
   const [isPublic, setIsPublic] = useState(!!view.formIsPublic);
   const [slugDraft, setSlugDraft] = useState(view.formSlug ?? "");
   const effectiveSlug = (slugDraft.trim() || view.id).toLowerCase();
   const formUrl = typeof window !== "undefined" ? `${window.location.origin}/forms/${effectiveSlug}` : "";
   const copyLink = async () => {
-    try { await navigator.clipboard.writeText(formUrl); toast.success("Form link copied"); }
-    catch { toast.error("Couldn't copy link"); }
+    try { await navigator.clipboard.writeText(formUrl); toast.success("폼 링크를 복사했습니다."); }
+    catch { toast.error("링크를 복사하지 못했습니다."); }
   };
 
   const toggleShown = (id: string) => {
@@ -63,7 +63,7 @@ export function FormSettings({ db, view, formableProps, onClose, onSave }: {
               <div>
                 <div className="text-sm font-medium">공개 폼</div>
                 <div className="text-xs text-muted-foreground">
-                  {isPublic ? "Anyone with the link can submit" : "Only you can submit (signed-in)"}
+                  {isPublic ? "링크를 가진 누구나 제출할 수 있습니다" : "로그인한 본인만 제출할 수 있습니다"}
                 </div>
               </div>
             </div>

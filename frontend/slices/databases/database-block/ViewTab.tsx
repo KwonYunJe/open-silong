@@ -58,20 +58,20 @@ export function ViewTab({ db: _db, v, active, onActivate, onRename, onDuplicate,
         variant="ghost"
         onClick={onActivate}
         onDoubleClick={(e) => { e.preventDefault(); setEditing(true); }}
-        title="Click to activate · Double-click to rename"
+        title="클릭하여 활성화 · 더블클릭하여 이름 변경"
         className="h-auto gap-1 px-2 py-1 text-xs font-normal hover:bg-transparent [&_svg]:size-3.5"
       >
         <Meta.icon className="h-3.5 w-3.5" />
         <span className="hidden sm:inline">{v.name}</span>
-        {locked && <Lock className="h-3 w-3 text-warning" aria-label="View locked" />}
+        {locked && <Lock className="h-3 w-3 text-warning" aria-label="보기 잠김" />}
       </Button>
       {active && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              aria-label="View actions"
-              title="View actions"
+              aria-label="보기 작업"
+              title="보기 작업"
               className="h-6 w-5 rounded-md p-0 text-muted-foreground hover:bg-background hover:text-foreground [&_svg]:size-3.5"
             >
               <MoreHorizontal className="h-3.5 w-3.5" />
@@ -79,19 +79,19 @@ export function ViewTab({ db: _db, v, active, onActivate, onRename, onDuplicate,
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start">
             <DropdownMenuItem onClick={() => { setDraft(v.name); setEditing(true); }}>
-              <Pencil className="mr-2 h-3.5 w-3.5" /> Rename
+              <Pencil className="mr-2 h-3.5 w-3.5" /> 이름 변경
             </DropdownMenuItem>
             <DropdownMenuItem onClick={onDuplicate}>
-              <Copy className="mr-2 h-3.5 w-3.5" /> Duplicate
+              <Copy className="mr-2 h-3.5 w-3.5" /> 복제
             </DropdownMenuItem>
             {onToggleLock && (
               <DropdownMenuItem onClick={onToggleLock}>
                 {locked ? <Unlock className="mr-2 h-3.5 w-3.5" /> : <Lock className="mr-2 h-3.5 w-3.5" />}
-                {locked ? "Unlock view" : "Lock view"}
+                {locked ? "보기 잠금 해제" : "보기 잠금"}
               </DropdownMenuItem>
             )}
             <DropdownMenuItem className="text-destructive" onClick={onDelete}>
-              <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete view
+              <Trash2 className="mr-2 h-3.5 w-3.5" /> 보기 삭제
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

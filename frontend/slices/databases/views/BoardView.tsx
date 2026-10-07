@@ -81,9 +81,9 @@ export function BoardView({ db, view, rows, onOpenRow }: Props) {
   if (!groupProp || !groupProp.options) {
     return (
       <div className="p-6 text-sm text-muted-foreground">
-        Board view needs a Select or Status property. Add one from the
-        column header → Change type, or via the Properties menu in the
-        view toolbar.
+        보드 보기에는 선택 또는 상태 속성이 필요합니다. 열 머리글의
+        유형 변경 메뉴 또는 보기 도구 모음의 속성 메뉴에서
+        해당 속성을 추가하세요.
       </div>
     );
   }
@@ -161,7 +161,7 @@ export function BoardView({ db, view, rows, onOpenRow }: Props) {
             onOpenChange={setQuickOpen}
             prefill={quickPrefill}
             onCreated={onOpenRow}
-            title="Add to board"
+            title="보드에 추가"
           />
           {columns.map((col) => (
             <BoardColumn key={col.id ?? "none"} db={db} col={col} groupProp={groupProp}

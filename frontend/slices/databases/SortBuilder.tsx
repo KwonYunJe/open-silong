@@ -51,8 +51,8 @@ export function SortBuilder({ db, view, writeView }: Props) {
             className="h-auto gap-1 rounded px-2 py-1 text-xs font-normal [&_svg]:size-3"
           >
             {s.direction === "asc"
-              ? <><ArrowUp className="h-3 w-3" /> Asc</>
-              : <><ArrowDown className="h-3 w-3" /> Desc</>}
+              ? <><ArrowUp className="h-3 w-3" /> 오름차순</>
+              : <><ArrowDown className="h-3 w-3" /> 내림차순</>}
           </Button>
 
           <Button variant="ghost" onClick={() => remove(i)} className="h-auto rounded p-1 text-muted-foreground [&_svg]:size-3">
@@ -65,7 +65,7 @@ export function SortBuilder({ db, view, writeView }: Props) {
         onClick={addSort}
         className="mt-1 h-auto gap-1 p-0 text-xs font-normal text-muted-foreground hover:bg-transparent hover:text-foreground [&_svg]:size-3"
       >
-        <Plus className="h-3 w-3" /> Add sort
+        <Plus className="h-3 w-3" /> 정렬 추가
       </Button>
     </div>
   );

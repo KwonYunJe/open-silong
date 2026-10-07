@@ -56,10 +56,10 @@ export function MenuHierarchy(props: Props) {
 
       <DropdownMenuSub>
         <DropdownMenuSubTrigger>
-          <Plus className="mr-2 h-3.5 w-3.5" /> Add new block
+          <Plus className="mr-2 h-3.5 w-3.5" /> 새 블록 추가
         </DropdownMenuSubTrigger>
         <DropdownMenuSubContent className="max-h-80 overflow-y-auto w-56">
-          <DropdownMenuLabel className="text-xs text-muted-foreground">Insert below</DropdownMenuLabel>
+          <DropdownMenuLabel className="text-xs text-muted-foreground">아래에 삽입</DropdownMenuLabel>
           {BLOCK_SPECS.map((s) => (
             <DropdownMenuItem
               key={s.type}
@@ -108,7 +108,7 @@ export function MenuHierarchy(props: Props) {
 
       <DropdownMenuSub>
         <DropdownMenuSubTrigger>
-          <ArrowRightLeft className="mr-2 h-3.5 w-3.5" /> Turn into
+          <ArrowRightLeft className="mr-2 h-3.5 w-3.5" /> 블록 유형 변경
         </DropdownMenuSubTrigger>
         <DropdownMenuSubContent className="max-h-80 overflow-y-auto w-56">
           {TURN_INTO_SPECS.map((s) => (
@@ -125,7 +125,7 @@ export function MenuHierarchy(props: Props) {
       </DropdownMenuSub>
 
       <DropdownMenuItem onSelect={(e) => { e.preventDefault(); closeMenu(); setAskOpen(true); }}>
-        <Sparkles className="mr-2 h-3.5 w-3.5 text-brand" /> Ask AI
+        <Sparkles className="mr-2 h-3.5 w-3.5 text-brand" /> AI에게 요청
         <span className="ml-auto text-[10px] text-muted-foreground">⌘J</span>
       </DropdownMenuItem>
 
@@ -143,13 +143,13 @@ export function MenuHierarchy(props: Props) {
         const url = `${window.location.origin}/dashboard/p/${pageId}#block-${block.id}`;
         try {
           await navigator.clipboard.writeText(url);
-          toast.success("Block link copied");
+          toast.success("블록 링크를 복사했습니다.");
         } catch {
-          toast.error("Copy failed");
+          toast.error("복사하지 못했습니다.");
         }
         closeMenu();
       }}>
-        <Link2 className="mr-2 h-3.5 w-3.5" /> Copy link to block
+        <Link2 className="mr-2 h-3.5 w-3.5" /> 블록 링크 복사
         <span className="ml-auto text-[10px] text-muted-foreground">⌥⇧L</span>
       </DropdownMenuItem>
 
@@ -160,13 +160,13 @@ export function MenuHierarchy(props: Props) {
         });
         closeMenu();
       }}>
-        <Copy className="mr-2 h-3.5 w-3.5" /> Duplicate
+        <Copy className="mr-2 h-3.5 w-3.5" /> 복제
         <span className="ml-auto text-[10px] text-muted-foreground">⌘D</span>
       </DropdownMenuItem>
 
       {sel && (
         <DropdownMenuItem onSelect={(e) => { e.preventDefault(); sel.selectOne(block.id); closeMenu(); }}>
-          <CheckSquare className="mr-2 h-3.5 w-3.5" /> Select block
+          <CheckSquare className="mr-2 h-3.5 w-3.5" /> 블록 선택
           <span className="ml-auto text-[10px] text-muted-foreground">⌘·Shift-click</span>
         </DropdownMenuItem>
       )}
@@ -175,7 +175,7 @@ export function MenuHierarchy(props: Props) {
         className="text-destructive focus:text-destructive"
         onSelect={(e) => { e.preventDefault(); deleteBlock(pageId, block.id); closeMenu(); }}
       >
-        <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete
+        <Trash2 className="mr-2 h-3.5 w-3.5" /> 삭제
         <span className="ml-auto text-[10px] text-muted-foreground">Del</span>
       </DropdownMenuItem>
 
@@ -183,7 +183,7 @@ export function MenuHierarchy(props: Props) {
 
       <DropdownMenuItem onSelect={(e) => {
         e.preventDefault();
-        const text = window.prompt("Add comment");
+        const text = window.prompt("댓글을 입력하세요");
         if (text?.trim()) {
           createComment({
             pageId, blockId: block.id, text: text.trim(),
@@ -192,12 +192,12 @@ export function MenuHierarchy(props: Props) {
         }
         closeMenu();
       }}>
-        <MessageSquare className="mr-2 h-3.5 w-3.5" /> Comment
+        <MessageSquare className="mr-2 h-3.5 w-3.5" /> 댓글
         {openCount > 0 && <span className="ml-auto text-[10px] text-brand">{openCount}</span>}
       </DropdownMenuItem>
 
       <div className="px-2 py-1.5 text-[11px] text-muted-foreground border-t border-border mt-1">
-        Last edited by <span className="text-foreground">{user.name || "you"}</span>
+        마지막 수정: <span className="text-foreground">{user.name || "나"}</span>
         {lastEditedAt ? <> · {relTime(lastEditedAt)}</> : null}
       </div>
     </>

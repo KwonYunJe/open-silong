@@ -70,9 +70,9 @@ export function NavUser() {
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
-                <span className="truncate font-medium">{user.name || "You"}</span>
+                <span className="truncate font-medium">{user.name || "나"}</span>
                 <span className="truncate text-xs text-muted-foreground">
-                  {user.email || "no-email"}
+                  {user.email || "이메일 없음"}
                 </span>
               </div>
               <ChevronsUpDown className="ml-auto size-4 opacity-60 group-data-[collapsible=icon]:hidden" />
@@ -95,9 +95,9 @@ export function NavUser() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left leading-tight">
-                  <span className="truncate font-medium">{user.name || "You"}</span>
+                  <span className="truncate font-medium">{user.name || "나"}</span>
                   <span className="truncate text-xs text-muted-foreground">
-                    {user.email || "no-email"}
+                    {user.email || "이메일 없음"}
                   </span>
                 </div>
               </div>
@@ -106,19 +106,19 @@ export function NavUser() {
             <DropdownMenuGroup>
               <DropdownMenuItem onSelect={() => go("/profile")}>
                 <UserIcon className="mr-2 size-4" />
-                Profile
+                프로필
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => go("/settings")}>
                 <SettingsIcon className="mr-2 size-4" />
-                Settings
+                설정
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => go("/settings#theme")}>
                 <Palette className="mr-2 size-4" />
-                Theme presets
+                테마 설정
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => setFeedbackOpen(true)}>
                 <MessageSquarePlus className="mr-2 size-4" />
-                Send feedback
+                피드백 보내기
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
@@ -128,7 +128,7 @@ export function NavUser() {
               className="text-destructive focus:text-destructive"
             >
               <LogOut className="mr-2 size-4" />
-              {signingOut ? "Signing out…" : "Log out"}
+              {signingOut ? "로그아웃 중…" : "로그아웃"}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

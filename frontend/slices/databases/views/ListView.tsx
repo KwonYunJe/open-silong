@@ -84,7 +84,7 @@ export function ListView({ db, view, rows, onOpenRow }: Props) {
         onClick={() => setQuickOpen(true)}
         className="h-auto w-full justify-start gap-2 rounded-none px-3 py-2 text-left text-xs font-normal text-muted-foreground [&_svg]:size-3.5"
       >
-        <Plus className="h-3.5 w-3.5" /> New row
+        <Plus className="h-3.5 w-3.5" /> 새 행
       </Button>
       <QuickCreateDialog db={db} view={view} open={quickOpen} onOpenChange={setQuickOpen} onCreated={onOpenRow} />
     </div>

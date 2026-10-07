@@ -48,7 +48,7 @@ export function DatabasePage() {
   if (!id) {
     return (
       <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-        No database id.
+        데이터베이스 ID가 없습니다.
       </div>
     );
   }
@@ -58,14 +58,14 @@ export function DatabasePage() {
   if (db === null) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 text-sm text-muted-foreground">
-        <div>Database not found.</div>
+        <div>데이터베이스를 찾을 수 없습니다.</div>
         <Button
           variant="outline"
           type="button"
           onClick={() => navigate(ROUTES.dashboard)}
           className="h-auto rounded-md px-3 py-1.5 text-sm font-normal"
         >
-          Back to dashboard
+          대시보드로 돌아가기
         </Button>
       </div>
     );
@@ -75,7 +75,7 @@ export function DatabasePage() {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 text-sm">
         <div className="font-medium text-warning">
-          Database is in Trash
+          데이터베이스가 휴지통에 있습니다
         </div>
         <Button
           variant="outline"
@@ -83,7 +83,7 @@ export function DatabasePage() {
           onClick={() => navigate(ROUTES.trash)}
           className="h-auto rounded-md px-3 py-1.5 text-sm font-normal"
         >
-          Open Trash
+          휴지통 열기
         </Button>
       </div>
     );
@@ -129,7 +129,7 @@ function DatabaseBodyHeader({
 }) {
   const [draftName, setDraftName, flush] = useDebouncedCommit(
     name,
-    (v) => onChange({ name: v.trim() || "Untitled database" }),
+    (v) => onChange({ name: v.trim() || "제목 없는 데이터베이스" }),
   );
   const [editing, setEditing] = useState(false);
 
@@ -148,7 +148,7 @@ function DatabaseBodyHeader({
           type="button"
           variant="ghost"
           className="h-auto rounded-md p-1 text-[24px] font-normal leading-none [&_svg]:size-[24px]"
-          aria-label="Change database icon"
+          aria-label="데이터베이스 아이콘 변경"
         >
           <DynamicIcon
             value={icon}
@@ -175,9 +175,9 @@ function DatabaseBodyHeader({
           type="button"
           onClick={() => setEditing(true)}
           className="truncate text-2xl font-bold tracking-tight hover:text-muted-foreground transition"
-          title="Click to rename"
+          title="클릭하여 이름 변경"
         >
-          {name || "Untitled database"}
+          {name || "제목 없는 데이터베이스"}
         </button>
       )}
     </div>
@@ -195,7 +195,7 @@ function FullPageHeaderChrome({
   void dbId;
   const [draftName, setDraftName, flush] = useDebouncedCommit(
     name,
-    (v) => onChange({ name: v.trim() || "Untitled database" }),
+    (v) => onChange({ name: v.trim() || "제목 없는 데이터베이스" }),
   );
   const [editing, setEditing] = useState(false);
 
@@ -216,7 +216,7 @@ function FullPageHeaderChrome({
           type="button"
           variant="ghost"
           className="h-6 w-6 p-0 text-base"
-          aria-label="Change database icon"
+          aria-label="데이터베이스 아이콘 변경"
         >
           <DynamicIcon
             value={icon}
@@ -244,9 +244,9 @@ function FullPageHeaderChrome({
           variant="ghost"
           onClick={() => setEditing(true)}
           className="h-6 truncate px-1 text-sm font-medium"
-          title="Click to rename"
+          title="클릭하여 이름 변경"
         >
-          {name || "Untitled database"}
+          {name || "제목 없는 데이터베이스"}
         </Button>
       )}
     </div>

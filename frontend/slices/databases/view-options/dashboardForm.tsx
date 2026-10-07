@@ -5,8 +5,8 @@ export function DashboardOptions({ db, view }: ViewOptionsProps) {
   const set = useUpdate(db, view);
   return (
     <>
-      <Section title="KPI cards">
-        <div className="text-[10px] text-muted-foreground -mt-1">Numeric or checkbox properties to feature</div>
+      <Section title="KPI 카드">
+        <div className="text-[10px] text-muted-foreground -mt-1">강조해서 표시할 숫자 또는 체크박스 속성</div>
         <MultiPropChecklist
           db={db}
           value={view.dashboardKPIs}
@@ -15,8 +15,8 @@ export function DashboardOptions({ db, view }: ViewOptionsProps) {
           max={6}
         />
       </Section>
-      <Section title="Group breakdowns">
-        <div className="text-[10px] text-muted-foreground -mt-1">Select / Status properties</div>
+      <Section title="그룹 분석">
+        <div className="text-[10px] text-muted-foreground -mt-1">선택 / 상태 속성</div>
         <MultiPropChecklist
           db={db}
           value={view.dashboardBreakdowns}
@@ -25,8 +25,8 @@ export function DashboardOptions({ db, view }: ViewOptionsProps) {
           max={6}
         />
       </Section>
-      <Section title="Recent activity">
-        <Row label="Limit">
+      <Section title="최근 활동">
+        <Row label="표시 개수">
           <Input
             type="number" min={1} max={20}
             value={view.dashboardRecentLimit ?? 5}
@@ -43,8 +43,8 @@ export function FormOptions({ db, view }: ViewOptionsProps) {
   const set = useUpdate(db, view);
   return (
     <>
-      <Section title="Header">
-        <Row label="Title">
+      <Section title="헤더">
+        <Row label="제목">
           <Input
             value={view.formTitle ?? ""}
             placeholder={db.name}
@@ -52,27 +52,27 @@ export function FormOptions({ db, view }: ViewOptionsProps) {
             className="h-7 text-xs"
           />
         </Row>
-        <Row label="Description">
+        <Row label="설명">
           <textarea
             value={view.formDescription ?? ""}
-            placeholder="Fill the form to add a new row."
+            placeholder="폼을 작성하여 새 행을 추가하세요."
             onChange={(e) => set({ formDescription: e.target.value })}
             rows={2}
             className="w-full text-xs rounded-md border border-border bg-background px-2 py-1 outline-none focus:ring-1 focus:ring-ring resize-none"
           />
         </Row>
-        <Row label="Success message">
+        <Row label="제출 완료 메시지">
           <Input
             value={view.formSuccessMessage ?? ""}
-            placeholder="Submitted!"
+            placeholder="제출되었습니다!"
             onChange={(e) => set({ formSuccessMessage: e.target.value })}
             className="h-7 text-xs"
           />
         </Row>
       </Section>
-      <Section title="Fields">
+      <Section title="필드">
         <div className="text-[10px] text-muted-foreground -mt-1">
-          Fields shown in the form (use the form page's pencil button to set required).
+          폼에 표시할 필드입니다. 필수 여부는 폼 페이지의 편집 버튼에서 설정할 수 있습니다.
         </div>
         <MultiPropChecklist
           db={db}

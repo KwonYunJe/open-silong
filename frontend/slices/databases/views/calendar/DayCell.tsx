@@ -55,7 +55,7 @@ export function DayCell({
             <Button
               variant="ghost"
               onClick={(e) => { e.stopPropagation(); onAddOnDay(); }}
-              title="Add row on this date"
+              title="이 날짜에 행 추가"
               className="h-auto rounded p-0.5 text-muted-foreground/30 opacity-60 transition hover:text-foreground group-hover:opacity-100 [&_svg]:size-3"
             >
               <Plus className="h-3 w-3" />
@@ -118,20 +118,20 @@ function DraggableEvent({
         onContextMenu={async (e) => {
           e.preventDefault();
           const ok = await confirm({
-            title: `Delete "${row.title || "Untitled"}"?`,
-            description: "This row will be moved to the Trash.",
+            title: `"${row.title || "제목 없음"}" 행을 삭제할까요?`,
+            description: "이 행은 휴지통으로 이동됩니다.",
             variant: "destructive",
           });
           if (ok) onDeleteRow(row.id);
         }}
         data-db-nav-item
-        title={colorOptName ?? "Click to open · Drag to change date · Right-click to delete"}
+        title={colorOptName ?? "클릭하여 열기 · 드래그하여 날짜 변경 · 우클릭하여 삭제"}
         className={cn(
           "h-auto w-full cursor-grab touch-none justify-start truncate rounded border px-1 py-0.5 pr-5 text-left text-[11px] font-normal active:cursor-grabbing",
           tone,
         )}
       >
-        <DynamicIcon value={row.icon} className="text-[11px] mr-1 inline-flex" />{row.title || "Untitled"}
+        <DynamicIcon value={row.icon} className="text-[11px] mr-1 inline-flex" />{row.title || "제목 없음"}
       </Button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -139,15 +139,15 @@ function DraggableEvent({
             variant="ghost"
             onClick={(e) => e.stopPropagation()}
             className="absolute top-0.5 right-0.5 h-auto rounded p-0.5 text-current opacity-0 hover:bg-background/60 group-hover/event:opacity-100 [&_svg]:size-3"
-            aria-label="Event actions"
+            aria-label="일정 작업"
           >
             <MoreHorizontal className="h-3 w-3" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => onOpenRow(row.id)}>Open</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onOpenRow(row.id)}>열기</DropdownMenuItem>
           <DropdownMenuItem className="text-destructive" onClick={() => onDeleteRow(row.id)}>
-            <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete
+            <Trash2 className="mr-2 h-3.5 w-3.5" /> 삭제
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

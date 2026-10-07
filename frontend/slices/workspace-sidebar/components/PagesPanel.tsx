@@ -113,7 +113,7 @@ export function PagesPanel({ onClose }: Props) {
     return (
       <div data-keyboard-scope>
         <SidebarGroup>
-          <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+          <SidebarGroupLabel>워크스페이스</SidebarGroupLabel>
           <SidebarGroupContent>
             <PageRowSkeleton count={6} />
           </SidebarGroupContent>

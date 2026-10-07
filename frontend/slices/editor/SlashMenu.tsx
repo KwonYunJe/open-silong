@@ -25,15 +25,15 @@ type Item =
 
 const LINKED_DB_ITEM = {
   kind: "linked-db" as const,
-  label: "Database — linked",
-  hint: "Embed an existing database",
+  label: "데이터베이스 — 연결됨",
+  hint: "기존 데이터베이스를 현재 페이지에 표시합니다",
   keywords: ["database", "db", "linked", "link", "embed", "existing"],
 };
 
 const FULLPAGE_DB_ITEM = {
   kind: "fullpage-db" as const,
-  label: "Database — full page",
-  hint: "Create a standalone database on its own page (no blocks)",
+  label: "데이터베이스 — 전체 페이지",
+  hint: "독립된 전체 페이지 데이터베이스를 만듭니다",
   keywords: ["database", "db", "full", "page", "standalone", "new", "dedicated"],
 };
 
@@ -99,14 +99,14 @@ export function SlashMenu({
   if (filtered.length === 0) {
     return (
       <div className="w-72 rounded-lg border border-border bg-popover p-2 shadow-pop animate-fade-in">
-        <div className="text-xs text-muted-foreground p-2">No matching blocks</div>
+        <div className="text-xs text-muted-foreground p-2">일치하는 블록이 없습니다</div>
       </div>
     );
   }
 
   return (
     <div ref={listRef} className="w-72 max-h-72 overflow-y-auto rounded-lg border border-border bg-popover p-1 shadow-pop animate-fade-in">
-      <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold px-2 py-1.5">Basic blocks</div>
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold px-2 py-1.5">기본 블록</div>
       {filtered.map((it, i) => {
         const Icon =
           it.kind === "block" ? it.spec.icon

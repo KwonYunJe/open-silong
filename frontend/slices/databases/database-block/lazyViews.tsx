@@ -25,15 +25,15 @@ export const VIEW_COMPONENTS: Record<DbView, any> = {
 };
 
 export const VIEW_META: Record<DbView, { icon: any; label: string }> = {
-  table: { icon: Table2, label: "Table" },
-  board: { icon: LayoutGrid, label: "Board" },
-  list: { icon: ListIcon, label: "List" },
-  gallery: { icon: Image, label: "Gallery" },
-  calendar: { icon: CalendarIcon, label: "Calendar" },
-  timeline: { icon: Clock, label: "Timeline" },
-  chart: { icon: BarChart3, label: "Chart" },
-  dashboard: { icon: LayoutDashboard, label: "Dashboard" },
-  feed: { icon: Rss, label: "Feed" },
-  map: { icon: MapIcon, label: "Map" },
-  form: { icon: ClipboardList, label: "Form" },
+  table: { icon: Table2, label: "표" },
+  board: { icon: LayoutGrid, label: "보드" },
+  list: { icon: ListIcon, label: "목록" },
+  gallery: { icon: Image, label: "갤러리" },
+  calendar: { icon: CalendarIcon, label: "캘린더" },
+  timeline: { icon: Clock, label: "타임라인" },
+  chart: { icon: BarChart3, label: "차트" },
+  dashboard: { icon: LayoutDashboard, label: "대시보드" },
+  feed: { icon: Rss, label: "피드" },
+  map: { icon: MapIcon, label: "지도" },
+  form: { icon: ClipboardList, label: "폼" },
 };

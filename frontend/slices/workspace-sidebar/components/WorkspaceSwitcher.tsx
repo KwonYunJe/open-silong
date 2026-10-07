@@ -64,10 +64,10 @@ export function WorkspaceSwitcher() {
   async function onDelete() {
     if (!canDelete) return;
     const ok = await confirm({
-      title: `Delete "${workspace.name}"?`,
-      description: "Pages and databases inside become unreachable. This cannot be undone.",
+      title: `"${workspace.name}" 워크스페이스를 삭제할까요?`,
+      description: "내부의 페이지와 데이터베이스에 더 이상 접근할 수 없으며 이 작업은 되돌릴 수 없습니다.",
       variant: "destructive",
-      confirmLabel: "Delete workspace",
+      confirmLabel: "워크스페이스 삭제",
     });
     if (!ok) return;
     await deleteOp.execute(async () => { await deleteWorkspace(workspace.id); });
@@ -75,19 +75,19 @@ export function WorkspaceSwitcher() {
   async function onLeave() {
     if (!canLeave) return;
     const ok = await confirm({
-      title: `Leave "${workspace.name}"?`,
-      description: "You'll lose access to all pages and databases in this workspace.",
-      confirmLabel: "Leave workspace",
+      title: `"${workspace.name}" 워크스페이스에서 나갈까요?`,
+      description: "이 워크스페이스의 모든 페이지와 데이터베이스에 접근할 수 없게 됩니다.",
+      confirmLabel: "워크스페이스 나가기",
     });
     if (!ok) return;
     await leaveOp.execute(async () => { await leaveWorkspace(workspace.id); });
   }
 
   const subtitle = workspace.isPersonal
-    ? "Personal · Free"
+    ? "개인 · 무료"
     : workspace.role === "owner"
-      ? "Owner · Free"
-      : workspace.role === "editor" ? "Editor" : "Viewer";
+      ? "소유자 · 무료"
+      : workspace.role === "editor" ? "편집자" : "뷰어";
 
   return (
     <>

@@ -79,13 +79,13 @@ export function QuickCreateDialog({
   const submit = async () => {
     setError(null);
     if (!titleVal.trim()) {
-      setError("Title is required");
+      setError("제목은 필수입니다.");
       return;
     }
     for (const p of formable) {
       if (!requiredSet.has(p.id)) continue;
       if (isEmptyValue(draft[p.id])) {
-        setError(`${p.name} is required`);
+        setError(`${p.name} 항목은 필수입니다.`);
         return;
       }
     }
@@ -103,7 +103,7 @@ export function QuickCreateDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{title ?? `New row in ${db.name}`}</DialogTitle>
+          <DialogTitle>{title ?? `${db.name}에 새 행 추가`}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
 
@@ -111,11 +111,11 @@ export function QuickCreateDialog({
           onSubmit={(e) => { e.preventDefault(); void submit(); }}
           className="space-y-3"
         >
-          <FormField label="Title" required>
+          <FormField label="제목" required>
             <Input
               value={titleVal}
               onChange={(e) => setTitleVal(e.target.value)}
-              placeholder="Untitled"
+              placeholder="제목 없음"
               autoFocus
             />
           </FormField>
@@ -129,7 +129,7 @@ export function QuickCreateDialog({
               {primary.length > 0 && (
                 <AccordionItem value="primary" className="border-0">
                   <AccordionTrigger className="py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:no-underline">
-                    Properties
+                    속성
                     <span className="ml-auto mr-2 text-[10px] font-normal text-muted-foreground/60">
                       {primary.length}
                     </span>
@@ -146,7 +146,7 @@ export function QuickCreateDialog({
               {secondary.length > 0 && (
                 <AccordionItem value="secondary" className="border-0">
                   <AccordionTrigger className="py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:no-underline">
-                    Hidden in this view
+                    이 보기에서 숨겨진 속성
                     <span className="ml-auto mr-2 text-[10px] font-normal text-muted-foreground/60">
                       {secondary.length}
                     </span>
@@ -171,10 +171,10 @@ export function QuickCreateDialog({
 
           <DialogFooter className="gap-2">
             <Button type="button" variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
-              Cancel
+              취소
             </Button>
             <Button type="submit" size="sm" disabled={submitting}>
-              {submitting ? "Creating…" : "Create"}
+              {submitting ? "생성 중…" : "생성"}
             </Button>
           </DialogFooter>
         </form>

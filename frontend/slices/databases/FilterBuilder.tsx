@@ -84,7 +84,7 @@ export function FilterBuilder({ db, view, writeView }: Props) {
         onClick={addFilter}
         className="mt-1 h-auto gap-1 p-0 text-xs font-normal text-muted-foreground hover:bg-transparent hover:text-foreground [&_svg]:size-3"
       >
-        <Plus className="h-3 w-3" /> Add filter
+        <Plus className="h-3 w-3" /> 필터 추가
       </Button>
     </div>
   );

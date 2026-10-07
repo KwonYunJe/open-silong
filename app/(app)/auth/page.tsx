@@ -8,8 +8,8 @@ import { DemoGuestEntry } from "./DemoGuestEntry";
 import { SetupPointer } from "./SetupPointer";
 
 export const metadata: Metadata = {
-  title: "Sign in",
-  description: "Sign in or create a Silong workspace",
+  title: "로그인",
+  description: "Silong 워크스페이스에 로그인",
   robots: { index: false, follow: false },
 };
 
@@ -22,7 +22,7 @@ export default function AuthPage() {
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition hover:text-foreground"
         >
           <ArrowLeft className="size-3.5" />
-          Kembali ke beranda
+          홈으로 돌아가기
         </Link>
         <div className="space-y-6 rounded-xl border p-8 shadow-sm">
           <DemoGuestEntry />

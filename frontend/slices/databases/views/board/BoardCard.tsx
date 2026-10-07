@@ -51,7 +51,7 @@ export function BoardCard({ row, db, onOpen, cardPadding, colorByProp, cardPropI
     >
       <div className="flex items-center gap-1.5 text-sm font-medium mb-1">
         <DynamicIcon value={row.icon} className="text-sm" />
-        <span className="truncate">{(row as Page).title || "Untitled"}</span>
+        <span className="truncate">{(row as Page).title || "제목 없음"}</span>
       </div>
       <div className="flex flex-wrap gap-1 -mx-1">
         {visibleProps.map((p: Property) => (

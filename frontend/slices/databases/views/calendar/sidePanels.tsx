@@ -20,7 +20,7 @@ export function ModeToggle({ db, view }: { db: Database; view: DatabaseViewConfi
             "h-auto rounded px-2 py-0.5 text-[11px] font-normal",
             mode === m ? "bg-brand text-brand-foreground font-medium hover:bg-brand hover:text-brand-foreground" : "text-muted-foreground hover:bg-accent",
           )}
-        >{m === "week" ? "Week" : "Month"}</Button>
+        >{m === "week" ? "주" : "월"}</Button>
       ))}
     </div>
   );
@@ -48,13 +48,13 @@ export function OverflowPanel({
         {rows.map((r) => (
           <div key={r.id} className="flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-accent/40 group">
             <Button variant="ghost" onClick={() => onOpenRow(r.id)} className="h-auto flex-1 justify-start truncate p-0 text-xs font-normal hover:bg-transparent">
-              <DynamicIcon value={r.icon} className="text-xs mr-1 inline-flex" />{r.title || "Untitled"}
+              <DynamicIcon value={r.icon} className="text-xs mr-1 inline-flex" />{r.title || "제목 없음"}
             </Button>
             <Button
               variant="ghost"
               onClick={() => onDeleteRow(r.id)}
               className="h-auto p-0 text-muted-foreground opacity-0 hover:bg-transparent hover:text-destructive group-hover:opacity-100 [&_svg]:size-3.5"
-              aria-label="Delete"
+              aria-label="삭제"
             >
               <Trash2 className="h-3.5 w-3.5" />
             </Button>
@@ -69,7 +69,7 @@ export function Legend({ prop }: { prop: Property }) {
   if (!prop.options?.length) return null;
   return (
     <div className="mt-3 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
-      <span>Legend:</span>
+      <span>범례:</span>
       {prop.options.map((o) => (
         <span key={o.id} className={cn("inline-flex items-center rounded-full border px-2 py-0.5", colorClass(o.color))}>
           {o.name}

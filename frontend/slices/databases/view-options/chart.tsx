@@ -5,32 +5,32 @@ export function ChartOptions({ db, view }: ViewOptionsProps) {
   const set = useUpdate(db, view);
   return (
     <>
-      <Section title="Header">
-        <Row label="Chart title">
-          <Input value={view.chartTitle ?? ""} placeholder="Optional" onChange={(e) => set({ chartTitle: e.target.value })} className="h-7 text-xs" />
+      <Section title="헤더">
+        <Row label="차트 제목">
+          <Input value={view.chartTitle ?? ""} placeholder="선택 사항" onChange={(e) => set({ chartTitle: e.target.value })} className="h-7 text-xs" />
         </Row>
       </Section>
-      <Section title="Axes">
-        <Row label="X axis">
+      <Section title="축">
+        <Row label="X축">
           <PropPicker
             value={view.chartXProp}
             onPick={(id) => set({ chartXProp: id ?? undefined })}
             props={db.properties}
-            allowEmpty emptyLabel="Auto"
+            allowEmpty emptyLabel="자동"
           />
         </Row>
-        <Row label="X axis label" hint="defaults to property name">
+        <Row label="X축 이름" hint="기본값은 속성 이름입니다">
           <Input value={view.chartXLabel ?? ""} placeholder={db.properties.find(p => p.id === view.chartXProp)?.name ?? ""} onChange={(e) => set({ chartXLabel: e.target.value })} className="h-7 text-xs" />
         </Row>
-        <Row label="Y axis label">
-          <Input value={view.chartYLabel ?? ""} placeholder={view.chartAggregate === "count" || !view.chartAggregate ? "Count" : (db.properties.find(p => p.id === view.chartYProp)?.name ?? "Value")} onChange={(e) => set({ chartYLabel: e.target.value })} className="h-7 text-xs" />
+        <Row label="Y축 이름">
+          <Input value={view.chartYLabel ?? ""} placeholder={view.chartAggregate === "count" || !view.chartAggregate ? "개수" : (db.properties.find(p => p.id === view.chartYProp)?.name ?? "값")} onChange={(e) => set({ chartYLabel: e.target.value })} className="h-7 text-xs" />
         </Row>
       </Section>
-      <Section title="Display">
-        <Toggle label="Show legend" checked={view.chartShowLegend ?? true} onChange={v => set({ chartShowLegend: v })} />
-        <Toggle label="Show grid" checked={view.chartShowGrid ?? true} onChange={v => set({ chartShowGrid: v })} />
-        <Toggle label="Show value labels" checked={view.chartShowValues ?? false} onChange={v => set({ chartShowValues: v })} />
-        <Row label="Height">
+      <Section title="표시">
+        <Toggle label="범례 표시" checked={view.chartShowLegend ?? true} onChange={v => set({ chartShowLegend: v })} />
+        <Toggle label="격자 표시" checked={view.chartShowGrid ?? true} onChange={v => set({ chartShowGrid: v })} />
+        <Toggle label="값 표시" checked={view.chartShowValues ?? false} onChange={v => set({ chartShowValues: v })} />
+        <Row label="높이">
           <Segmented
             value={view.chartHeight ?? "medium"}
             onChange={v => set({ chartHeight: v })}
@@ -42,30 +42,30 @@ export function ChartOptions({ db, view }: ViewOptionsProps) {
           />
         </Row>
       </Section>
-      <Section title="Sort">
-        <Row label="Sort by">
+      <Section title="정렬">
+        <Row label="정렬 기준">
           <Segmented
             value={view.chartSortBy ?? "value"}
             onChange={v => set({ chartSortBy: v })}
             options={[
-              { value: "name", label: "Name" },
-              { value: "value", label: "Value" },
+              { value: "name", label: "이름" },
+              { value: "value", label: "값" },
             ]}
           />
         </Row>
-        <Row label="Direction">
+        <Row label="방향">
           <Segmented
             value={view.chartSortDir ?? "desc"}
             onChange={v => set({ chartSortDir: v })}
             options={[
-              { value: "asc", label: "Asc" },
-              { value: "desc", label: "Desc" },
+              { value: "asc", label: "오름차순" },
+              { value: "desc", label: "내림차순" },
             ]}
           />
         </Row>
       </Section>
-      <Section title="Data">
-        <Row label="Top N buckets" hint="0 = all">
+      <Section title="데이터">
+        <Row label="상위 N개 항목" hint="0 = 전체">
           <Input
             type="number"
             min={0} max={50}
@@ -74,7 +74,7 @@ export function ChartOptions({ db, view }: ViewOptionsProps) {
             className="h-7 text-xs"
           />
         </Row>
-        <Row label="Decimals">
+        <Row label="소수 자릿수">
           <Segmented
             value={view.chartDecimals ?? 0}
             onChange={v => set({ chartDecimals: v })}
@@ -85,15 +85,15 @@ export function ChartOptions({ db, view }: ViewOptionsProps) {
             ]}
           />
         </Row>
-        <Row label="Palette">
+        <Row label="색상 팔레트">
           <Segmented
             value={view.chartPalette ?? "warm"}
             onChange={v => set({ chartPalette: v })}
             options={[
-              { value: "warm", label: "Warm" },
-              { value: "cool", label: "Cool" },
-              { value: "rainbow", label: "Rainbow" },
-              { value: "mono", label: "Mono" },
+              { value: "warm", label: "따뜻한 색" },
+              { value: "cool", label: "차가운 색" },
+              { value: "rainbow", label: "무지개" },
+              { value: "mono", label: "단색" },
             ]}
           />
         </Row>

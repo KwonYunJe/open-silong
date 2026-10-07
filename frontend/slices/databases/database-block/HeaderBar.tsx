@@ -45,7 +45,7 @@ export function DatabaseHeaderBar({
               onChange={(next) => updateDatabase(db.id, { icon: next })}
               onClear={() => updateDatabase(db.id, { icon: DEFAULT_DATABASE_ICON })}
             >
-              <Button variant="ghost" type="button" className="h-auto rounded p-0.5 text-base font-normal leading-none" aria-label="Change database icon">
+              <Button variant="ghost" type="button" className="h-auto rounded p-0.5 text-base font-normal leading-none" aria-label="데이터베이스 아이콘 변경">
                 <DynamicIcon value={db.icon} fallback={DEFAULT_DATABASE_ICON} />
               </Button>
             </IconPickerPopover>
@@ -59,18 +59,18 @@ export function DatabaseHeaderBar({
         {isInline && (
           <>
             <span
-              title="This database is embedded inline. The canonical home is a dedicated page — open it to edit without surrounding blocks."
+              title="현재 페이지에 삽입된 데이터베이스입니다. 전체 페이지에서 열어 독립적으로 편집할 수 있습니다."
               className="ml-1 hidden sm:inline-flex items-center gap-1 rounded-full border border-muted-foreground/30 bg-muted/50 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground"
             >
-              <BoxSelect className="h-3 w-3" /> inline
+              <BoxSelect className="h-3 w-3" /> 인라인
             </span>
             <Button
               variant="ghost"
               type="button"
               size="icon"
               onClick={onOpenAsPage}
-              title="Open as page"
-              aria-label="Open database as page"
+              title="전체 페이지로 열기"
+              aria-label="데이터베이스를 전체 페이지로 열기"
               className="h-auto rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground [&_svg]:size-3.5"
             >
               <Maximize2 className="h-3.5 w-3.5" />
@@ -79,18 +79,18 @@ export function DatabaseHeaderBar({
         )}
         {isLinked && (
           <span
-            title="This database is also embedded on other pages — edits sync everywhere."
+            title="이 데이터베이스는 다른 페이지에도 연결되어 있으며 변경사항이 모두 동기화됩니다."
             className="ml-1 hidden sm:inline-flex items-center gap-1 rounded-full border border-brand/30 bg-brand/5 px-1.5 py-0.5 text-[10px] font-medium text-brand"
           >
-            <Link2 className="h-3 w-3" /> linked
+            <Link2 className="h-3 w-3" /> 연결됨
           </span>
         )}
         {db.locked && (
           <span
-            title="Database is locked — property and view structural edits are gated. Toggle in the database menu."
+            title="데이터베이스가 잠겨 있어 속성과 보기 구조를 수정할 수 없습니다."
             className="ml-1 inline-flex items-center gap-1 rounded-full border border-warning/40 bg-warning/10 px-1.5 py-0.5 text-[10px] font-medium text-warning"
           >
-            <Lock className="h-3 w-3" /> locked
+            <Lock className="h-3 w-3" /> 잠김
           </span>
         )}
       </div>
@@ -107,7 +107,7 @@ export function DatabaseHeaderBar({
               const { id: _id, ...rest } = v;
               void _id;
               const cloned = structuredClone(rest);
-              const nv = await addView(db.id, { ...cloned, name: `${v.name} copy` });
+              const nv = await addView(db.id, { ...cloned, name: `${v.name} 복사본` });
               onActivateView(nv.id);
             }}
             onDelete={() => {
@@ -124,15 +124,15 @@ export function DatabaseHeaderBar({
             <Button
               variant="ghost"
               className="h-auto rounded p-1 text-muted-foreground [&_svg]:size-3.5"
-              aria-label="Add view"
-              title={db.locked ? "Database locked — unlock to add views" : "Add view"}
+              aria-label="보기 추가"
+              title={db.locked ? "데이터베이스 잠금을 해제해야 보기를 추가할 수 있습니다" : "보기 추가"}
               disabled={db.locked}
             >
               <Plus className="h-3.5 w-3.5" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start">
-            <DropdownMenuLabel className="text-xs">Add view</DropdownMenuLabel>
+            <DropdownMenuLabel className="text-xs">보기 추가</DropdownMenuLabel>
             {(Object.keys(VIEW_META) as DbView[]).map((t) => {
               const M = VIEW_META[t];
               return (

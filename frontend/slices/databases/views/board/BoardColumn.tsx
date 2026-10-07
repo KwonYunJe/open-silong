@@ -57,7 +57,7 @@ export function BoardColumn({ db, col, groupProp, onAdd, onOpen, cardPadding, ca
               variant="ghost"
               {...sortable.attributes}
               {...sortable.listeners}
-              aria-label="Reorder column"
+              aria-label="열 순서 변경"
               className="h-auto cursor-grab rounded p-0.5 text-muted-foreground active:cursor-grabbing [&_svg]:size-3"
             >
               <GripVertical className="h-3 w-3" />
@@ -66,7 +66,7 @@ export function BoardColumn({ db, col, groupProp, onAdd, onOpen, cardPadding, ca
           {col.option ? (
             <span className={cn("inline-flex items-center rounded-full border px-2 py-0.5 text-xs", colorClass(col.option.color))}>{col.option.name}</span>
           ) : (
-            <span className="text-xs text-muted-foreground">No {groupProp.name}</span>
+            <span className="text-xs text-muted-foreground">{groupProp.name} 없음</span>
           )}
           <span className="text-xs text-muted-foreground">{col.rows.length}</span>
         </div>

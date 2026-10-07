@@ -23,7 +23,7 @@ export function DatabaseToolbar({ db, view, writeView }: ToolbarProps) {
   const activeFilters = (view.filters ?? []).length;
   const activeSorts = (view.sorts ?? []).length;
   const locked = !!view.locked;
-  const lockTitle = "View is locked — unlock from the view tab menu";
+  const lockTitle = "보기가 잠겨 있습니다. 보기 탭 메뉴에서 잠금을 해제하세요.";
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-1.5 bg-muted/30">
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground basis-full sm:basis-auto sm:flex-1 min-w-0">
@@ -31,7 +31,7 @@ export function DatabaseToolbar({ db, view, writeView }: ToolbarProps) {
         <Input
           value={view.search ?? ""}
           onChange={(e) => writeView(view.id, { search: e.target.value })}
-          placeholder={locked ? "Search disabled — view locked" : "Search rows…"}
+          placeholder={locked ? "보기가 잠겨 있어 검색할 수 없습니다" : "행 검색…"}
           disabled={locked}
           title={locked ? lockTitle : undefined}
           className="h-7 text-xs border-0 bg-transparent shadow-none px-1 focus-visible:ring-0 w-full sm:max-w-48 disabled:opacity-50"
@@ -50,7 +50,7 @@ export function DatabaseToolbar({ db, view, writeView }: ToolbarProps) {
               )}
             >
               <Filter className="h-3 w-3" />
-              <span className="hidden sm:inline">Filter</span>
+              <span className="hidden sm:inline">필터</span>
               {activeFilters > 0 && <span className="ml-0.5 rounded-full bg-brand text-brand-foreground text-[10px] px-1">{activeFilters}</span>}
             </Button>
           </PopoverTrigger>
@@ -71,7 +71,7 @@ export function DatabaseToolbar({ db, view, writeView }: ToolbarProps) {
               )}
             >
               <ArrowUpDown className="h-3 w-3" />
-              <span className="hidden sm:inline">Sort</span>
+              <span className="hidden sm:inline">정렬</span>
               {activeSorts > 0 && <span className="ml-0.5 rounded-full bg-brand text-brand-foreground text-[10px] px-1">{activeSorts}</span>}
             </Button>
           </PopoverTrigger>
@@ -99,15 +99,15 @@ function GroupByButton({ db, view, writeView }: ToolbarProps) {
         <Button
           variant="ghost"
           disabled={locked}
-          title={locked ? "View is locked — unlock from the view tab menu" : undefined}
+          title={locked ? "보기가 잠겨 있습니다. 보기 탭 메뉴에서 잠금을 해제하세요." : undefined}
           className="h-auto gap-1 rounded-md px-2 py-1 text-xs font-normal text-muted-foreground [&_svg]:size-3"
         >
           <LayoutGrid className="h-3 w-3" />
-          <span className="hidden sm:inline">Group: {current?.name ?? "—"}</span>
+          <span className="hidden sm:inline">그룹: {current?.name ?? "—"}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
-        <DropdownMenuLabel className="text-xs">Group by</DropdownMenuLabel>
+        <DropdownMenuLabel className="text-xs">그룹 기준</DropdownMenuLabel>
         {groupProps.map((p) => (
           <DropdownMenuItem key={p.id} onClick={() => writeView(view.id, { groupBy: p.id })}>
             {current?.id === p.id && <Check className="mr-2 h-3.5 w-3.5" />}

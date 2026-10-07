@@ -26,10 +26,10 @@ export function Dashboard() {
 
   const greet = (() => {
     const h = new Date().getHours();
-    if (h < 5) return "Working late";
-    if (h < 12) return "Good morning";
-    if (h < 18) return "Good afternoon";
-    return "Good evening";
+    if (h < 5) return "늦은 시간까지 작업 중이시네요";
+    if (h < 12) return "좋은 아침입니다";
+    if (h < 18) return "좋은 오후입니다";
+    return "좋은 저녁입니다";
   })();
 
   return (
@@ -41,7 +41,7 @@ export function Dashboard() {
         </div>
         <h1 className="text-4xl md:text-5xl font-bold tracking-tight font-serif">{greet}.</h1>
         <p className="text-muted-foreground mt-2">
-          {regularPages.length} page{regularPages.length !== 1 ? "s" : ""} · {databases.length} database{databases.length !== 1 ? "s" : ""}
+          {regularPages.length}개 페이지 · {databases.length}개 데이터베이스
         </p>
 
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -61,14 +61,14 @@ export function Dashboard() {
               // (The old flow also spun up a host PAGE + embedded block, which
               // left an orphan "Untitled database" page in the sidebar/graph and
               // desynced on rename — that's the deprecated databaseHostFor path.)
-              const db = await createDatabase("Untitled database", DEFAULT_DATABASE_ICON);
+              const db = await createDatabase("제목 없는 데이터베이스", DEFAULT_DATABASE_ICON);
               navigate(`/db/${db.id}`);
             }}
           />
           <ActionCard
             icon={regularPages.length === 0 ? Sparkles : FileText}
-            title={regularPages.length === 0 ? "Try a template" : "Browse all"}
-            subtitle={regularPages.length === 0 ? "Spin up from a blueprint" : `${regularPages.length} pages`}
+            title={regularPages.length === 0 ? "템플릿 사용하기" : "모두 보기"}
+            subtitle={regularPages.length === 0 ? "템플릿에서 빠르게 시작합니다" : `${regularPages.length}개 페이지`}
             onClick={() => {
               if (regularPages.length === 0) { setTplOpen(true); return; }
               if (root[0]) navigate(`/p/${root[0].id}`);
@@ -121,8 +121,8 @@ export function Dashboard() {
                   >
                     <DynamicIcon value={p.icon} className="text-lg" />
                     <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-medium">{p.title || "Untitled"}</div>
-                      <div className="truncate text-xs text-muted-foreground">{p.previewText || "Empty page"}</div>
+                      <div className="truncate text-sm font-medium">{p.title || "제목 없음"}</div>
+                      <div className="truncate text-xs text-muted-foreground">{p.previewText || "빈 페이지"}</div>
                     </div>
                     <span className="text-xs text-muted-foreground shrink-0">{relTime(p.updatedAt)}</span>
                   </Button>

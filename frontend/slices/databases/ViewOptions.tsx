@@ -16,12 +16,12 @@ export function ViewOptions({ db, view }: Props) {
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="ghost" className="h-auto gap-1 rounded-md px-2 py-1 text-xs font-normal text-muted-foreground [&_svg]:size-3">
-          <Sliders className="h-3 w-3" /> Options
+          <Sliders className="h-3 w-3" /> 보기 옵션
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 p-3 space-y-3 max-h-[70vh] overflow-y-auto">
         <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
-          {view.type} options
+          보기 옵션
         </div>
         <ViewPanel db={db} view={view} />
       </PopoverContent>

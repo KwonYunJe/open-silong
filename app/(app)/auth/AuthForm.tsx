@@ -16,8 +16,8 @@ export function AuthForm() {
   const { signIn } = useAuthActions();
   const [flow, setFlow] = useState<"signIn" | "signUp">("signIn");
   const [name, setName] = useState("");
-  const [email, set이메일] = useState("");
-  const [password, set비밀번호] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -115,14 +115,14 @@ export function AuthForm() {
           type="email"
           placeholder="이메일"
           value={email}
-          onChange={(e) => set이메일(e.target.value)}
+          onChange={(e) => setEmail(e.target.value)}
           required
         />
         <Input
           type="password"
           placeholder="비밀번호"
           value={password}
-          onChange={(e) => set비밀번호(e.target.value)}
+          onChange={(e) => setPassword(e.target.value)}
           required
           minLength={8}
         />
