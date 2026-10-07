@@ -28,7 +28,13 @@ interface Props {
   closeMenu: () => void;
   setAskOpen: (o: boolean) => void;
   convertTo: (t: BlockType) => void;
-  addBlock: (pageId: string, after: number, type?: BlockType) => Promise<string | undefined>;
+  addBlock: (
+    pageId: string,
+    after: number,
+    type?: BlockType,
+    init?: Partial<Block>,
+  ) => Promise<string | undefined>;
+  createDatabase: (name?: string, icon?: string) => Promise<{ id: string }>;
   deleteBlock: (pageId: string, blockId: string) => void;
   duplicateBlock: (pageId: string, blockId: string) => Promise<string>;
   updateBlock: (pageId: string, blockId: string, patch: Partial<Block>) => void;
@@ -40,8 +46,8 @@ const relTime = (ts?: number) => (ts ? formatRelTime(ts) : "");
 export function MenuHierarchy(props: Props) {
   const {
     pageId, block, index, currentLabel, lastEditedAt, user, openCount, sel,
-    closeMenu, setAskOpen, convertTo, addBlock, deleteBlock, duplicateBlock,
-    updateBlock, createComment,
+    closeMenu, setAskOpen, convertTo, addBlock, createDatabase,
+    deleteBlock, duplicateBlock, updateBlock, createComment,
   } = props;
 
   return (
@@ -59,8 +65,38 @@ export function MenuHierarchy(props: Props) {
               key={s.type}
               onSelect={async (e) => {
                 e.preventDefault();
-                const id = await addBlock(pageId, index, s.type);
-                if (id) setTimeout(() => document.querySelector<HTMLElement>(`[data-block-id="${id}"]`)?.focus(), 0);
+                let id: string | undefined;
+
+                if (s.type === "database") {
+                  // A database block cannot exist by itself.
+                  // Create the backing Convex database first and store its id
+                  // on the block in the same addBlock mutation.
+                  const db = await createDatabase();
+                  id = await addBlock(
+                    pageId,
+                    index,
+                    "database",
+                    {
+                      text: "",
+                      databaseId: db.id,
+                    },
+                  );
+                } else {
+                  id = await addBlock(pageId, index, s.type);
+                }
+
+                if (id) {
+                  setTimeout(
+                    () =>
+                      document
+                        .querySelector<HTMLElement>(
+                          `[data-block-id="${id}"]`,
+                        )
+                        ?.focus(),
+                    0,
+                  );
+                }
+
                 closeMenu();
               }}
             >

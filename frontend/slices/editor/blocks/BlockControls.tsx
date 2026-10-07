@@ -26,7 +26,15 @@ interface Props {
 }
 
 export function BlockControls({ pageId, block, index, listeners, convertTo, askOpen, onAskOpenChange }: Props) {
-  const { addBlock, deleteBlock, duplicateBlock, updateBlock, user, getPage } = useEditorAdapter();
+  const {
+    addBlock,
+    deleteBlock,
+    duplicateBlock,
+    updateBlock,
+    createDatabase,
+    user,
+    getPage,
+  } = useEditorAdapter();
   const { openCount, create } = useBlockComments(block.id);
   const sel = useBlockSelectionOptional();
   const [open, setOpen] = useState(false);
@@ -41,8 +49,14 @@ export function BlockControls({ pageId, block, index, listeners, convertTo, askO
   const lastEditedAt = page?.updatedAt;
 
   const actionRows = useMemo(
-    () => buildActionRows({ pageId, index, addBlock, convertTo }),
-    [addBlock, convertTo, pageId, index],
+    () => buildActionRows({
+      pageId,
+      index,
+      addBlock,
+      createDatabase,
+      convertTo,
+    }),
+    [addBlock, createDatabase, convertTo, pageId, index],
   );
   const filteredRows = useMemo(() => filterActionRows(actionRows, q), [q, actionRows]);
 
@@ -105,8 +119,12 @@ export function BlockControls({ pageId, block, index, listeners, convertTo, askO
                     currentLabel={currentLabel} lastEditedAt={lastEditedAt}
                     user={user} openCount={openCount} sel={sel}
                     closeMenu={closeMenu} setAskOpen={setAskOpen} convertTo={convertTo}
-                    addBlock={addBlock} deleteBlock={deleteBlock} duplicateBlock={duplicateBlock}
-                    updateBlock={updateBlock} createComment={create}
+                    addBlock={addBlock}
+                    createDatabase={createDatabase}
+                    deleteBlock={deleteBlock}
+                    duplicateBlock={duplicateBlock}
+                    updateBlock={updateBlock}
+                    createComment={create}
                   />
                 )}
               </div>

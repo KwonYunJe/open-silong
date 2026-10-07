@@ -1,9 +1,20 @@
 /** @type {import('next').NextConfig} */
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://silong.rahmanef.com";
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL ?? "https://api-silong.rahmanef.com";
-const convexHost = (() => {
-  try { return new URL(convexUrl).hostname; } catch { return "api-silong.rahmanef.com"; }
+const convexParsed = (() => {
+  try {
+    return new URL(convexUrl);
+  } catch {
+    return new URL("https://api-silong.rahmanef.com");
+  }
 })();
+
+const convexHost = convexParsed.hostname;
+const convexPort = convexParsed.port;
+const convexProtocol = convexParsed.protocol.replace(":", "");
+const convexOrigin = convexParsed.origin;
+const convexWsOrigin =
+  `${convexParsed.protocol === "https:" ? "wss:" : "ws:"}//${convexParsed.host}`;
 
 // Stable per-deploy build id. CI sets GITHUB_SHA / DOKPLOY_COMMIT_SHA;
 // fallback timestamp keeps dev unique. Exposed to the client as
@@ -35,7 +46,12 @@ const nextConfig = {
     // render storage blobs. User-pasted external URLs (ImageBlock,
     // GalleryView) still use `unoptimized` because the URL space is open.
     remotePatterns: [
-      { protocol: "https", hostname: convexHost, pathname: "/api/storage/**" },
+      {
+        protocol: convexProtocol,
+        hostname: convexHost,
+        ...(convexPort ? { port: convexPort } : {}),
+        pathname: "/api/storage/**",
+      },
       // Common cover/avatar hosts users paste — kept narrow on purpose.
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "avatars.githubusercontent.com" },
@@ -120,7 +136,7 @@ const nextConfig = {
       // still go through next/image which has its own remotePatterns gate.
       `img-src 'self' data: blob: https:`,
       "font-src 'self' data:",
-      `connect-src 'self' https://${convexHost} wss://${convexHost} https://www.google-analytics.com https://accounts.google.com`,
+      `connect-src 'self' ${convexOrigin} ${convexWsOrigin} https://www.google-analytics.com https://accounts.google.com`,
       "frame-src 'self' https://accounts.google.com",
       "manifest-src 'self'",
       "worker-src 'self' blob:",

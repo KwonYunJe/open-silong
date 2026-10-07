@@ -15,19 +15,57 @@ export interface ActionRow {
 interface BuildDeps {
   pageId: string;
   index: number;
-  addBlock: (pageId: string, after: number, type: BlockType) => Promise<string | undefined>;
+  addBlock: (
+    pageId: string,
+    after: number,
+    type: BlockType,
+    init?: Partial<import("@/shared/types/domain").Block>,
+  ) => Promise<string | undefined>;
+  createDatabase: (name?: string, icon?: string) => Promise<{ id: string }>;
   convertTo: (t: BlockType) => void;
 }
 
-export function buildActionRows({ pageId, index, addBlock, convertTo }: BuildDeps): ActionRow[] {
+export function buildActionRows({
+  pageId,
+  index,
+  addBlock,
+  createDatabase,
+  convertTo,
+}: BuildDeps): ActionRow[] {
   const insertItems: ActionRow[] = BLOCK_SPECS.map((s) => ({
     key: `insert:${s.type}`,
     label: `Add ${s.label.toLowerCase()} below`,
     keywords: ["add", "new", "block", "insert", s.label.toLowerCase(), ...s.keywords],
     icon: s.icon,
     run: async () => {
-      const id = await addBlock(pageId, index, s.type);
-      if (id) setTimeout(() => document.querySelector<HTMLElement>(`[data-block-id="${id}"]`)?.focus(), 0);
+      let id: string | undefined;
+
+      if (s.type === "database") {
+        const db = await createDatabase();
+        id = await addBlock(
+          pageId,
+          index,
+          "database",
+          {
+            text: "",
+            databaseId: db.id,
+          },
+        );
+      } else {
+        id = await addBlock(pageId, index, s.type);
+      }
+
+      if (id) {
+        setTimeout(
+          () =>
+            document
+              .querySelector<HTMLElement>(
+                `[data-block-id="${id}"]`,
+              )
+              ?.focus(),
+          0,
+        );
+      }
     },
   }));
   const turnItems: ActionRow[] = TURN_INTO_SPECS.map((s) => ({

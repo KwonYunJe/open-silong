@@ -16,18 +16,38 @@ const isProtected = createRouteMatcher(["/dashboard(.*)"]);
 const isAuthRoute = createRouteMatcher(["/auth"]);
 const isLanding = createRouteMatcher(["/"]);
 
-export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
-  const isSignedIn = await convexAuth.isAuthenticated();
+/**
+ * Important:
+ *
+ * Browser:
+ *   NEXT_PUBLIC_CONVEX_URL=http://10.8.0.1:3210
+ *
+ * Next.js server inside Docker:
+ *   http://backend:3210
+ *
+ * Authentication requests are handled server-side by Next.js, so they must
+ * use Docker's internal service DNS instead of the WireGuard host address.
+ */
+const convexServerUrl = "http://backend:3210";
 
-  // Logged-in users skip the marketing/auth pages and land in the workspace.
-  if (isSignedIn && (isLanding(request) || isAuthRoute(request))) {
-    return nextjsMiddlewareRedirect(request, "/dashboard");
-  }
-  // Anonymous users hitting protected routes go to sign-in.
-  if (!isSignedIn && isProtected(request)) {
-    return nextjsMiddlewareRedirect(request, "/auth");
-  }
-});
+export default convexAuthNextjsMiddleware(
+  async (request, { convexAuth }) => {
+    const isSignedIn = await convexAuth.isAuthenticated();
+
+    // Logged-in users skip the marketing/auth pages and land in the workspace.
+    if (isSignedIn && (isLanding(request) || isAuthRoute(request))) {
+      return nextjsMiddlewareRedirect(request, "/dashboard");
+    }
+
+    // Anonymous users hitting protected routes go to sign-in.
+    if (!isSignedIn && isProtected(request)) {
+      return nextjsMiddlewareRedirect(request, "/auth");
+    }
+  },
+  {
+    convexUrl: convexServerUrl,
+  },
+);
 
 export const config = {
   matcher: [
