@@ -32,13 +32,13 @@ function SectionForKey({ k }: { k: SettingsKey }) {
     );
     case "mcp":        return (
       <div className="rounded-xl border border-border bg-card p-5 space-y-4">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Script tokens (nsn_)</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">스크립트 토큰 (nsn_)</h2>
         <McpTokensSection />
       </div>
     );
     case "webhooks":   return (
       <div className="rounded-xl border border-border bg-card p-5 space-y-4">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Webhooks</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">웹훅</h2>
         <WebhooksSection />
       </div>
     );
@@ -69,8 +69,8 @@ export default function SettingsPage() {
           <SettingsIcon className="h-5 w-5" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight font-serif">Settings</h1>
-          <p className="text-sm text-muted-foreground">Workspace and editor preferences.</p>
+          <h1 className="text-2xl font-bold tracking-tight font-serif">설정</h1>
+          <p className="text-sm text-muted-foreground">워크스페이스와 편집기 환경을 설정합니다.</p>
         </div>
       </header>
 
@@ -81,7 +81,7 @@ export default function SettingsPage() {
         <Suspense fallback={<div className="w-full md:w-56" />}>
           <SettingsSidebar />
         </Suspense>
-        <Suspense fallback={<div className="rounded-xl border border-border bg-card p-5">Loading…</div>}>
+        <Suspense fallback={<div className="rounded-xl border border-border bg-card p-5">불러오는 중…</div>}>
           <SettingsBody />
         </Suspense>
       </div>

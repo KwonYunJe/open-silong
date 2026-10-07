@@ -14,14 +14,14 @@ const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL;
 export function SetupGate({ children }: { children: ReactNode }) {
   if (!CONVEX_URL || CONVEX_URL.includes("placeholder")) {
     return (
-      <Warn title="Hubungkan database (Convex)">
+      <Warn title="데이터베이스(Convex) 연결 필요">
         <p className="text-sm text-muted-foreground">
           Website belum tahu alamat database-nya. Di <b>Vercel → Settings →
           Environment Variables</b>, isi dua ini lalu <b>Redeploy</b>:
         </p>
         <EnvBlock />
         <p className="text-xs text-muted-foreground">
-          Belum punya nilainya? Buat project di{" "}
+          아직 값이 없다면 다음에서 프로젝트를 생성하세요:{" "}
           <a className="underline" href="https://convex.dev" target="_blank" rel="noreferrer">convex.dev</a>{" "}
           — URL ada di Settings, deploy key di Settings → Deploy Keys.
         </p>
@@ -39,16 +39,16 @@ class BackendBoundary extends Component<{ children: ReactNode }, { failed: boole
   render() {
     if (this.state.failed) {
       return (
-        <Warn title="Backend belum ter-deploy">
+        <Warn title="백엔드가 아직 배포되지 않았습니다.">
           <p className="text-sm text-muted-foreground">
-            Database tersambung tapi fungsinya belum ada (error{" "}
+            데이터베이스는 연결됐지만 백엔드 함수가 없습니다 (error{" "}
             <code>Server Error</code>). Pastikan <b>CONVEX_DEPLOY_KEY</b>{" "}
             terisi di Vercel, lalu <b>Redeploy</b> — build otomatis push
             fungsi &amp; tabel ke Convex.
           </p>
           <EnvBlock />
           <Button size="sm" variant="outline" className="w-fit" onClick={() => location.reload()}>
-            Cek ulang
+            다시 확인
           </Button>
         </Warn>
       );

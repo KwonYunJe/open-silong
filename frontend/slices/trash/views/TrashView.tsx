@@ -24,7 +24,7 @@ export function TrashView() {
             <Trash2 className="h-5 w-5 text-muted-foreground" />
           </div>
           <div className="flex-1">
-            <h1 className="text-2xl font-bold tracking-tight font-serif">Trash</h1>
+            <h1 className="text-2xl font-bold tracking-tight font-serif">휴지통</h1>
             <p className="text-sm text-muted-foreground">
               Restore or permanently delete items. Items older than 30 days are auto-purged.
             </p>
@@ -54,8 +54,8 @@ export function TrashView() {
         {isEmpty ? (
           <div className="rounded-xl border border-dashed border-border p-12 text-center">
             <div className="text-4xl mb-2">🧹</div>
-            <div className="font-medium">Trash is empty</div>
-            <p className="text-sm text-muted-foreground mt-1">Deleted pages and databases will show up here.</p>
+            <div className="font-medium">휴지통이 비어 있습니다</div>
+            <p className="text-sm text-muted-foreground mt-1">삭제한 페이지와 데이터베이스가 여기에 표시됩니다.</p>
           </div>
         ) : (
           <>

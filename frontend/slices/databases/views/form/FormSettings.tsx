@@ -52,8 +52,8 @@ export function FormSettings({ db, view, formableProps, onClose, onSave }: {
   return (
     <div className="p-6 max-w-xl mx-auto">
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-base font-semibold">Form settings</h3>
-        <Button variant="ghost" size="sm" onClick={onClose}>Cancel</Button>
+        <h3 className="text-base font-semibold">폼 설정</h3>
+        <Button variant="ghost" size="sm" onClick={onClose}>취소</Button>
       </div>
       <div className="rounded-lg border border-border bg-card p-4 space-y-4">
         <div className="rounded-md border border-border bg-muted/30 p-3 space-y-3">
@@ -61,7 +61,7 @@ export function FormSettings({ db, view, formableProps, onClose, onSave }: {
             <div className="flex items-center gap-2">
               <Globe className={`h-4 w-4 ${isPublic ? "text-success" : "text-muted-foreground"}`} />
               <div>
-                <div className="text-sm font-medium">Public form</div>
+                <div className="text-sm font-medium">공개 폼</div>
                 <div className="text-xs text-muted-foreground">
                   {isPublic ? "Anyone with the link can submit" : "Only you can submit (signed-in)"}
                 </div>
@@ -71,7 +71,7 @@ export function FormSettings({ db, view, formableProps, onClose, onSave }: {
           </div>
           {isPublic && (
             <>
-              <FormField label="Custom slug (optional)">
+              <FormField label="사용자 지정 주소 (선택)">
                 <Input
                   value={slugDraft}
                   onChange={e => setSlugDraft(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
@@ -88,12 +88,12 @@ export function FormSettings({ db, view, formableProps, onClose, onSave }: {
           )}
         </div>
 
-        <FormField label="Success message">
+        <FormField label="제출 완료 메시지">
           <Input value={successMessage} onChange={e => setSuccessMessage(e.target.value)} />
         </FormField>
         <div>
           <div className="grid grid-cols-[1fr_auto_auto] gap-2 text-[10px] uppercase tracking-wider text-muted-foreground border-b border-border pb-1.5 mb-1.5">
-            <div>Property</div><div>Show</div><div>Required</div>
+            <div>속성</div><div>표시</div><div>필수</div>
           </div>
           {formableProps.map(p => (
             <div key={p.id} className="grid grid-cols-[1fr_auto_auto] gap-2 items-center py-1 text-sm">
@@ -108,7 +108,7 @@ export function FormSettings({ db, view, formableProps, onClose, onSave }: {
           ))}
         </div>
         <div className="flex justify-end gap-2 border-t border-border pt-3">
-          <Button variant="ghost" size="sm" onClick={onClose}>Cancel</Button>
+          <Button variant="ghost" size="sm" onClick={onClose}>취소</Button>
           <Button
             size="sm"
             onClick={() => onSave({
@@ -118,7 +118,7 @@ export function FormSettings({ db, view, formableProps, onClose, onSave }: {
               formIsPublic: isPublic,
               formSlug: slugDraft.trim() || undefined,
             })}
-          >Save</Button>
+          >저장</Button>
         </div>
       </div>
     </div>

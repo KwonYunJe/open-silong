@@ -41,7 +41,7 @@ export function CommentItem({
           <div className="flex items-baseline gap-2">
             <span className="text-xs font-medium truncate">{comment.authorName}</span>
             <span className="text-[10px] text-muted-foreground">{relTime(comment.createdAt)}</span>
-            {comment.resolved && <span className="text-[10px] text-success">Resolved</span>}
+            {comment.resolved && <span className="text-[10px] text-success">해결됨</span>}
           </div>
           {editing ? (
             <div className="mt-1 space-y-1">
@@ -73,15 +73,15 @@ export function CommentItem({
       {!editing && (canEdit || canResolve || canDelete) && (
         <div className="mt-1 flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition">
           {canEdit && (
-            <IconBtn label="Edit" onClick={() => setEditing(true)}><Pencil className="h-3 w-3" /></IconBtn>
+            <IconBtn label="수정" onClick={() => setEditing(true)}><Pencil className="h-3 w-3" /></IconBtn>
           )}
           {canResolve && (comment.resolved ? (
-            <IconBtn label="Reopen" onClick={() => onResolve(false)}><RotateCcw className="h-3 w-3" /></IconBtn>
+            <IconBtn label="다시 열기" onClick={() => onResolve(false)}><RotateCcw className="h-3 w-3" /></IconBtn>
           ) : (
-            <IconBtn label="Resolve" onClick={() => onResolve(true)}><Check className="h-3 w-3" /></IconBtn>
+            <IconBtn label="해결" onClick={() => onResolve(true)}><Check className="h-3 w-3" /></IconBtn>
           ))}
           {canDelete && (
-            <IconBtn label="Delete" destructive onClick={onRemove}><Trash2 className="h-3 w-3" /></IconBtn>
+            <IconBtn label="삭제" destructive onClick={onRemove}><Trash2 className="h-3 w-3" /></IconBtn>
           )}
         </div>
       )}

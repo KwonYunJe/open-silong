@@ -21,7 +21,7 @@ export default function AuthError({
         <div className="flex justify-center mb-3">
           <AlertTriangle className="h-6 w-6 text-destructive" />
         </div>
-        <h2 className="text-base font-semibold mb-1">Sign-in failed</h2>
+        <h2 className="text-base font-semibold mb-1">로그인 실패</h2>
         <p className="text-sm text-muted-foreground mb-4">{error.message || "Unknown error"}</p>
         <Button
           onClick={reset}

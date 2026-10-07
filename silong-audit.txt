@@ -1,0 +1,66 @@
+========================================
+ OPEN-SILONG ENVIRONMENT AUDIT
+========================================
+
+[1] Docker containers
+NAME                           IMAGE                                        COMMAND                   SERVICE     CREATED             STATUS                       PORTS
+open-silong-app                open-silong-frontend                         "docker-entrypoint.s…"   frontend    3 minutes ago       Up 3 minutes                 10.8.0.1:3100->3000/tcp
+open-silong-convex             ghcr.io/get-convex/convex-backend:latest     "./run_backend.sh"        backend     18 minutes ago      Up 18 minutes (healthy)      10.8.0.1:3210-3211->3210-3211/tcp
+open-silong-convex-dashboard   ghcr.io/get-convex/convex-dashboard:latest   "node ./server.js"        dashboard   31 minutes ago      Up 31 minutes                10.8.0.1:6791->6791/tcp
+open-silong-postgres           postgres:17-alpine                           "docker-entrypoint.s…"   postgres    About an hour ago   Up About an hour (healthy)   5432/tcp
+
+[2] Public URLs
+https://silong.yueic.net                                                    200
+https://api-silong.yueic.net/version                                        200
+https://site-silong.yueic.net/.well-known/openid-configuration              200
+
+[3] Frontend runtime environment
+CONVEX_SERVER_URL=http://backend:3210
+NEXT_PUBLIC_CONVEX_URL=https://api-silong.yueic.net
+NEXT_PUBLIC_SITE_URL=https://silong.yueic.net
+NEXT_PUBLIC_MCP_URL=https://site-silong.yueic.net/mcp
+
+[4] Convex backend runtime environment
+CONVEX_CLOUD_ORIGIN=https://api-silong.yueic.net
+CONVEX_SITE_ORIGIN=https://site-silong.yueic.net
+POSTGRES_URL=SET
+
+[5] Core local secrets
+INSTANCE_NAME=SET
+INSTANCE_SECRET=SET
+NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=SET
+
+[6] Convex required environment
+JWT_PRIVATE_KEY=SET
+JWKS=SET
+SITE_URL=SET
+
+[7] Optional feature environment
+SUPER_ADMIN_EMAIL=SET
+ADMIN_BOOTSTRAP_EMAILS=SET
+AI_KEY_ENCRYPTION_SECRET=SET
+OPENROUTER_API_KEY=SET
+OPENROUTER_APP_NAME=SET
+OPENROUTER_REFERER=SET
+UNSPLASH_ACCESS_KEY=SET
+MCP_API_KEY=SET
+MCP_API_TOKEN=SET
+MCP_USER_ID=SET
+AUTH_GOOGLE_ID=SET
+AUTH_GOOGLE_SECRET=SET
+EMAIL_INBOUND_TOKEN=SET
+EMAIL_ALLOWED_SENDERS=SET
+EMAIL_TARGET_USER_ID=SET
+SILONG_DISABLE_SEED=SET
+
+[8] Docker internal connectivity
+http://backend:3210/version -> 200
+http://backend:3211/.well-known/openid-configuration -> 200
+
+[9] Recent frontend errors
+
+[10] Recent backend errors
+
+========================================
+ AUDIT COMPLETE
+========================================

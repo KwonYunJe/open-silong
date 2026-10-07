@@ -80,24 +80,24 @@ export function FeedView({ db, view, rows, onOpenRow }: Props) {
           <Plus className="h-3 w-3" /> New row
         </Button>
         <div className="flex items-center gap-1">
-          <span className="text-muted-foreground">Sort by:</span>
+          <span className="text-muted-foreground">정렬 기준:</span>
           <Button
             variant="ghost"
             onClick={() => updateView(db.id, view.id, { feedTimestamp: "updatedAt" })}
             className={cn("h-auto rounded px-2 py-0.5 text-xs font-normal hover:bg-accent",
               source === "updatedAt" ? "bg-accent font-medium" : "text-muted-foreground")}
-          >Last edited</Button>
+          >마지막 수정</Button>
           <Button
             variant="ghost"
             onClick={() => updateView(db.id, view.id, { feedTimestamp: "createdAt" })}
             className={cn("h-auto rounded px-2 py-0.5 text-xs font-normal hover:bg-accent",
               source === "createdAt" ? "bg-accent font-medium" : "text-muted-foreground")}
-          >Created</Button>
+          >생성일</Button>
         </div>
       </div>
 
       {grouped.length === 0 && (
-        <div className="py-10 text-center text-sm text-muted-foreground">No rows</div>
+        <div className="py-10 text-center text-sm text-muted-foreground">행이 없습니다</div>
       )}
 
       <div className="relative">
@@ -118,14 +118,14 @@ export function FeedView({ db, view, rows, onOpenRow }: Props) {
                   <div key={r.id} className="relative group">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="absolute top-1 right-1 z-10 h-auto rounded bg-card/90 p-1 text-muted-foreground opacity-0 backdrop-blur group-hover:opacity-100 [&_svg]:size-3.5" aria-label="Row actions">
+                      <Button variant="ghost" className="absolute top-1 right-1 z-10 h-auto rounded bg-card/90 p-1 text-muted-foreground opacity-0 backdrop-blur group-hover:opacity-100 [&_svg]:size-3.5" aria-label="행 작업">
                         <MoreHorizontal className="h-3.5 w-3.5" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => onOpenRow(r.id)}>Open</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onOpenRow(r.id)}>열기</DropdownMenuItem>
                       <DropdownMenuItem className="text-destructive" onClick={() => deleteRow(db.id, r.id)}>
-                        <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete
+                        <Trash2 className="mr-2 h-3.5 w-3.5" /> 삭제
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -147,7 +147,7 @@ export function FeedView({ db, view, rows, onOpenRow }: Props) {
                     <div className="flex items-center justify-between gap-2 mb-1">
                       <span className="flex items-center gap-1.5 text-sm font-medium min-w-0">
                         <DynamicIcon value={r.icon} className="text-sm" />
-                        <span className="truncate">{r.title || "Untitled"}</span>
+                        <span className="truncate">{r.title || "제목 없음"}</span>
                       </span>
                       <span className="text-[10px] text-muted-foreground shrink-0">{timeLabel(ts)}</span>
                     </div>

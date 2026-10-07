@@ -1,0 +1,154 @@
+import { Database, DatabaseViewConfig, Page, Property } from "@/shared/types/domain";
+import { parseCover, isImageCover } from "@/slices/cover";
+import Image from "next/image";
+import { PropertyCell } from "../PropertyCell";
+import { focusSiblingBySelector } from "@/shared/lib/keyboard";
+import { cn } from "@/shared/lib/utils";
+import { getVisibleProps } from "../lib/visibility";
+import { useDbAdapter } from "../lib/useDbAdapter";
+import { Plus, MoreHorizontal, Trash2 } from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/shared/ui/dropdown-menu";
+import { Button } from "@/shared/ui/button";
+import { QuickCreateDialog } from "../components/QuickCreateDialog";
+import { DynamicIcon } from "@/shared/components/icon-picker";
+import { useMemo, useState } from "react";
+
+interface Props { db: Database; view: DatabaseViewConfig; rows: Page[]; onOpenRow: (id: string) => void }
+
+function pickCover(view: DatabaseViewConfig, db: Database, r: Page): string | undefined {
+  const src = view.galleryCoverSource ?? "cover";
+  if (src === "none") return undefined;
+  if (src === "property" && view.galleryCoverProp) {
+    const prop = db.properties.find(p => p.id === view.galleryCoverProp);
+    if (!prop) return undefined;
+    const raw = r.rowProps?.[prop.id];
+    if (prop.type === "files") {
+      const arr = (raw as string[]) ?? [];
+      return arr[0];
+    }
+    if (prop.type === "url") {
+      return (raw as string) ?? undefined;
+    }
+  }
+  // Cover field may be the new CoverData object — only return image-typed
+  // covers as a URL (gallery card uses <Image src=...>; color/gradient
+  // covers fall back to undefined so the card renders its placeholder).
+  const parsed = parseCover(r.cover);
+  if (parsed && isImageCover(parsed)) return parsed.value;
+  return undefined;
+}
+
+export function GalleryView({ db, view, rows, onOpenRow }: Props) {
+  const { deleteRow } = useDbAdapter();
+  const [quickOpen, setQuickOpen] = useState(false);
+  const size = view.gallerySize ?? "medium";
+  const aspect = view.galleryAspect ?? "video";
+  const fit = view.galleryCoverFit ?? "cover";
+
+  const gridCols =
+    size === "small" ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6"
+      : size === "large" ? "grid-cols-1 md:grid-cols-2"
+      : "grid-cols-2 md:grid-cols-3";
+
+  const aspectClass =
+    aspect === "square" ? "aspect-square"
+      : aspect === "portrait" ? "aspect-[3/4]"
+      : "aspect-video";
+
+  const viewVisible = useMemo(() => getVisibleProps(db, view), [db, view]);
+  const visibleSet = new Set(viewVisible.map(p => p.id));
+  const visible: Property[] = view.galleryCardProps?.length
+    ? view.galleryCardProps
+        .map(id => db.properties.find(p => p.id === id))
+        .filter((p): p is Property => !!p && visibleSet.has(p.id))
+    : viewVisible.filter(p => p.type !== "text").slice(0, 2);
+
+  return (
+    <div className={cn("grid gap-3 p-3", gridCols)}>
+      {rows.length === 0 && (
+        <div className="col-span-full py-10 text-center text-sm text-muted-foreground">No rows</div>
+      )}
+      {rows.map(r => {
+        const cover = pickCover(view, db, r);
+        return (
+          <div
+            key={r.id}
+            className="relative group rounded-lg border border-border bg-card hover:border-border-strong shadow-soft transition"
+          >
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="absolute top-1 right-1 z-10 h-auto rounded bg-card/90 p-1 text-muted-foreground opacity-0 backdrop-blur group-hover:opacity-100 [&_svg]:size-3.5" aria-label="Row actions">
+                  <MoreHorizontal className="h-3.5 w-3.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => onOpenRow(r.id)}>Open</DropdownMenuItem>
+                <DropdownMenuItem className="text-destructive" onClick={() => deleteRow(db.id, r.id)}>
+                  <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          <Button
+            variant="ghost"
+            onClick={() => onOpenRow(r.id)}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "ArrowLeft" || e.key === "ArrowRight") {
+                e.preventDefault();
+                const delta = e.key === "ArrowUp" || e.key === "ArrowLeft" ? -1 : 1;
+                focusSiblingBySelector(e.currentTarget, "[data-db-nav-item]", delta as 1 | -1);
+              }
+            }}
+            data-db-nav-item
+            className="block h-auto w-full rounded-lg p-3 text-left font-normal hover:bg-transparent"
+          >
+            {(view.galleryCoverSource ?? "cover") !== "none" && (
+              <div className={cn("w-full rounded-md mb-2 bg-muted overflow-hidden flex items-center justify-center", aspectClass)}>
+                {cover ? (
+                  cover.startsWith("http") || cover.startsWith("data:") ? (
+                    <Image
+                      src={cover}
+                      alt=""
+                      width={600}
+                      height={400}
+                      unoptimized
+                      sizes="(max-width: 768px) 50vw, 300px"
+                      className={cn("w-full h-full", fit === "cover" ? "object-cover" : "object-contain")}
+                    />
+                  ) : (
+                    <div className="w-full h-full" style={{ background: cover }} />
+                  )
+                ) : (
+                  <div className="w-full h-full" style={{ background: "linear-gradient(135deg, var(--muted), var(--accent))" }} />
+                )}
+              </div>
+            )}
+            <div className="flex items-center gap-1 text-sm font-medium mb-1">
+              <DynamicIcon value={r.icon} className="text-sm" />
+              <span className="truncate">{r.title || "Untitled"}</span>
+            </div>
+            {visible.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {visible.map(p => (
+                  <div key={p.id} onClick={e => e.stopPropagation()}>
+                    <PropertyCell db={db} prop={p} row={r} compact />
+                  </div>
+                ))}
+              </div>
+            )}
+          </Button>
+          </div>
+        );
+      })}
+      <Button
+        variant="outline"
+        onClick={() => setQuickOpen(true)}
+        className="flex h-auto min-h-[120px] items-center justify-center rounded-lg border-dashed p-3 text-sm font-normal text-muted-foreground hover:border-border-strong [&_svg]:size-4"
+      >
+        <Plus className="mr-1 h-4 w-4" /> New
+      </Button>
+      <QuickCreateDialog db={db} view={view} open={quickOpen} onOpenChange={setQuickOpen} onCreated={onOpenRow} />
+    </div>
+  );
+}

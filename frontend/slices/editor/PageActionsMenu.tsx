@@ -63,7 +63,7 @@ export function PageActionsMenu({ page, onShowHistory }: Props) {
           autoFocus={!isMobile}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search actions..."
+          placeholder="작업 검색..."
           className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60 sm:text-xs"
         />
       </div>
@@ -74,7 +74,7 @@ export function PageActionsMenu({ page, onShowHistory }: Props) {
         <div className="border-b border-border py-1 sm:hidden">
           <ToggleRow
             icon={Star}
-            label="Add to favorites"
+            label="즐겨찾기에 추가"
             checked={!!page.favorite}
             onChange={actions.onToggleFavorite}
           />
@@ -107,10 +107,10 @@ export function PageActionsMenu({ page, onShowHistory }: Props) {
       {groupVisible("Small text", "Full width") && (
         <div className="border-b border-border py-1">
           {match("Small text") && (
-            <ToggleRow icon={Ruler} label="Small text" checked={!!page.smallText} onChange={actions.toggleSmall} />
+            <ToggleRow icon={Ruler} label="작은 글씨" checked={!!page.smallText} onChange={actions.toggleSmall} />
           )}
           {match("Full width") && (
-            <ToggleRow icon={MoveHorizontal} label="Full width" checked={!!page.fullWidth} onChange={actions.toggleFull} />
+            <ToggleRow icon={MoveHorizontal} label="전체 너비" checked={!!page.fullWidth} onChange={actions.toggleFull} />
           )}
         </div>
       )}
@@ -118,17 +118,17 @@ export function PageActionsMenu({ page, onShowHistory }: Props) {
       {groupVisible("Copy link", "Copy page contents", "Duplicate", "Move to", "Move to Trash") && (
         <div className="border-b border-border py-1">
           {match("Copy link") && (
-            <Row icon={Link2} label="Copy link" shortcut="Ctrl+Alt+L" onClick={actions.copyLink} />
+            <Row icon={Link2} label="링크 복사" shortcut="Ctrl+Alt+L" onClick={actions.copyLink} />
           )}
           {match("Copy page contents") && (
-            <Row icon={ClipboardCopy} label="Copy page contents" onClick={actions.copyContents} />
+            <Row icon={ClipboardCopy} label="페이지 내용 복사" onClick={actions.copyContents} />
           )}
           {match("Duplicate") && (
-            <Row icon={Files} label="Duplicate" shortcut="Ctrl+D" onClick={actions.onDuplicate} />
+            <Row icon={Files} label="복제" shortcut="Ctrl+D" onClick={actions.onDuplicate} />
           )}
           {match("Move to") && <MoveToSubmenu page={page} close={close} />}
           {match("Move to Trash") && (
-            <Row icon={Trash2} label="Move to Trash" onClick={actions.onTrash} destructive />
+            <Row icon={Trash2} label="휴지통으로 이동" onClick={actions.onTrash} destructive />
           )}
         </div>
       )}
@@ -136,12 +136,12 @@ export function PageActionsMenu({ page, onShowHistory }: Props) {
       {groupVisible("Customize page", "Lock page") && (
         <div className="border-b border-border py-1">
           {match("Customize page") && (
-            <Row icon={Palette} label="Customize page" onClick={actions.stub("Customize page")} />
+            <Row icon={Palette} label="페이지 꾸미기" onClick={actions.stub("Customize page")} />
           )}
           {match("Lock page") && (
             <ToggleRow
               icon={page.locked ? Lock : Unlock}
-              label="Lock page"
+              label="페이지 잠금"
               checked={!!page.locked}
               onChange={actions.toggleLock}
             />
@@ -152,9 +152,9 @@ export function PageActionsMenu({ page, onShowHistory }: Props) {
       {groupVisible("Use with AI", "Suggest edits", "Translate") && (
         <div className="border-b border-border py-1">
           <SectionLabel>AI</SectionLabel>
-          {match("Use with AI") && <Row icon={Sparkles} label="Use with AI" onClick={actions.stub("Use with AI")} />}
-          {match("Suggest edits") && <Row icon={MessageSquare} label="Suggest edits" onClick={actions.stub("Suggest edits")} />}
-          {match("Translate") && <Row icon={Languages} label="Translate" onClick={actions.stub("Translate")} />}
+          {match("Use with AI") && <Row icon={Sparkles} label="AI로 사용" onClick={actions.stub("Use with AI")} />}
+          {match("Suggest edits") && <Row icon={MessageSquare} label="수정 제안" onClick={actions.stub("Suggest edits")} />}
+          {match("Translate") && <Row icon={Languages} label="번역" onClick={actions.stub("Translate")} />}
         </div>
       )}
 
@@ -177,16 +177,16 @@ export function PageActionsMenu({ page, onShowHistory }: Props) {
           )}
           {match("Turn into wiki") && <WikiToggleAction pageId={page.id} onClose={close} />}
           {match("Updates & analytics") && (
-            <AnalyticsPopover page={page} trigger={<RowButton icon={BarChart3} label="Updates & analytics" />} />
+            <AnalyticsPopover page={page} trigger={<RowButton icon={BarChart3} label="업데이트 및 분석" />} />
           )}
           {match("Version history") && (
-            <Row icon={History} label="Version history" onClick={() => { close(); onShowHistory(); }} />
+            <Row icon={History} label="버전 기록" onClick={() => { close(); onShowHistory(); }} />
           )}
           {match("Notify me") && (
-            <NotifyMePopover pageId={page.id} trigger={<RowButton icon={Bell} label="Notify me" />} />
+            <NotifyMePopover pageId={page.id} trigger={<RowButton icon={Bell} label="알림 받기" />} />
           )}
           {match("Mentions") && (
-            <MentionsPopover trigger={<RowButton icon={AtSign} label="Mentions" />} />
+            <MentionsPopover trigger={<RowButton icon={AtSign} label="멘션" />} />
           )}
         </div>
       )}
@@ -207,7 +207,7 @@ export function PageActionsMenu({ page, onShowHistory }: Props) {
         "Suggest edits", "Translate", "Data", "Turn into wiki",
         "Updates & analytics", "Version history", "Notify me", "Mentions",
       ) && (
-        <div className="px-3 py-6 text-center text-xs text-muted-foreground">No matching actions</div>
+        <div className="px-3 py-6 text-center text-xs text-muted-foreground">일치하는 작업이 없습니다</div>
       )}
     </>
   );
@@ -220,7 +220,7 @@ export function PageActionsMenu({ page, onShowHistory }: Props) {
           variant="ghost"
           size="icon"
           className="h-10 w-10 text-muted-foreground"
-          aria-label="Page actions"
+          aria-label="페이지 작업"
           onClick={() => { setDrawerMounted(true); setOpen(true); }}
         >
           {trigger}
@@ -229,7 +229,7 @@ export function PageActionsMenu({ page, onShowHistory }: Props) {
           <Suspense fallback={null}>
             <Drawer open={open} onOpenChange={setOpen}>
               <DrawerContent ref={setDrawerEl} className="max-h-[85dvh]">
-                <DrawerTitle className="sr-only">Page actions</DrawerTitle>
+                <DrawerTitle className="sr-only">페이지 작업</DrawerTitle>
                 {/* Submenus portal into the drawer node, not body. */}
                 <PortalContainerProvider value={drawerEl}>
                   <div className="min-h-0 overflow-y-auto overscroll-contain pb-[max(0.75rem,env(safe-area-inset-bottom))]">
@@ -252,7 +252,7 @@ export function PageActionsMenu({ page, onShowHistory }: Props) {
           variant="ghost"
           size="icon"
           className="h-8 w-8 text-muted-foreground"
-          aria-label="Page actions"
+          aria-label="페이지 작업"
         >
           {trigger}
         </Button>

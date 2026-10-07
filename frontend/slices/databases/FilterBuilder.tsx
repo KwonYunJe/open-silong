@@ -5,12 +5,12 @@ import { Input } from "@/shared/ui/input";
 import { Button } from "@/shared/ui/button";
 
 const OPS: { value: DatabaseFilter["op"]; label: string; needsValue: boolean }[] = [
-  { value: "contains", label: "contains", needsValue: true },
-  { value: "equals", label: "equals", needsValue: true },
-  { value: "not_empty", label: "is not empty", needsValue: false },
-  { value: "is_empty", label: "is empty", needsValue: false },
-  { value: "checked", label: "is checked", needsValue: false },
-  { value: "unchecked", label: "is unchecked", needsValue: false },
+  { value: "contains", label: "포함", needsValue: true },
+  { value: "equals", label: "같음", needsValue: true },
+  { value: "not_empty", label: "비어 있지 않음", needsValue: false },
+  { value: "is_empty", label: "비어 있음", needsValue: false },
+  { value: "checked", label: "체크됨", needsValue: false },
+  { value: "unchecked", label: "체크되지 않음", needsValue: false },
 ];
 
 interface Props {
@@ -37,9 +37,9 @@ export function FilterBuilder({ db, view, writeView }: Props) {
 
   return (
     <div className="p-2 space-y-2 min-w-[320px]">
-      <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1">Filters</div>
+      <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1">필터</div>
       {filters.length === 0 && (
-        <div className="text-xs text-muted-foreground px-1">No filters applied.</div>
+        <div className="text-xs text-muted-foreground px-1">적용된 필터가 없습니다.</div>
       )}
       {filters.map((f, i) => {
         const prop = db.properties.find(p => p.id === f.propertyId);
@@ -48,7 +48,7 @@ export function FilterBuilder({ db, view, writeView }: Props) {
           <div key={i} className="flex items-center gap-1.5 flex-wrap">
             <Select value={f.propertyId} onValueChange={v => update(i, { propertyId: v })}>
               <SelectTrigger className="h-7 text-xs w-32">
-                <SelectValue placeholder="Property" />
+                <SelectValue placeholder="속성" />
               </SelectTrigger>
               <SelectContent>
                 {db.properties.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
@@ -69,7 +69,7 @@ export function FilterBuilder({ db, view, writeView }: Props) {
                 value={f.value ?? ""}
                 onChange={e => update(i, { value: e.target.value })}
                 className="h-7 text-xs w-28"
-                placeholder="value"
+                placeholder="값"
               />
             )}
 

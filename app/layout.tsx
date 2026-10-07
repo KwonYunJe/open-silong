@@ -93,7 +93,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${fraunces.variable}`}>
+    <html lang="ko" suppressHydrationWarning className={`${inter.variable} ${fraunces.variable}`}>
       <HeadHints />
       <body>
         <div id="root">

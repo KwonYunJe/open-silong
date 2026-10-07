@@ -26,16 +26,16 @@ interface Tile {
 
 export function MoreDrawer({ open, onOpenChange, isAdmin, onNavigate, onOpenTemplates }: Props) {
   const tiles: Tile[] = [
-    { id: "templates", icon: FileBox, label: "Templates", hint: "Spin up a starter page", hue: "from-violet-500 to-fuchsia-600", onClick: onOpenTemplates },
-    { id: "profile", icon: User, label: "Profile", hint: "Your account", hue: "from-sky-500 to-blue-600", onClick: () => onNavigate(ROUTES.profile) },
-    { id: "settings", icon: Settings, label: "Settings", hint: "Theme · density · behaviour", hue: "from-zinc-500 to-zinc-700", onClick: () => onNavigate(ROUTES.settings) },
-    { id: "trash", icon: Trash2, label: "Trash", hint: "Restore or empty", hue: "from-amber-500 to-orange-600", onClick: () => onNavigate(ROUTES.trash) },
+    { id: "templates", icon: FileBox, label: "템플릿", hint: "템플릿으로 페이지 만들기", hue: "from-violet-500 to-fuchsia-600", onClick: onOpenTemplates },
+    { id: "profile", icon: User, label: "프로필", hint: "내 계정", hue: "from-sky-500 to-blue-600", onClick: () => onNavigate(ROUTES.profile) },
+    { id: "settings", icon: Settings, label: "설정", hint: "테마 · 화면 밀도 · 동작", hue: "from-zinc-500 to-zinc-700", onClick: () => onNavigate(ROUTES.settings) },
+    { id: "trash", icon: Trash2, label: "휴지통", hint: "복원 또는 비우기", hue: "from-amber-500 to-orange-600", onClick: () => onNavigate(ROUTES.trash) },
   ];
   if (isAdmin) {
     tiles.push({
       id: "admin",
       icon: ShieldAlert,
-      label: "Admin",
+      label: "관리자",
       hint: "Operational control",
       hue: "from-red-500 to-rose-700",
       // Uses absolute path because MobileBottomNav routes this branch through next/navigation's router (the `isExternal` path).
@@ -54,8 +54,8 @@ export function MoreDrawer({ open, onOpenChange, isAdmin, onNavigate, onOpenTemp
           style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
         >
           <DrawerHeader className="text-left">
-            <DrawerTitle className="text-base">More</DrawerTitle>
-            <DrawerDescription className="text-xs">Templates, profile, settings, and more.</DrawerDescription>
+            <DrawerTitle className="text-base">더보기</DrawerTitle>
+            <DrawerDescription className="text-xs">템플릿, 프로필, 설정 등의 메뉴입니다.</DrawerDescription>
           </DrawerHeader>
           <div className="px-3 pb-4 grid grid-cols-2 gap-2">
             {tiles.map((t) => (

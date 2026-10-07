@@ -30,15 +30,15 @@ export function SortBuilder({ db, view, writeView }: Props) {
 
   return (
     <div className="p-2 space-y-2 min-w-[260px]">
-      <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1">Sort</div>
+      <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1">정렬</div>
       {sorts.length === 0 && (
-        <div className="text-xs text-muted-foreground px-1">No sorts applied.</div>
+        <div className="text-xs text-muted-foreground px-1">적용된 정렬이 없습니다.</div>
       )}
       {sorts.map((s, i) => (
         <div key={i} className="flex items-center gap-1.5">
           <Select value={s.propertyId} onValueChange={v => setProp(i, v)}>
             <SelectTrigger className="h-7 text-xs flex-1">
-              <SelectValue placeholder="Property" />
+              <SelectValue placeholder="속성" />
             </SelectTrigger>
             <SelectContent>
               {db.properties.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}

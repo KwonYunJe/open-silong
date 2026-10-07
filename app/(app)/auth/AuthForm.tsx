@@ -16,8 +16,8 @@ export function AuthForm() {
   const { signIn } = useAuthActions();
   const [flow, setFlow] = useState<"signIn" | "signUp">("signIn");
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, set이메일] = useState("");
+  const [password, set비밀번호] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -33,7 +33,7 @@ export function AuthForm() {
         ...(flow === "signUp" && name ? { name } : {}),
       });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Authentication failed";
+      const msg = err instanceof Error ? err.message : "인증에 실패했습니다.";
       setError(msg);
     } finally {
       setLoading(false);
@@ -60,7 +60,7 @@ export function AuthForm() {
           priority
         />
         <p className="text-sm text-muted-foreground">
-          {flow === "signIn" ? "Sign in to your workspace" : "Create your workspace"}
+          {flow === "signIn" ? "워크스페이스에 로그인" : "계정 만들기"}
         </p>
       </div>
 
@@ -77,7 +77,7 @@ export function AuthForm() {
               try {
                 await signIn("google");
               } catch (err) {
-                setError(err instanceof Error ? err.message : "Google sign-in failed");
+                setError(err instanceof Error ? err.message : "Google 로그인에 실패했습니다.");
                 setLoading(false);
               }
             }}
@@ -88,7 +88,7 @@ export function AuthForm() {
               <path fill="#4CAF50" d="M24 44c5.2 0 10-2 13.6-5.2l-6.3-5.3C29.2 35 26.7 36 24 36c-5.3 0-9.7-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/>
               <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.3 5.5l6.3 5.3C40.9 36 44 30.5 44 24c0-1.3-.1-2.6-.4-3.5z"/>
             </svg>
-            Continue with Google
+            Google로 계속
           </Button>
 
           <div className="relative">
@@ -96,7 +96,7 @@ export function AuthForm() {
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">or</span>
+              <span className="bg-background px-2 text-muted-foreground">또는</span>
             </div>
           </div>
         </>
@@ -105,7 +105,7 @@ export function AuthForm() {
       <form onSubmit={handleSubmit} className="space-y-3">
         {flow === "signUp" && (
           <Input
-            placeholder="Your name"
+            placeholder="이름"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
@@ -113,27 +113,27 @@ export function AuthForm() {
         )}
         <Input
           type="email"
-          placeholder="Email"
+          placeholder="이메일"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => set이메일(e.target.value)}
           required
         />
         <Input
           type="password"
-          placeholder="Password"
+          placeholder="비밀번호"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => set비밀번호(e.target.value)}
           required
           minLength={8}
         />
         {error && <p className="text-sm text-destructive">{error}</p>}
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Please wait…" : flow === "signIn" ? "Sign in" : "Create account"}
+          {loading ? "잠시만 기다려 주세요…" : flow === "signIn" ? "로그인" : "계정 만들기"}
         </Button>
       </form>
 
       <p className="text-center text-sm text-muted-foreground">
-        {flow === "signIn" ? "Don't have an account?" : "Already have an account?"}{" "}
+        {flow === "signIn" ? "계정이 없으신가요?" : "이미 계정이 있으신가요?"}{" "}
         <Button
           type="button"
           variant="link"
@@ -143,7 +143,7 @@ export function AuthForm() {
             setError("");
           }}
         >
-          {flow === "signIn" ? "Sign up" : "Sign in"}
+          {flow === "signIn" ? "회원가입" : "로그인"}
         </Button>
       </p>
     </>

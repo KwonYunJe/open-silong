@@ -93,9 +93,9 @@ export function TemplateGalleryDialog({
       <DialogContent
         className="p-0 max-w-7xl w-[96vw] h-[92vh] gap-0 flex flex-col overflow-hidden [&>button.absolute]:hidden"
       >
-        <DialogTitle className="sr-only">Templates</DialogTitle>
+        <DialogTitle className="sr-only">템플릿</DialogTitle>
         <DialogDescription className="sr-only">
-          Pick a template to spin up a new page in this workspace.
+          템플릿을 선택하여 새 페이지를 만듭니다.
         </DialogDescription>
 
         <header className="flex items-center gap-3 border-b border-border px-4 py-2.5 shrink-0">
@@ -105,15 +105,15 @@ export function TemplateGalleryDialog({
               variant="ghost"
               onClick={() => setSelectedId(null)}
               className="h-8 px-2 gap-1.5 text-sm font-normal text-muted-foreground hover:text-foreground"
-              aria-label="Back to gallery"
+              aria-label="템플릿 목록으로 돌아가기"
             >
               <ArrowLeft className="h-4 w-4" />
-              <span className="hidden sm:inline">Templates</span>
+              <span className="hidden sm:inline">템플릿</span>
             </Button>
           ) : (
             <div className="flex items-center gap-2 min-w-0 flex-1">
               <Boxes className="h-4 w-4 text-brand shrink-0" />
-              <span className="font-semibold text-sm">Templates</span>
+              <span className="font-semibold text-sm">템플릿</span>
               <span className="text-xs text-muted-foreground truncate hidden sm:inline">
                 · marketplace for new pages
               </span>
@@ -125,7 +125,7 @@ export function TemplateGalleryDialog({
             variant="ghost"
             size="icon"
             onClick={() => onOpenChange(false)}
-            aria-label="Close"
+            aria-label="닫기"
             className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground shrink-0"
           >
             <X className="h-4 w-4" />

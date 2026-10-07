@@ -17,7 +17,7 @@ export function LibraryHeader({
           <Library className="h-4 w-4" />
         </div>
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Library</h1>
+          <h1 className="text-xl font-semibold tracking-tight">라이브러리</h1>
           <p className="text-xs text-muted-foreground">
             Browse, select, and bulk-edit every page in {workspaceName}.
           </p>
@@ -27,7 +27,7 @@ export function LibraryHeader({
         <div className="relative">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input
-            placeholder="Filter by title…"
+            placeholder="제목으로 검색…"
             value={filter}
             onChange={(e) => onFilterChange(e.target.value)}
             className="pl-7 h-9 w-56"

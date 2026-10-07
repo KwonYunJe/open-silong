@@ -47,15 +47,15 @@ export function Dashboard() {
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3">
           <ActionCard
             icon={Plus}
-            title="New page"
-            subtitle="Start with a blank canvas"
+            title="새 페이지"
+            subtitle="빈 페이지에서 시작합니다"
             onClick={async () => { const p = await createPage(null); navigate(`/p/${p.id}`); }}
             primary
           />
           <ActionCard
             icon={Table2}
-            title="New database"
-            subtitle="Track and organize rows"
+            title="새 데이터베이스"
+            subtitle="데이터를 체계적으로 관리합니다"
             onClick={async () => {
               // First-class database: create the db and open it at /db/:id.
               // (The old flow also spun up a host PAGE + embedded block, which
@@ -83,7 +83,7 @@ export function Dashboard() {
         />
 
         {favorites.length > 0 && (
-          <Section title="Favorites" icon={Star}>
+          <Section title="즐겨찾기" icon={Star}>
             <Grid>
               {favorites.map(p => <PageCard key={p.id} page={p} onClick={() => navigate(`/p/${p.id}`)} />)}
             </Grid>
@@ -91,7 +91,7 @@ export function Dashboard() {
         )}
 
         {recentPages.length > 0 && (
-          <Section title="Recently visited" icon={Clock}>
+          <Section title="최근 방문" icon={Clock}>
             <Grid>
               {recentPages.map(p => <PageCard key={p.id} page={p} onClick={() => navigate(`/p/${p.id}`)} />)}
             </Grid>
@@ -99,12 +99,12 @@ export function Dashboard() {
         )}
 
         {databases.length > 0 && (
-          <Section title="Databases" icon={Table2}>
+          <Section title="데이터베이스" icon={Table2}>
             <DatabasesList databases={databases} />
           </Section>
         )}
 
-        <Section title="All pages" icon={FileText}>
+        <Section title="모든 페이지" icon={FileText}>
           <div className="rounded-lg border border-border divide-y divide-border bg-card">
             {regularPages.length === 0 ? (
               <EmptyState onCreate={async () => { const p = await createPage(null); navigate(`/p/${p.id}`); }} />

@@ -106,24 +106,24 @@ export function AppSidebar({ onOpenSearch }: Props) {
   };
 
   const navItems: NavItem[] = [
-    { icon: Search, label: "Search", onClick: onOpenSearch, active: false, shortcut: "⌘K" },
-    { icon: Sparkles, label: "Dashboard", onClick: () => go("/"), active: pathname === ROUTE_BASE },
-    { icon: Library, label: "Library", onClick: () => go("/library"), active: pathname === path("/library") },
-    { icon: Network, label: "Graph", onClick: () => go("/graph"), active: pathname === path("/graph") },
+    { icon: Search, label: "검색", onClick: onOpenSearch, active: false, shortcut: "⌘K" },
+    { icon: Sparkles, label: "대시보드", onClick: () => go("/"), active: pathname === ROUTE_BASE },
+    { icon: Library, label: "라이브러리", onClick: () => go("/library"), active: pathname === path("/library") },
+    { icon: Network, label: "그래프", onClick: () => go("/graph"), active: pathname === path("/graph") },
     { icon: Bot, label: "AI", onClick: () => setAiOpen(true), active: false },
     {
-      icon: Inbox, label: "Inbox", onClick: () => go("/inbox"),
+      icon: Inbox, label: "받은 알림", onClick: () => go("/inbox"),
       active: pathname === path("/inbox"), badge: <InboxBadge />,
     },
-    { icon: FileBox, label: "Templates", onClick: () => setTemplatesOpen(true), active: false },
-    { icon: FileJson, label: "Export / Import", onClick: () => workspaceIO.open(), active: false },
+    { icon: FileBox, label: "템플릿", onClick: () => setTemplatesOpen(true), active: false },
+    { icon: FileJson, label: "내보내기 / 가져오기", onClick: () => workspaceIO.open(), active: false },
   ];
 
   const accountItems: NavItem[] = [
-    { icon: Compass, label: "Take a tour", onClick: () => { closeMobile(); setTourOpen(true); }, active: false },
-    { icon: User, label: "Profile", onClick: () => go("/profile"), active: pathname === path("/profile") },
-    { icon: Settings, label: "Settings", onClick: () => go("/settings"), active: pathname === path("/settings") },
-    { icon: Trash2, label: "Trash", onClick: () => go("/trash"), active: pathname === path("/trash") },
+    { icon: Compass, label: "둘러보기", onClick: () => { closeMobile(); setTourOpen(true); }, active: false },
+    { icon: User, label: "프로필", onClick: () => go("/profile"), active: pathname === path("/profile") },
+    { icon: Settings, label: "설정", onClick: () => go("/settings"), active: pathname === path("/settings") },
+    { icon: Trash2, label: "휴지통", onClick: () => go("/trash"), active: pathname === path("/trash") },
   ];
   if (isAdmin || claimableSuperAdmin) {
     accountItems.push({
@@ -168,8 +168,8 @@ export function AppSidebar({ onOpenSearch }: Props) {
         <Button
           type="button"
           onClick={handleNewPage}
-          aria-label="New page"
-          title="New page"
+          aria-label="새 페이지"
+          title="새 페이지"
           className="h-auto w-full justify-start gap-2 rounded-md bg-foreground px-2.5 py-1.5 text-sm font-medium text-background hover:bg-foreground hover:opacity-90 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:!p-0 [&_svg]:size-4"
         >
           <Plus className="h-4 w-4 shrink-0" />

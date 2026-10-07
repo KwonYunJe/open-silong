@@ -34,7 +34,7 @@ export function ListView({ db, view, rows, onOpenRow }: Props) {
   return (
     <div className="divide-y divide-border">
       {rows.length === 0 && (
-        <div className="px-4 py-10 text-center text-sm text-muted-foreground">No rows</div>
+        <div className="px-4 py-10 text-center text-sm text-muted-foreground">행이 없습니다</div>
       )}
       {rows.map(r => (
         <div
@@ -57,7 +57,7 @@ export function ListView({ db, view, rows, onOpenRow }: Props) {
             className="h-auto min-w-0 flex-1 justify-start gap-3 rounded-none px-3 text-left font-normal hover:bg-transparent"
           >
             <DynamicIcon value={r.icon} className={cn(compact ? "text-sm" : "text-base")} />
-            <span className={cn("flex-1 truncate", compact ? "text-xs" : "text-sm")}>{r.title || "Untitled"}</span>
+            <span className={cn("flex-1 truncate", compact ? "text-xs" : "text-sm")}>{r.title || "제목 없음"}</span>
           </Button>
           {summaries.map(p => (
             <div key={p.id} onClick={e => e.stopPropagation()}>
@@ -66,14 +66,14 @@ export function ListView({ db, view, rows, onOpenRow }: Props) {
           ))}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-auto rounded p-1 text-muted-foreground opacity-0 group-hover:opacity-100 [&_svg]:size-3.5" aria-label="Row actions">
+              <Button variant="ghost" className="h-auto rounded p-1 text-muted-foreground opacity-0 group-hover:opacity-100 [&_svg]:size-3.5" aria-label="행 작업">
                 <MoreHorizontal className="h-3.5 w-3.5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onOpenRow(r.id)}>Open</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onOpenRow(r.id)}>열기</DropdownMenuItem>
               <DropdownMenuItem className="text-destructive" onClick={() => deleteRow(db.id, r.id)}>
-                <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete
+                <Trash2 className="mr-2 h-3.5 w-3.5" /> 삭제
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

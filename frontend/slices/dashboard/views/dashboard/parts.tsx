@@ -77,9 +77,9 @@ export function EmptyState({ onCreate }: { onCreate: () => void }) {
   return (
     <div className="px-6 py-12 text-center">
       <div className="text-4xl mb-3">📭</div>
-      <div className="font-medium">No pages yet</div>
-      <p className="text-sm text-muted-foreground mt-1 mb-4">Create your first page to get started.</p>
-      <Button onClick={onCreate} className="rounded-md bg-foreground px-4 py-2 text-sm text-background hover:bg-foreground hover:opacity-90">Create page</Button>
+      <div className="font-medium">아직 페이지가 없습니다</div>
+      <p className="text-sm text-muted-foreground mt-1 mb-4">첫 페이지를 만들어 시작하세요.</p>
+      <Button onClick={onCreate} className="rounded-md bg-foreground px-4 py-2 text-sm text-background hover:bg-foreground hover:opacity-90">페이지 만들기</Button>
     </div>
   );
 }

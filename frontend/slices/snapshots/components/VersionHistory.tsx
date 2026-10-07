@@ -28,8 +28,8 @@ export function VersionHistory({ pageId, onClose }: { pageId: string; onClose: (
       </div>
 
       <div className="border-b border-border bg-muted/20 px-4 py-2">
-        <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Current</div>
-        <div className="text-sm font-medium">{page?.title || "Untitled"}</div>
+        <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">현재</div>
+        <div className="text-sm font-medium">{page?.title || "제목 없음"}</div>
         <div className="text-xs text-muted-foreground">{page ? formatDateTime(page.updatedAt) : ""}</div>
       </div>
 
@@ -43,7 +43,7 @@ export function VersionHistory({ pageId, onClose }: { pageId: string; onClose: (
             {snaps.map(s => (
               <li key={s.id} className={cn("p-3 hover:bg-accent/40 cursor-pointer transition", previewId === s.id && "bg-accent/60")} onClick={() => setPreviewId(s.id)}>
                 <div className="flex items-center justify-between">
-                  <div className="text-sm font-medium truncate">{s.title || "Untitled"}</div>
+                  <div className="text-sm font-medium truncate">{s.title || "제목 없음"}</div>
                   <span className="text-[10px] text-muted-foreground shrink-0 ml-2">{formatRelTime(s.takenAt)}</span>
                 </div>
                 <div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
@@ -66,12 +66,12 @@ function PreviewPanel({ snapshot, onClose, onRestore }: { snapshot: PageSnapshot
     <div className="border-t border-border p-3 max-h-[40%] overflow-y-auto bg-card">
       <div className="flex items-center justify-between mb-2">
         <div className="text-xs font-semibold flex items-center gap-1"><Eye className="h-3 w-3" /> Preview</div>
-        <Button variant="ghost" onClick={onClose} className="h-auto p-0 text-xs font-normal text-muted-foreground hover:bg-transparent hover:text-foreground">Close</Button>
+        <Button variant="ghost" onClick={onClose} className="h-auto p-0 text-xs font-normal text-muted-foreground hover:bg-transparent hover:text-foreground">닫기</Button>
       </div>
       <div className="text-xs text-muted-foreground mb-2">{formatDateTime(snapshot.takenAt)}</div>
       <div className="font-serif text-base font-bold mb-2 flex items-center gap-1.5">
         <DynamicIcon value={snapshot.icon} className="text-base" />
-        <span>{snapshot.title || "Untitled"}</span>
+        <span>{snapshot.title || "제목 없음"}</span>
       </div>
       <div className="space-y-1 text-xs text-foreground/80 max-h-40 overflow-y-auto">
         {snapshot.blocks.slice(0, 10).map((b: Block) => (
@@ -87,14 +87,14 @@ function PreviewPanel({ snapshot, onClose, onRestore }: { snapshot: PageSnapshot
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Restore this version?</AlertDialogTitle>
+            <AlertDialogTitle>이 버전으로 복원하시겠습니까?</AlertDialogTitle>
             <AlertDialogDescription>
               The current page contents will be replaced. The version you're replacing will be saved as a new snapshot you can restore later.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={onRestore}>Restore</AlertDialogAction>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={onRestore}>복원</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -29,8 +29,8 @@ export default function ProfilePage() {
           <User className="h-5 w-5" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight font-serif">Profile</h1>
-          <p className="text-sm text-muted-foreground">Your name, avatar and account details.</p>
+          <h1 className="text-2xl font-bold tracking-tight font-serif">프로필</h1>
+          <p className="text-sm text-muted-foreground">이름, 프로필 이미지 및 계정 정보를 관리합니다.</p>
         </div>
       </header>
 

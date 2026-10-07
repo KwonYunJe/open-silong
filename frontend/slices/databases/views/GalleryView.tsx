@@ -68,7 +68,7 @@ export function GalleryView({ db, view, rows, onOpenRow }: Props) {
   return (
     <div className={cn("grid gap-3 p-3", gridCols)}>
       {rows.length === 0 && (
-        <div className="col-span-full py-10 text-center text-sm text-muted-foreground">No rows</div>
+        <div className="col-span-full py-10 text-center text-sm text-muted-foreground">행이 없습니다</div>
       )}
       {rows.map(r => {
         const cover = pickCover(view, db, r);
@@ -79,14 +79,14 @@ export function GalleryView({ db, view, rows, onOpenRow }: Props) {
           >
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="absolute top-1 right-1 z-10 h-auto rounded bg-card/90 p-1 text-muted-foreground opacity-0 backdrop-blur group-hover:opacity-100 [&_svg]:size-3.5" aria-label="Row actions">
+                <Button variant="ghost" className="absolute top-1 right-1 z-10 h-auto rounded bg-card/90 p-1 text-muted-foreground opacity-0 backdrop-blur group-hover:opacity-100 [&_svg]:size-3.5" aria-label="행 작업">
                   <MoreHorizontal className="h-3.5 w-3.5" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onOpenRow(r.id)}>Open</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onOpenRow(r.id)}>열기</DropdownMenuItem>
                 <DropdownMenuItem className="text-destructive" onClick={() => deleteRow(db.id, r.id)}>
-                  <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete
+                  <Trash2 className="mr-2 h-3.5 w-3.5" /> 삭제
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -126,7 +126,7 @@ export function GalleryView({ db, view, rows, onOpenRow }: Props) {
             )}
             <div className="flex items-center gap-1 text-sm font-medium mb-1">
               <DynamicIcon value={r.icon} className="text-sm" />
-              <span className="truncate">{r.title || "Untitled"}</span>
+              <span className="truncate">{r.title || "제목 없음"}</span>
             </div>
             {visible.length > 0 && (
               <div className="flex flex-wrap gap-1">
